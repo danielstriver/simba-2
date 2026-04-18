@@ -1,0 +1,183 @@
+"use client";
+import Link from "next/link";
+import { useTheme } from "next-themes";
+import { ShoppingCart, Sun, Moon, Globe, Search, Menu, X } from "lucide-react";
+import { useStore } from "@/lib/store";
+import { useLang } from "@/lib/LanguageContext";
+import { Language } from "@/lib/i18n";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+export default function Navbar() {
+  const { theme, setTheme } = useTheme();
+  const { t, lang, setLang } = useLang();
+  const totalItems = useStore((s) => s.totalItems());
+  const setCartOpen = useStore((s) => s.setCartOpen);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => setMounted(true), []);
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (search.trim()) {
+      router.push(`/products?q=${encodeURIComponent(search.trim())}`);
+      setMobileOpen(false);
+    }
+  }
+
+  const langs: { code: Language; label: string }[] = [
+    { code: "en", label: "EN" },
+    { code: "fr", label: "FR" },
+    { code: "rw", label: "RW" },
+  ];
+
+  return (
+    <header className="sticky top-0 z-40 bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 shrink-0">
+            <div className="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center shadow-sm">
+              <span className="text-white font-black text-base">S</span>
+            </div>
+            <div className="hidden sm:block">
+              <span className="font-black text-xl text-gray-900 dark:text-white tracking-tight">Simba</span>
+              <span className="block text-[10px] text-red-600 font-medium -mt-1 leading-none">SUPERMARKET</span>
+            </div>
+          </Link>
+
+          {/* Desktop Search */}
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-8">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t.searchPlaceholder}
+                className="w-full pl-10 pr-12 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              />
+              <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-red-700 transition-colors">
+                Go
+              </button>
+            </div>
+          </form>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1.5">
+            {/* Language switcher */}
+            <div className="hidden sm:flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800 rounded-full px-1.5 py-1">
+              {langs.map((l) => (
+                <button
+                  key={l.code}
+                  onClick={() => setLang(l.code)}
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${
+                    lang === l.code
+                      ? "bg-red-600 text-white shadow-sm"
+                      : "text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700"
+                  }`}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Theme toggle */}
+            {mounted && (
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-4 h-4 text-yellow-400" />
+                ) : (
+                  <Moon className="w-4 h-4 text-gray-500" />
+                )}
+              </button>
+            )}
+
+            {/* Cart button */}
+            <button
+              onClick={() => setCartOpen(true)}
+              className="relative flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-full text-sm font-medium transition-colors"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              <span className="hidden sm:inline">{t.cart}</span>
+              {totalItems > 0 && (
+                <span className="bg-white text-red-600 text-xs font-black rounded-full w-4 h-4 flex items-center justify-center">
+                  {totalItems > 9 ? "9+" : totalItems}
+                </span>
+              )}
+            </button>
+
+            {/* Mobile menu */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop nav links */}
+        <nav className="hidden md:flex items-center gap-6 pb-2.5 text-sm border-t border-gray-100 dark:border-gray-800 pt-1">
+          <Link href="/" className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition-colors font-medium">
+            {t.home}
+          </Link>
+          <Link href="/products" className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition-colors font-medium">
+            {t.allProducts}
+          </Link>
+          {["Cosmetics & Personal Care","Alcoholic Drinks","Food Products","Cleaning & Sanitary"].map((cat) => (
+            <Link
+              key={cat}
+              href={`/products?category=${encodeURIComponent(cat)}`}
+              className="text-gray-500 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-500 transition-colors text-xs"
+            >
+              {cat}
+            </Link>
+          ))}
+        </nav>
+      </div>
+
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-4 space-y-4 shadow-lg">
+          <form onSubmit={handleSearch}>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t.searchPlaceholder}
+                className="w-full pl-10 pr-4 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+          </form>
+          <div className="flex gap-4 text-sm font-medium">
+            <Link href="/" onClick={() => setMobileOpen(false)} className="text-gray-700 dark:text-gray-300">{t.home}</Link>
+            <Link href="/products" onClick={() => setMobileOpen(false)} className="text-gray-700 dark:text-gray-300">{t.allProducts}</Link>
+          </div>
+          <div className="flex items-center gap-2">
+            <Globe className="w-4 h-4 text-gray-400" />
+            {langs.map((l) => (
+              <button
+                key={l.code}
+                onClick={() => setLang(l.code)}
+                className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors ${
+                  lang === l.code
+                    ? "bg-red-600 text-white border-red-600"
+                    : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
+                }`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
