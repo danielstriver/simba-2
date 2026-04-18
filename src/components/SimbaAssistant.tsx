@@ -38,47 +38,70 @@ declare global {
   }
 }
 
+// ─── Strip conversational filler to get the core product query ───────────────
+function extractQuery(raw: string): string {
+  return raw
+    .toLowerCase()
+    .replace(/\b(got|do you have|do you carry|do you sell|do you stock|have you got|have you|is there|are there|can i get|can i buy|can i find|can you find|can you show|find me|show me|looking for|i need|i want|i am looking for|i'm looking for|searching for|search for|get me|do you)|in your store|in the store|in stock|available|please|right now|today|for me|any chance|any\b/g, "")
+    .replace(/[?!.]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // ─── NLP: intent + entity extraction ─────────────────────────────────────────
 function detectIntent(text: string): { intent: string; query: string } {
   const t = text.toLowerCase().trim();
 
-  if (/^(hi|hello|hey|muraho|bonjour|salut|good morning|good afternoon)\b/.test(t))
+  if (/^(hi|hello|hey|muraho|bonjour|salut|good morning|good afternoon|howdy|yo\b|sup\b)/.test(t))
     return { intent: "greeting", query: "" };
 
-  if (/\b(help|what can you|what do you do|commands|options)\b/.test(t))
+  if (/\b(help|what can you|what do you do|commands|options|how do you work)\b/.test(t))
     return { intent: "help", query: "" };
 
-  if (/\b(cart|basket|my order|what.*cart|how many.*cart)\b/.test(t))
+  if (/\b(my cart|my basket|my order|what('s| is) in my cart|how many.*(cart|basket)|cart total|checkout)\b/.test(t))
     return { intent: "cart", query: "" };
 
-  if (/\b(cheapest|lowest price|affordable|budget|least expensive)\b/.test(t)) {
-    const q = t.replace(/cheapest|lowest price|affordable|budget|least expensive|show|find|the|me/g, "").trim();
+  if (/\b(cheapest|lowest price|most affordable|budget|least expensive|best deal|best price)\b/.test(t)) {
+    const q = extractQuery(t.replace(/cheapest|lowest price|most affordable|budget|least expensive|best deal|best price/g, ""));
     return { intent: "cheapest", query: q };
   }
 
-  if (/\b(most expensive|premium|luxury|top|highest price)\b/.test(t)) {
-    const q = t.replace(/most expensive|premium|luxury|top priced|highest price|show|find|the|me/g, "").trim();
+  if (/\b(most expensive|priciest|premium|luxury|highest price|top of the range)\b/.test(t)) {
+    const q = extractQuery(t.replace(/most expensive|priciest|premium|luxury|highest price|top of the range/g, ""));
     return { intent: "expensive", query: q };
   }
 
-  if (/\b(how much|price of|cost of|what.*cost|what.*price)\b/.test(t)) {
-    const q = t.replace(/how much (is|does|for)|the price of|cost of|what does|cost|price/g, "").trim();
+  if (/\b(how much (is|does|for|are)|price of|cost of|what('s| is) the price|what does .* cost|how much .* cost)\b/.test(t)) {
+    const q = extractQuery(t.replace(/how much (is|does|for|are)|the price of|cost of|what('?s| is) the price of?|what does|cost|price/g, ""));
     return { intent: "price", query: q };
   }
 
-  if (/\b(all|browse|show all|list|category|categories)\b/.test(t)) {
+  if (/\b(show all|browse|list all|all categories|what categories|what do you (have|sell|carry|stock))\b/.test(t)) {
     for (const cat of CATEGORIES) {
-      if (t.includes(cat.toLowerCase().split(" ")[0].toLowerCase()))
-        return { intent: "category", query: cat };
+      const first = cat.toLowerCase().split(" ")[0];
+      if (t.includes(first)) return { intent: "category", query: cat };
     }
     return { intent: "categories", query: "" };
   }
 
-  // Default: treat as product search
-  const q = t
-    .replace(/\b(find|search|looking for|do you have|show me|i want|i need|get me|any|got any|have you got)\b/g, "")
-    .trim();
+  // Try to match a category directly
+  for (const cat of CATEGORIES) {
+    if (t.includes(cat.toLowerCase())) return { intent: "category", query: cat };
+  }
+
+  // Default: treat everything else as a product search
+  const q = extractQuery(t);
   return { intent: "search", query: q || t };
+}
+
+// ─── Fallback: broaden a failed search by trying each word individually ───────
+function broadSearch(query: string, products: Product[]): Product[] {
+  const words = query.split(/\s+/).filter((w) => w.length > 2);
+  for (const word of words) {
+    const r = quickSearch(word, products, 5);
+    if (r.length > 0) return r;
+  }
+  return [];
 }
 
 // ─── Response generator ───────────────────────────────────────────────────────
@@ -92,13 +115,13 @@ function buildResponse(
   switch (intent) {
     case "greeting":
       return {
-        text: "Hello! 👋 I'm SIMBA, your shopping assistant. I can help you find products, check prices, or browse categories. What are you looking for today?",
+        text: "Hey there! 👋 I'm **SIMBA**, your shopping assistant. I can find products, check prices, or browse any category for you.\n\nWhat are you looking for today?",
         results: [],
       };
 
     case "help":
       return {
-        text: `Here's what I can do:\n• **Find products** — "find me honey" or "show me shampoo"\n• **Price check** — "how much is Amarula?"\n• **Cheapest/best** — "cheapest wine" or "best soap"\n• **Browse** — "show all food products"\n• **Cart** — "what's in my cart?"\n\nJust ask naturally! 🛒`,
+        text: `Here's what I can help with:\n\n• **Find products** — "Got shampoo?" or "Find me honey"\n• **Price check** — "How much is Amarula?"\n• **Best deals** — "Cheapest wine" or "Most affordable soap"\n• **Browse** — "Show food products" or "What categories do you have?"\n• **Cart** — "What's in my cart?"\n\nJust ask naturally — I'll understand! 🛒`,
         results: [],
       };
 
@@ -106,58 +129,69 @@ function buildResponse(
       if (cartItems === 0)
         return { text: "Your cart is empty right now. Want me to help you find something? 🛍️", results: [] };
       return {
-        text: `You have **${cartItems} item${cartItems > 1 ? "s" : ""}** in your cart, totalling **${formatPrice(cartTotal)}**. Ready to checkout?`,
+        text: `You have **${cartItems} item${cartItems > 1 ? "s" : ""}** in your cart, totalling **${formatPrice(cartTotal)}**. Head to checkout when you're ready!`,
         results: [],
       };
 
     case "categories":
       return {
-        text: `We have **${CATEGORIES.length} categories**:\n${CATEGORIES.map((c) => `${CATEGORY_META[c].icon} ${c}`).join("\n")}\n\nWhich one interests you?`,
+        text: `We carry products across **${CATEGORIES.length} categories**:\n\n${CATEGORIES.map((c) => `${CATEGORY_META[c]?.icon || "🛒"} **${c}**`).join("\n")}\n\nJust name any category and I'll show you what's available!`,
         results: [],
       };
 
     case "category": {
-      const catResults = products.filter((p) => p.category.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
-      if (catResults.length === 0)
-        return { text: `Hmm, I couldn't find products in "${query}". Try a different category name.`, results: [] };
+      const matched = products.filter((p) => p.category.toLowerCase().includes(query.toLowerCase()));
+      const shown = matched.slice(0, 5);
+      if (shown.length === 0)
+        return { text: `Hmm, I couldn't find products in **"${query}"**. Try asking me to "show all categories".`, results: [] };
       return {
-        text: `Here are some **${query}** products (${products.filter((p) => p.category.toLowerCase().includes(query.toLowerCase())).length} total):`,
-        results: catResults,
+        text: `We have **${matched.length} products** in **${query}**. Here's a sample:`,
+        results: shown,
       };
     }
 
     case "cheapest": {
-      const base = query ? quickSearch(query, products, 50) : products;
-      const sorted = [...base].sort((a, b) => a.price - b.price).slice(0, 4);
-      if (sorted.length === 0)
-        return { text: `I couldn't find "${query}". Try a different term.`, results: [] };
+      const pool = query ? quickSearch(query, products, 50) : products;
+      if (pool.length === 0) {
+        const broad = broadSearch(query, products);
+        if (broad.length > 0)
+          return { text: `Couldn't find exact matches for **"${query}"**, but here are the most affordable similar items:`, results: broad };
+        return { text: notFoundMessage(query), results: [] };
+      }
+      const sorted = [...pool].sort((a, b) => a.price - b.price).slice(0, 4);
       return {
-        text: `Here are the most affordable ${query || "products"} I found, starting from **${formatPrice(sorted[0].price)}**:`,
+        text: `Here are the most affordable **${query || "products"}** we carry, starting from **${formatPrice(sorted[0].price)}**:`,
         results: sorted,
       };
     }
 
     case "expensive": {
-      const base2 = query ? quickSearch(query, products, 50) : products;
-      const sorted2 = [...base2].sort((a, b) => b.price - a.price).slice(0, 4);
-      if (sorted2.length === 0)
-        return { text: `I couldn't find "${query}". Try a different term.`, results: [] };
+      const pool2 = query ? quickSearch(query, products, 50) : products;
+      if (pool2.length === 0) {
+        const broad = broadSearch(query, products);
+        if (broad.length > 0)
+          return { text: `Couldn't find exact matches for **"${query}"**, but here are some premium similar items:`, results: broad };
+        return { text: notFoundMessage(query), results: [] };
+      }
+      const sorted2 = [...pool2].sort((a, b) => b.price - a.price).slice(0, 4);
       return {
-        text: `Here are the premium ${query || "products"} I found, up to **${formatPrice(sorted2[0].price)}**:`,
+        text: `Here are the most premium **${query || "products"}** we carry, up to **${formatPrice(sorted2[0].price)}**:`,
         results: sorted2,
       };
     }
 
     case "price": {
+      if (!query)
+        return { text: "Which product do you want to check the price of? Just name it!", results: [] };
       const priceResults = quickSearch(query, products, 3);
       if (priceResults.length === 0)
-        return { text: `I couldn't find pricing for "${query}". Can you be more specific?`, results: [] };
+        return { text: `I couldn't find pricing for **"${query}"**. Can you be more specific or try a different name?`, results: [] };
       if (priceResults.length === 1) {
         const p = priceResults[0];
-        return { text: `**${p.name}** costs **${formatPrice(p.price)}** per ${p.unit}.`, results: [] };
+        return { text: `**${p.name}** is priced at **${formatPrice(p.price)}** per ${p.unit}.`, results: [] };
       }
       return {
-        text: `Here are the closest matches for "${query}" with their prices:`,
+        text: `Here are the closest matches for **"${query}"** with their prices:`,
         results: priceResults,
       };
     }
@@ -165,19 +199,37 @@ function buildResponse(
     case "search":
     default: {
       if (!query)
-        return { text: "What product are you looking for? Just tell me the name or type (e.g. 'honey', 'shampoo', 'wine').", results: [] };
-      const searchResults = quickSearch(query, products, 5);
-      if (searchResults.length === 0)
+        return { text: "What product are you looking for? Just name it — e.g. *\"honey\"*, *\"shampoo\"*, *\"wine\"*.", results: [] };
+
+      // Primary search
+      const results = quickSearch(query, products, 5);
+      if (results.length > 0) {
+        const total = results.length;
+        const label = total === 1 ? "1 match" : `${total} results`;
         return {
-          text: `I couldn't find anything for **"${query}"**. Try a different word — for example, if you searched "alcohol" try "wine" or "beer".`,
-          results: [],
+          text: `Yes! Found **${label}** for **"${query}"**:`,
+          results,
         };
-      return {
-        text: `Found **${searchResults.length}** result${searchResults.length > 1 ? "s" : ""} for **"${query}"**:`,
-        results: searchResults,
-      };
+      }
+
+      // Broaden to individual words
+      const broad = broadSearch(query, products);
+      if (broad.length > 0) {
+        return {
+          text: `We don't have an exact match for **"${query}"**, but here are some related products you might like:`,
+          results: broad,
+        };
+      }
+
+      // Truly not in store
+      return { text: notFoundMessage(query), results: [] };
     }
   }
+}
+
+// ─── Honest "not found" with helpful context ──────────────────────────────────
+function notFoundMessage(query: string): string {
+  return `Sorry, we don't carry **"${query}"** in our store right now.\n\nSimba Supermarket specialises in:\n🧴 Cosmetics & personal care\n🍷 Wines, beers & spirits\n🥗 Groceries & food\n🍳 Kitchenware & small appliances\n🧹 Cleaning products\n👶 Baby products\n\nTry searching within those areas — I'm happy to help!`;
 }
 
 // ─── Product mini-card in chat ────────────────────────────────────────────────
@@ -364,10 +416,11 @@ export default function SimbaAssistant() {
   };
 
   const quickPrompts = [
-    "Find me shampoo",
+    "Got shampoo?",
     "Cheapest wine",
     "Baby products",
-    "Show food items",
+    "How much is Amarula?",
+    "What categories do you have?",
   ];
 
   const PANEL_BOTTOM = 88; // px — sits above the 56px button + 16px gap + 16px margin
