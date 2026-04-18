@@ -178,5 +178,5 @@ const SUBCATEGORY_CATEGORY: Record<number, string> = {
 
 ## Author
 
-**Daniel Sibomana** — University of Rwanda  
-Built for the A2SV × University of Rwanda hackathon, April 2026.
+**Daniel NIYOMUGENGA**  
+Full-stack developer based in Kigali, Rwanda.
