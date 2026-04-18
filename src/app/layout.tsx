@@ -7,6 +7,7 @@ import { ToastProvider } from "@/components/Toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
+import SimbaAssistant from "@/components/SimbaAssistant";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Footer />
               </div>
               <CartDrawer />
+              <SimbaAssistant />
             </ToastProvider>
           </LanguageProvider>
         </ThemeProvider>

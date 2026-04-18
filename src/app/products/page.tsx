@@ -8,6 +8,7 @@ import { useToast } from "@/components/Toast";
 import { useLang } from "@/lib/LanguageContext";
 import Link from "next/link";
 import { Search, X, SlidersHorizontal, ShoppingCart, Eye, Check, ChevronDown } from "lucide-react";
+import { smartSearch } from "@/lib/search";
 
 type SortOption = "default" | "price-asc" | "price-desc" | "name-asc";
 
@@ -148,22 +149,18 @@ function ProductsContent() {
     setActiveSearch(inputValue.trim());
   }
 
-  // Filtered + sorted results
+  // Filtered + sorted results using smart search
   const filtered = useMemo(() => {
-    let result = allProducts;
-    if (activeSearch) {
-      const q = activeSearch.toLowerCase();
-      result = result.filter((p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
-      );
-    }
+    let result = activeSearch ? smartSearch(activeSearch, allProducts) : allProducts;
     if (selectedCat) result = result.filter((p) => p.category === selectedCat);
     if (inStockOnly) result = result.filter((p) => p.inStock);
     result = result.filter((p) => p.price <= maxPrice);
-    if (sort === "price-asc") return [...result].sort((a, b) => a.price - b.price);
-    if (sort === "price-desc") return [...result].sort((a, b) => b.price - a.price);
-    if (sort === "name-asc") return [...result].sort((a, b) => a.name.localeCompare(b.name));
+    // Only apply manual sort when not searching (search already sorts by relevance)
+    if (!activeSearch) {
+      if (sort === "price-asc") return [...result].sort((a, b) => a.price - b.price);
+      if (sort === "price-desc") return [...result].sort((a, b) => b.price - a.price);
+      if (sort === "name-asc") return [...result].sort((a, b) => a.name.localeCompare(b.name));
+    }
     return result;
   }, [allProducts, activeSearch, selectedCat, inStockOnly, sort, maxPrice]);
 
