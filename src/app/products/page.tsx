@@ -16,7 +16,9 @@ type SortOption = "default" | "price-asc" | "price-desc" | "name-asc";
 function ProductImg({ product }: { product: Product }) {
   const [failed, setFailed] = useState(false);
   const meta = CATEGORY_META[product.category];
-  const src = getProductImage(product.id, product.name, product.category);
+  const src = product.image.includes("placehold.co") || !product.image
+    ? getProductImage(product.id, product.name, product.category)
+    : product.image;
 
   if (failed) {
     return (

@@ -186,7 +186,9 @@ function ChatProductCard({ product }: { product: Product }) {
   const { toast } = useToast();
   const [failed, setFailed] = useState(false);
   const meta = CATEGORY_META[product.category];
-  const imgSrc = getProductImage(product.id, product.name, product.category);
+  const imgSrc = product.image.includes("placehold.co") || !product.image
+    ? getProductImage(product.id, product.name, product.category)
+    : product.image;
 
   return (
     <div className="flex items-center gap-2.5 bg-white dark:bg-gray-700 rounded-xl p-2.5 border border-gray-100 dark:border-gray-600 hover:border-red-200 dark:hover:border-red-800 transition-colors">
@@ -370,25 +372,11 @@ export default function SimbaAssistant() {
 
   return (
     <>
-      {/* ── Floating Button ──────────────────────────────────── */}
-      <button
-        onClick={() => setOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 ${open ? "hidden" : "flex"} relative`}
-        aria-label="Open SIMBA Assistant"
-      >
-        <div className="pulse-ring" />
-        <Sparkles className="w-6 h-6" />
-        {totalItems > 0 && (
-          <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center">
-            {totalItems > 9 ? "9+" : totalItems}
-          </span>
-        )}
-      </button>
-
-      {/* ── Chat Panel ───────────────────────────────────────── */}
+      {/* ── Chat Panel (above the button) ────────────────────── */}
       {open && (
-        <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm flex flex-col rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-900"
-          style={{ height: "min(600px, calc(100dvh - 48px))" }}
+        <div
+          className="fixed bottom-24 right-6 z-50 w-full max-w-sm flex flex-col rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-900"
+          style={{ height: "min(580px, calc(100dvh - 120px))" }}
         >
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 bg-red-600 text-white shrink-0">
@@ -521,6 +509,21 @@ export default function SimbaAssistant() {
           </form>
         </div>
       )}
+
+      {/* ── Toggle Button — always visible, fixed bottom-right ── */}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 relative"
+        aria-label={open ? "Close SIMBA Assistant" : "Open SIMBA Assistant"}
+      >
+        {!open && <div className="pulse-ring" />}
+        {open ? <X className="w-6 h-6" /> : <Sparkles className="w-6 h-6" />}
+        {totalItems > 0 && !open && (
+          <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center">
+            {totalItems > 9 ? "9+" : totalItems}
+          </span>
+        )}
+      </button>
     </>
   );
 }
