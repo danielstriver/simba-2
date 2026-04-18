@@ -112,7 +112,7 @@ export function smartSearch(query: string, products: Product[]): Product[] {
 
   const results: SearchResult[] = products
     .map((p) => ({ product: p, score: scoreProduct(p, terms) }))
-    .filter((r) => r.score > 0)
+    .filter((r) => r.score >= 20)   // require at least one real word-level match
     .sort((a, b) => b.score - a.score);
 
   return results.map((r) => r.product);

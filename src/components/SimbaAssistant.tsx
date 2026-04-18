@@ -94,9 +94,12 @@ function detectIntent(text: string): { intent: string; query: string } {
   return { intent: "search", query: q || t };
 }
 
+// Common English words that are too generic to search on
+const STOP_WORDS = new Set(["the","and","for","with","from","that","this","are","was","have","has","had","not","but","they","will","would","could","should","been","being","its","your","our","their","you","all","any","get","can","may","use","one","two","three","four","five"]);
+
 // ─── Fallback: broaden a failed search by trying each word individually ───────
 function broadSearch(query: string, products: Product[]): Product[] {
-  const words = query.split(/\s+/).filter((w) => w.length > 2);
+  const words = query.split(/\s+/).filter((w) => w.length > 3 && !STOP_WORDS.has(w));
   for (const word of words) {
     const r = quickSearch(word, products, 5);
     if (r.length > 0) return r;
