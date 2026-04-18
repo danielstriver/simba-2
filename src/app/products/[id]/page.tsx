@@ -23,7 +23,7 @@ export default function ProductDetailPage() {
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
-  const [imgErr, setImgErr] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
 
   useEffect(() => {
     getProducts().then((data) => {
@@ -54,7 +54,7 @@ export default function ProductDetailPage() {
   const inCart = items.find((i) => i.product.id === product?.id);
   const meta = product ? CATEGORY_META[product.category] : null;
   const imgSrc = product
-    ? (imgErr || product.image.includes("placehold.co")
+    ? (product.image.includes("placehold.co")
         ? getProductImage(product.id, product.name, product.category)
         : product.image)
     : "";
@@ -94,12 +94,19 @@ export default function ProductDetailPage() {
         {/* ─── IMAGE ─── */}
         <div>
           <div className="relative aspect-square rounded-3xl overflow-hidden bg-gray-50 dark:bg-gray-800 shadow-sm">
-            <img
-              src={imgSrc}
-              alt={product.name}
-              className="w-full h-full object-cover"
-              onError={() => setImgErr(true)}
-            />
+            {imgFailed ? (
+              <div className={`w-full h-full bg-gradient-to-br ${meta?.color || "from-gray-200 to-gray-400"} flex flex-col items-center justify-center gap-3`}>
+                <span className="text-7xl">{meta?.icon || "🛒"}</span>
+                <p className="text-white font-bold text-center px-6 leading-snug opacity-90">{product.name}</p>
+              </div>
+            ) : (
+              <img
+                src={imgSrc}
+                alt={product.name}
+                className="w-full h-full object-cover"
+                onError={() => setImgFailed(true)}
+              />
+            )}
             {!product.inStock && (
               <div className="absolute inset-0 bg-white/70 dark:bg-gray-900/70 flex items-center justify-center rounded-3xl">
                 <span className="bg-gray-900 text-white font-bold px-6 py-2.5 rounded-full text-base">

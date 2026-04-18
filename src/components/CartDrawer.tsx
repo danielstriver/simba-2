@@ -1,10 +1,24 @@
 "use client";
+import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { getProductImage } from "@/lib/imageMap";
+import { CATEGORY_META, Product, formatPrice } from "@/lib/products";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
-import { formatPrice } from "@/lib/products";
 import Link from "next/link";
+
+function CartItemImg({ imgSrc, product }: { imgSrc: string; product: Product }) {
+  const [failed, setFailed] = useState(false);
+  const meta = CATEGORY_META[product.category];
+  if (failed) {
+    return (
+      <div className={`w-full h-full bg-gradient-to-br ${meta?.color || "from-gray-200 to-gray-400"} flex items-center justify-center`}>
+        <span className="text-2xl">{meta?.icon || "🛒"}</span>
+      </div>
+    );
+  }
+  return <img src={imgSrc} alt={product.name} className="w-full h-full object-cover" onError={() => setFailed(true)} />;
+}
 
 export default function CartDrawer() {
   const { items, cartOpen, setCartOpen, removeItem, updateQuantity, totalPrice } = useStore();
@@ -56,11 +70,7 @@ export default function CartDrawer() {
                     <Link href={`/products/${product.id}`} onClick={() => setCartOpen(false)}
                       className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 hover:opacity-80 transition-opacity"
                     >
-                      <img src={imgSrc} alt={product.name} className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = getProductImage(product.id, product.name, product.category);
-                        }}
-                      />
+                      <CartItemImg imgSrc={imgSrc} product={product} />
                     </Link>
                     <div className="flex-1 min-w-0">
                       <Link href={`/products/${product.id}`} onClick={() => setCartOpen(false)}
