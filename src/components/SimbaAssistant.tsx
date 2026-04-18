@@ -301,8 +301,8 @@ export default function SimbaAssistant() {
     window.speechSynthesis.speak(utter);
   }, [ttsEnabled]);
 
-  // Send message
-  const send = useCallback(async (text: string) => {
+  // Send message — speak only when triggered by voice input
+  const send = useCallback(async (text: string, fromVoice = false) => {
     const trimmed = text.trim();
     if (!trimmed || allProducts.length === 0) return;
 
@@ -326,7 +326,7 @@ export default function SimbaAssistant() {
     };
     setMessages((prev) => [...prev, botMsg]);
     setThinking(false);
-    speak(responseText);
+    if (fromVoice) speak(responseText);
   }, [allProducts, totalItems, totalPrice, speak]);
 
   // Voice input
@@ -348,7 +348,7 @@ export default function SimbaAssistant() {
     rec.onresult = (e) => {
       const transcript = e.results[0][0].transcript;
       setInput(transcript);
-      send(transcript);
+      send(transcript, true);
     };
     rec.onend = () => setListening(false);
     rec.onerror = () => setListening(false);
@@ -370,13 +370,22 @@ export default function SimbaAssistant() {
     "Show food items",
   ];
 
+  const PANEL_BOTTOM = 88; // px — sits above the 56px button + 16px gap + 16px margin
+
   return (
     <>
       {/* ── Chat Panel (above the button) ────────────────────── */}
       {open && (
         <div
-          className="fixed bottom-24 right-6 z-50 w-full max-w-sm flex flex-col rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-900"
-          style={{ height: "min(580px, calc(100dvh - 120px))" }}
+          className="flex flex-col rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-900"
+          style={{
+            position: "fixed",
+            bottom: PANEL_BOTTOM,
+            right: 24,
+            width: "min(384px, calc(100vw - 32px))",
+            height: "min(580px, calc(100dvh - 120px))",
+            zIndex: 9998,
+          }}
         >
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 bg-red-600 text-white shrink-0">
@@ -510,11 +519,12 @@ export default function SimbaAssistant() {
         </div>
       )}
 
-      {/* ── Toggle Button — always visible, fixed bottom-right ── */}
+      {/* ── Toggle Button — always fixed bottom-right, never hidden ── */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 relative"
         aria-label={open ? "Close SIMBA Assistant" : "Open SIMBA Assistant"}
+        style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999 }}
+        className="w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 relative"
       >
         {!open && <div className="pulse-ring" />}
         {open ? <X className="w-6 h-6" /> : <Sparkles className="w-6 h-6" />}

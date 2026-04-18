@@ -21,6 +21,30 @@ export interface ProductsData {
   products: Product[];
 }
 
+// ─── Subcategory → correct category overrides ─────────────────────────────────
+// The source data has some subcategories miscategorised (e.g. olive oil, flour,
+// toilet paper filed under "Alcoholic Drinks"). We remap them here.
+const SUBCATEGORY_CATEGORY: Record<number, string> = {
+  // Real alcoholic drink subcategories — keep as-is (27, 234-238)
+
+  // Oils, flours, spices, syrups, butter, vinegar, canned → Food Products
+  65: "Food Products",
+  67: "Food Products",
+  72: "Food Products",
+  76: "Food Products",
+  259: "Food Products",
+  372: "Food Products",
+  671: "Food Products",
+  672: "Food Products",
+
+  // Toilet paper, kitchen towels → Cleaning & Sanitary
+  246: "Cleaning & Sanitary",
+  247: "Cleaning & Sanitary",
+
+  // Petroleum jelly / Vaseline → Cosmetics & Personal Care
+  379: "Cosmetics & Personal Care",
+};
+
 export const CATEGORIES = [
   "Cosmetics & Personal Care",
   "Alcoholic Drinks",
@@ -28,9 +52,10 @@ export const CATEGORIES = [
   "Kitchenware & Electronics",
   "General",
   "Cleaning & Sanitary",
-  "Sports & Fitness",
-  "Stationery",
+  "Sports & Wellness",
   "Baby Products",
+  "Kitchen Storage",
+  "Pet Care",
 ];
 
 export const CATEGORY_META: Record<string, { icon: string; image: string; color: string }> = {
@@ -64,22 +89,57 @@ export const CATEGORY_META: Record<string, { icon: string; image: string; color:
     image: "https://images.unsplash.com/photo-1585351923806-3b4f8a4de8c6?w=600&q=80",
     color: "from-teal-400 to-cyan-500",
   },
-  "Sports & Fitness": {
+  "Sports & Wellness": {
     icon: "⚽",
     image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=80",
     color: "from-yellow-400 to-orange-500",
-  },
-  "Stationery": {
-    icon: "📚",
-    image: "https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=600&q=80",
-    color: "from-indigo-400 to-blue-500",
   },
   "Baby Products": {
     icon: "👶",
     image: "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=600&q=80",
     color: "from-pink-300 to-purple-400",
   },
+  "Kitchen Storage": {
+    icon: "🗄️",
+    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80",
+    color: "from-amber-400 to-yellow-500",
+  },
+  "Pet Care": {
+    icon: "🐾",
+    image: "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=600&q=80",
+    color: "from-lime-400 to-green-500",
+  },
+  // Legacy alias kept for any stale references
+  "Sports & Fitness": {
+    icon: "⚽",
+    image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=80",
+    color: "from-yellow-400 to-orange-500",
+  },
 };
+
+// ─── Name cleanup ─────────────────────────────────────────────────────────────
+// Fixes obvious capitalisation errors without touching brand codes/measurements.
+const NAME_FIXES: [RegExp, string][] = [
+  [/\bBUIlding\b/g, "Building"],
+  [/\bScoth\b/gi, "Scotch"],
+  [/\bSyurp\b/gi, "Syrup"],
+  [/\bFreshner\b/gi, "Freshener"],
+  [/\bForeign\b/gi, "Foreign"],
+  [/\bForeing\b/gi, "Foreign"],
+  [/\bSoftner\b/gi, "Softener"],
+  [/\bGingembre\b/gi, "Ginger"],
+  [/\bMoulu\b/gi, "Ground"],
+  [/\bSafran\b/gi, "Saffron"],
+  [/\bMais Doux\b/gi, "Sweet Corn"],
+];
+
+function cleanName(raw: string): string {
+  let name = raw.trim();
+  for (const [pattern, replacement] of NAME_FIXES) {
+    name = name.replace(pattern, replacement);
+  }
+  return name;
+}
 
 export function formatPrice(price: number): string {
   return `RWF ${price.toLocaleString()}`;
@@ -90,6 +150,15 @@ let cachedData: ProductsData | null = null;
 export async function getProducts(): Promise<ProductsData> {
   if (cachedData) return cachedData;
   const res = await fetch("/simba_products.json");
-  cachedData = await res.json();
-  return cachedData!;
+  const raw: ProductsData = await res.json();
+
+  // Apply category overrides and name cleanup
+  const products: Product[] = raw.products.map((p) => ({
+    ...p,
+    name: cleanName(p.name),
+    category: SUBCATEGORY_CATEGORY[p.subcategoryId] ?? p.category,
+  }));
+
+  cachedData = { store: raw.store, products };
+  return cachedData;
 }
