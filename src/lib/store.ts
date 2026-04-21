@@ -8,14 +8,29 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+}
+
+export interface PickupDetails {
+  branch: string;
+  time: string;
+  date: string;
+}
+
 interface CartStore {
   items: CartItem[];
+  user: User | null;
   language: Language;
   cartOpen: boolean;
   addItem: (product: Product) => void;
   removeItem: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
+  setUser: (user: User | null) => void;
   setLanguage: (lang: Language) => void;
   setCartOpen: (open: boolean) => void;
   totalItems: () => number;
@@ -26,6 +41,7 @@ export const useStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      user: null,
       language: "en",
       cartOpen: false,
       addItem: (product) => {
@@ -58,6 +74,7 @@ export const useStore = create<CartStore>()(
         });
       },
       clearCart: () => set({ items: [] }),
+      setUser: (user) => set({ user }),
       setLanguage: (lang) => set({ language: lang }),
       setCartOpen: (open) => set({ cartOpen: open }),
       totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
@@ -66,7 +83,11 @@ export const useStore = create<CartStore>()(
     }),
     {
       name: "simba-store",
-      partialize: (state) => ({ items: state.items, language: state.language }),
+      partialize: (state) => ({ 
+        items: state.items, 
+        language: state.language,
+        user: state.user 
+      }),
     }
   )
 );
