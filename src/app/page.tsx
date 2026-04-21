@@ -65,7 +65,7 @@ export default function HomePage() {
             {t.heroTitle}
           </h1>
           <p className="text-red-100 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-            552 real products · Delivered in Kigali · Pay with MoMo or Cash
+            789 real products · Delivered in Kigali · Pay with MoMo or Cash
           </p>
 
           {/* Search — primary action, prominently placed */}
@@ -118,7 +118,7 @@ export default function HomePage() {
               { icon: <Phone className="w-4 h-4 text-yellow-600" />, text: "Pay with MTN MoMo" },
               { icon: <Shield className="w-4 h-4 text-blue-600" />, text: "100% authentic products" },
               { icon: <Clock className="w-4 h-4 text-purple-600" />, text: "Same-day delivery" },
-              { icon: <Zap className="w-4 h-4 text-red-600" />, text: "552 products in stock" },
+              { icon: <Zap className="w-4 h-4 text-red-600" />, text: "789 products in stock" },
             ].map((b) => (
               <div key={b.text} className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 font-medium">
                 {b.icon}
@@ -268,7 +268,7 @@ export default function HomePage() {
             Everything you need, delivered to your door
           </h2>
           <p className="text-gray-400 mb-8">
-            From cosmetics to food to cleaning supplies — 552 products ready for delivery anywhere in Kigali.
+            From cosmetics to food to cleaning supplies — 789 products ready for delivery anywhere in Kigali.
           </p>
           <Link
             href="/products"

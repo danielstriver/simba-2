@@ -37,7 +37,7 @@ export default function CartDrawer() {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50 backdrop-blur-sm" onClick={() => setCartOpen(false)} />
+      <div className="fixed inset-0 bg-black/40 z-50 backdrop-blur-sm cursor-pointer" onClick={() => setCartOpen(false)} />
       <div role="dialog" aria-modal="true" aria-label="Shopping cart" className="fixed right-0 top-0 h-full w-full max-w-sm bg-white dark:bg-gray-900 z-50 shadow-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
@@ -61,7 +61,7 @@ export default function CartDrawer() {
             <div className="flex flex-col items-center justify-center h-full gap-4 text-center py-12">
               <ShoppingBag className="w-16 h-16 text-gray-200 dark:text-gray-700" />
               <p className="font-bold text-gray-500 dark:text-gray-400">{t.cartEmpty}</p>
-              <p className="text-sm text-gray-400">Add items from our 552 products</p>
+              <p className="text-sm text-gray-400">Add items from our 789 products</p>
               <button onClick={() => setCartOpen(false)} className="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-full text-sm transition-colors">
                 {t.continueShopping}
               </button>

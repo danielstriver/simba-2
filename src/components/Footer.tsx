@@ -22,7 +22,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
-              {t.tagline}. Shop over 552 products across 9 categories — all in Rwandan Francs.
+              {t.tagline}. Shop over 789 products across 10 categories — all in Rwandan Francs.
             </p>
             <div className="flex flex-col gap-2 mt-4 text-sm text-gray-400">
               <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500">
-          <p>© 2024 Simba Supermarket. {t.footer.rights}.</p>
+          <p>© 2026 Simba Supermarket. {t.footer.rights}.</p>
           <p>Built with ❤️ in Rwanda</p>
         </div>
       </div>

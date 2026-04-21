@@ -5,7 +5,7 @@ export const translations = {
     siteName: "Simba Supermarket",
     tagline: "Rwanda's Most Popular Online Supermarket",
     heroTitle: "Shop Fresh, Shop Smart",
-    heroSubtitle: "552 products across 9 categories — delivered to your door in Kigali",
+    heroSubtitle: "789 products across 10 categories — delivered to your door in Kigali",
     shopNow: "Shop Now",
     viewAll: "View All",
     categories: "Categories",
