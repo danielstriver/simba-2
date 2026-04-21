@@ -14,9 +14,7 @@ export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { t } = useLang();
-  const addItem = useStore((s) => s.addItem);
-  const updateQuantity = useStore((s) => s.updateQuantity);
-  const cartItems = useStore((s) => s.items);
+  const { addItem, updateQuantity, items: cartItems, selectedBranch, setShowBranchModal } = useStore();
   const { toast } = useToast();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -30,17 +28,22 @@ export default function ProductDetailPage() {
       const found = data.products.find((p) => p.id === Number(params.id));
       if (!found) { router.push("/products"); return; }
       setProduct(found);
-      // Related = same category, sorted by proximity of ID
       const rel = data.products
         .filter((p) => p.category === found.category && p.id !== found.id)
         .slice(0, 4);
       setRelated(rel);
       setLoading(false);
     });
-  }, [params.id]);
+  }, [params.id, router]);
 
   function handleAdd() {
     if (!product?.inStock) return;
+    
+    if (!selectedBranch) {
+      setShowBranchModal(true);
+      return;
+    }
+
     const existing = cartItems.find((i) => i.product.id === product.id);
     if (existing) {
       updateQuantity(product.id, existing.quantity + qty);
@@ -52,6 +55,10 @@ export default function ProductDetailPage() {
 
   function handleBuyNow() {
     if (!product?.inStock) return;
+    if (!selectedBranch) {
+      setShowBranchModal(true);
+      return;
+    }
     handleAdd();
     router.push("/checkout");
   }
@@ -126,7 +133,6 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Product metadata chips */}
           <div className="flex flex-wrap gap-2 mt-4">
             <span className={`text-xs font-bold px-3 py-1 rounded-full ${product.inStock ? "bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400" : "bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400"}`}>
               {product.inStock ? "✓ In Stock" : "✗ Out of Stock"}
@@ -142,7 +148,6 @@ export default function ProductDetailPage() {
 
         {/* ─── PRODUCT INFO ─── */}
         <div className="flex flex-col">
-          {/* Category */}
           <Link
             href={`/products?category=${encodeURIComponent(product.category)}`}
             className={`inline-flex items-center gap-1.5 w-fit bg-gradient-to-r ${meta?.color || "from-gray-400 to-gray-500"} text-white text-xs font-bold px-3 py-1 rounded-full mb-4 hover:opacity-90 transition-opacity`}
@@ -154,13 +159,26 @@ export default function ProductDetailPage() {
             {product.name}
           </h1>
 
-          {/* Price — clear, prominent */}
+          {/* Branch Stock Signal */}
+          {selectedBranch && product.inStock && (
+            <div className="flex items-center gap-2 mb-6">
+              <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 px-3 py-1.5 rounded-xl border border-green-100 dark:border-green-900/50 text-xs font-bold">
+                <Check className="w-3.5 h-3.5" /> Available at {selectedBranch}
+              </div>
+              <button 
+                onClick={() => setShowBranchModal(true)}
+                className="text-[10px] font-bold text-gray-400 hover:text-red-600 underline underline-offset-2 transition-colors"
+              >
+                Change branch
+              </button>
+            </div>
+          )}
+
           <div className="flex items-baseline gap-3 mb-6">
             <span className="text-4xl font-black text-red-600">{formatPrice(product.price)}</span>
             <span className="text-sm text-gray-400">per {product.unit}</span>
           </div>
 
-          {/* Trust signals inline */}
           <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="flex items-center gap-2 bg-green-50 dark:bg-green-950/50 rounded-xl px-3 py-2.5">
               <Truck className="w-4 h-4 text-green-600 shrink-0" />
@@ -172,7 +190,6 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Quantity selector */}
           {product.inStock && (
             <div className="mb-5">
               <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t.quantity}</p>
@@ -205,7 +222,6 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* CTAs — primary then secondary */}
           <div className="flex gap-3 mb-6">
             <button
               onClick={handleAdd}
@@ -228,7 +244,6 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Product details table */}
           <div className="border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden">
             <div className="divide-y divide-gray-100 dark:divide-gray-700">
               {[
@@ -249,7 +264,6 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* ─── RELATED PRODUCTS ─── */}
       {related.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-5">

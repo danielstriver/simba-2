@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import SimbaAssistant from "@/components/SimbaAssistant";
+import BranchModal from "@/components/BranchModal";
 import HtmlLang from "@/components/HtmlLang";
 
 export const metadata: Metadata = {
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           <CartDrawer />
           <SimbaAssistant />
+          <BranchModal />
         </Providers>
       </body>
     </html>

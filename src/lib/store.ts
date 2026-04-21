@@ -27,6 +27,7 @@ interface CartStore {
   language: Language;
   cartOpen: boolean;
   selectedBranch: string | null;
+  showBranchModal: boolean;
   addItem: (product: Product) => void;
   removeItem: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
@@ -35,6 +36,7 @@ interface CartStore {
   setLanguage: (lang: Language) => void;
   setCartOpen: (open: boolean) => void;
   setSelectedBranch: (branch: string | null) => void;
+  setShowBranchModal: (show: boolean) => void;
   totalItems: () => number;
   totalPrice: () => number;
 }
@@ -47,6 +49,7 @@ export const useStore = create<CartStore>()(
       language: "en",
       cartOpen: false,
       selectedBranch: null,
+      showBranchModal: false,
       addItem: (product) => {
         const items = get().items;
         const existing = items.find((i) => i.product.id === product.id);
@@ -81,6 +84,7 @@ export const useStore = create<CartStore>()(
       setLanguage: (lang) => set({ language: lang }),
       setCartOpen: (open) => set({ cartOpen: open }),
       setSelectedBranch: (branch) => set({ selectedBranch: branch }),
+      setShowBranchModal: (show) => set({ showBranchModal: show }),
       totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
       totalPrice: () =>
         get().items.reduce((sum, i) => sum + i.product.price * i.quantity, 0),

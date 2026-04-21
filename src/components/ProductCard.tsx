@@ -39,7 +39,7 @@ function ProductImg({ product }: { product: Product }) {
 
 export default function ProductCard({ product }: { product: Product }) {
   const { t } = useLang();
-  const addItem = useStore((s) => s.addItem);
+  const { addItem, selectedBranch, setShowBranchModal } = useStore();
   const inCart = useStore((s) => s.items.some((i) => i.product.id === product.id));
   const { toast } = useToast();
 
@@ -47,6 +47,12 @@ export default function ProductCard({ product }: { product: Product }) {
     e.preventDefault();
     e.stopPropagation();
     if (!product.inStock) return;
+    
+    if (!selectedBranch) {
+      setShowBranchModal(true);
+      return;
+    }
+
     addItem(product);
     toast("Added to cart", "cart", product.name);
   }
@@ -64,6 +70,11 @@ export default function ProductCard({ product }: { product: Product }) {
           {inCart && (
             <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow">
               <Check className="w-3.5 h-3.5" />
+            </div>
+          )}
+          {selectedBranch && product.inStock && (
+            <div className="absolute top-2 left-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-[8px] font-black text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded border border-green-100 dark:border-green-900/50 uppercase tracking-tighter shadow-sm">
+              In Stock at {selectedBranch}
             </div>
           )}
           <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs font-medium py-1.5 text-center opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
