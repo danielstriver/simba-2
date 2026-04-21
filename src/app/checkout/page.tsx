@@ -5,16 +5,48 @@ import { useLang } from "@/lib/LanguageContext";
 import { formatPrice } from "@/lib/products";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Phone, MapPin, User, CreditCard, Smartphone, Banknote, ChevronRight, ShoppingBag, Loader2 } from "lucide-react";
+import { Check, Phone, MapPin, User, CreditCard, Banknote, ChevronRight, ShoppingBag, Loader2, AlertCircle, Smartphone } from "lucide-react";
 
 type PaymentMethod = "momo" | "card" | "cash";
+type MomoStatus = "idle" | "awaiting" | "failed" | "timeout";
+
+// ── SVG Logos ────────────────────────────────────────────────────────────────
+function MtnLogo() {
+  return (
+    <svg viewBox="0 0 60 24" className="h-6 w-auto" aria-label="MTN MoMo">
+      <rect width="60" height="24" rx="4" fill="#FFCB00" />
+      <text x="5" y="17" fontSize="13" fontWeight="900" fontFamily="Arial,sans-serif" fill="#000">MTN</text>
+    </svg>
+  );
+}
+function VisaLogo() {
+  return (
+    <svg viewBox="0 0 60 24" className="h-5 w-auto" aria-label="Visa">
+      <rect width="60" height="24" rx="4" fill="#1A1F71" />
+      <text x="8" y="17" fontSize="13" fontWeight="900" fontFamily="Arial,sans-serif" fill="#FFFFFF" fontStyle="italic">VISA</text>
+    </svg>
+  );
+}
+function MastercardLogo() {
+  return (
+    <svg viewBox="0 0 40 24" className="h-5 w-auto" aria-label="Mastercard">
+      <circle cx="14" cy="12" r="10" fill="#EB001B" />
+      <circle cx="26" cy="12" r="10" fill="#F79E1B" />
+      <path d="M20 5.6a10 10 0 0 1 0 12.8A10 10 0 0 1 20 5.6z" fill="#FF5F00" />
+    </svg>
+  );
+}
 
 export default function CheckoutPage() {
   const { t } = useLang();
   const router = useRouter();
-  const { items, totalPrice, clearCart } = useStore();
+  const items = useStore((s) => s.items);
+  const clearCart = useStore((s) => s.clearCart);
+  const total = useStore((s) => s.items.reduce((sum, i) => sum + i.product.price * i.quantity, 0));
   const [step, setStep] = useState<"details" | "payment" | "success">("details");
   const [loading, setLoading] = useState(false);
+  const [momoStatus, setMomoStatus] = useState<MomoStatus>("idle");
+  const [momoError, setMomoError] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -30,8 +62,6 @@ export default function CheckoutPage() {
   const [cardCvv, setCardCvv] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const total = totalPrice();
-
   function validateDetails() {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Name is required";
@@ -45,12 +75,81 @@ export default function CheckoutPage() {
     if (validateDetails()) setStep("payment");
   }
 
+  async function validatePayment(): Promise<boolean> {
+    if (payMethod === "momo") {
+      if (!momoPhone.trim() || momoPhone.replace(/\D/g, "").length < 9) {
+        setMomoError("Enter a valid MoMo phone number (e.g. 078 XXX XXXX)");
+        return false;
+      }
+    }
+    if (payMethod === "card") {
+      if (!cardNum.trim() || !cardExp.trim() || !cardCvv.trim()) {
+        setErrors({ card: "Please fill in all card details" });
+        return false;
+      }
+    }
+    return true;
+  }
+
   async function handlePlaceOrder() {
+    if (!(await validatePayment())) return;
+    setMomoError("");
+    setErrors({});
     setLoading(true);
-    // Simulate processing
-    await new Promise((r) => setTimeout(r, 2000));
-    clearCart();
+
+    if (payMethod === "momo") {
+      try {
+        setMomoStatus("awaiting");
+        const orderId = `SIMBA-${Date.now()}`;
+        const initRes = await fetch("/api/payments/momo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone: momoPhone, amount: total, orderId }),
+        });
+        const initData = await initRes.json() as { referenceId?: string; error?: string };
+        if (!initRes.ok || !initData.referenceId) {
+          setMomoStatus("failed");
+          setMomoError(initData.error ?? "Failed to initiate payment. Check your MoMo number.");
+          setLoading(false);
+          return;
+        }
+
+        // Poll for status — max 60s
+        const referenceId = initData.referenceId;
+        const deadline = Date.now() + 60_000;
+        while (Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 2500));
+          const pollRes = await fetch(`/api/payments/momo?id=${referenceId}`);
+          const pollData = await pollRes.json() as { status?: string; error?: string };
+          if (pollData.status === "SUCCESSFUL") {
+            setStep("success");
+            clearCart();
+            setLoading(false);
+            return;
+          }
+          if (pollData.status === "FAILED" || pollData.status === "REJECTED") {
+            setMomoStatus("failed");
+            setMomoError("Payment was declined. Please try again or use a different method.");
+            setLoading(false);
+            return;
+          }
+          // PENDING — keep polling
+        }
+        setMomoStatus("timeout");
+        setMomoError("Payment timed out. Please check your MoMo app and try again.");
+        setLoading(false);
+      } catch {
+        setMomoStatus("failed");
+        setMomoError("Network error. Please check your connection and try again.");
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Card or Cash — simulate processing
+    await new Promise((r) => setTimeout(r, 1500));
     setStep("success");
+    clearCart();
     setLoading(false);
   }
 
@@ -173,10 +272,10 @@ export default function CheckoutPage() {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
                   <option>Kigali</option>
-                  <option>Butare</option>
-                  <option>Gisenyi</option>
-                  <option>Ruhengeri</option>
-                  <option>Gitarama</option>
+                  <option>Huye</option>
+                  <option>Rubavu</option>
+                  <option>Musanze</option>
+                  <option>Muhanga</option>
                 </select>
               </div>
 
@@ -206,53 +305,100 @@ export default function CheckoutPage() {
 
               {/* Payment method tabs */}
               <div className="grid grid-cols-3 gap-3">
-                {[
-                  { id: "momo" as PaymentMethod, label: "MoMo", icon: <Smartphone className="w-5 h-5" />, desc: "Mobile Money" },
-                  { id: "card" as PaymentMethod, label: "Card", icon: <CreditCard className="w-5 h-5" />, desc: "Credit/Debit" },
-                  { id: "cash" as PaymentMethod, label: "Cash", icon: <Banknote className="w-5 h-5" />, desc: "On Delivery" },
-                ].map((method) => (
-                  <button
-                    key={method.id}
-                    onClick={() => setPayMethod(method.id)}
-                    className={`flex flex-col items-center gap-1.5 p-4 rounded-xl border-2 transition-all ${
-                      payMethod === method.id
-                        ? "border-red-600 bg-red-50 dark:bg-red-950 text-red-600"
-                        : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300"
-                    }`}
-                  >
-                    {method.icon}
-                    <span className="font-bold text-sm">{method.label}</span>
-                    <span className="text-xs opacity-70">{method.desc}</span>
-                  </button>
-                ))}
+                <button
+                  onClick={() => { setPayMethod("momo"); setMomoStatus("idle"); setMomoError(""); }}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${payMethod === "momo" ? "border-yellow-400 bg-yellow-50 dark:bg-yellow-950" : "border-gray-200 dark:border-gray-700 hover:border-gray-300"}`}
+                >
+                  <MtnLogo />
+                  <span className="font-bold text-sm text-gray-700 dark:text-gray-300">MoMo</span>
+                  <span className="text-xs text-gray-400">Mobile Money</span>
+                </button>
+                <button
+                  onClick={() => setPayMethod("card")}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${payMethod === "card" ? "border-blue-400 bg-blue-50 dark:bg-blue-950" : "border-gray-200 dark:border-gray-700 hover:border-gray-300"}`}
+                >
+                  <div className="flex items-center gap-1">
+                    <VisaLogo />
+                    <MastercardLogo />
+                  </div>
+                  <span className="font-bold text-sm text-gray-700 dark:text-gray-300">Card</span>
+                  <span className="text-xs text-gray-400">Credit/Debit</span>
+                </button>
+                <button
+                  onClick={() => setPayMethod("cash")}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${payMethod === "cash" ? "border-green-400 bg-green-50 dark:bg-green-950" : "border-gray-200 dark:border-gray-700 hover:border-gray-300"}`}
+                >
+                  <Banknote className="w-7 h-7 text-green-600" />
+                  <span className="font-bold text-sm text-gray-700 dark:text-gray-300">Cash</span>
+                  <span className="text-xs text-gray-400">On Delivery</span>
+                </button>
               </div>
 
               {payMethod === "momo" && (
                 <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-900 rounded-xl p-5 space-y-4">
-                  <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-300">
-                    <Smartphone className="w-5 h-5" />
-                    <span className="font-bold">MTN Mobile Money</span>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-yellow-900 dark:text-yellow-200 mb-1.5">
-                      MoMo Phone Number
-                    </label>
-                    <input
-                      value={momoPhone}
-                      onChange={(e) => setMomoPhone(e.target.value)}
-                      placeholder="+250 7XX XXX XXX"
-                      type="tel"
-                      className="w-full px-4 py-3 rounded-xl border border-yellow-300 dark:border-yellow-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                    />
-                  </div>
-                  <p className="text-xs text-yellow-700 dark:text-yellow-400">
-                    💡 You will receive a payment prompt on your phone. Enter your MoMo PIN to confirm.
-                  </p>
+                  {momoStatus === "awaiting" ? (
+                    <div className="text-center py-4 space-y-3">
+                      <div className="text-4xl">📱</div>
+                      <p className="font-bold text-yellow-900 dark:text-yellow-200">Check your phone!</p>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                        A payment prompt was sent to <strong>{momoPhone}</strong>.<br />
+                        Open MTN MoMo and enter your PIN to confirm.
+                      </p>
+                      <div className="flex items-center justify-center gap-2 text-yellow-600">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="text-sm font-medium">Waiting for approval…</span>
+                      </div>
+                      <button
+                        onClick={() => { setMomoStatus("idle"); setLoading(false); }}
+                        className="text-xs text-yellow-700 dark:text-yellow-400 underline hover:no-underline"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-300">
+                        <MtnLogo />
+                        <span className="font-bold">MTN Mobile Money</span>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-yellow-900 dark:text-yellow-200 mb-1.5">
+                          MoMo Phone Number
+                        </label>
+                        <input
+                          value={momoPhone}
+                          onChange={(e) => { setMomoPhone(e.target.value); setMomoError(""); }}
+                          placeholder="078 XXX XXXX"
+                          type="tel"
+                          aria-required="true"
+                          className={`w-full px-4 py-3 rounded-xl border ${momoError ? "border-red-400" : "border-yellow-300 dark:border-yellow-800"} bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500`}
+                        />
+                        {momoError && (
+                          <p className="flex items-center gap-1 text-red-500 text-xs mt-1.5">
+                            <AlertCircle className="w-3.5 h-3.5" /> {momoError}
+                          </p>
+                        )}
+                      </div>
+                      <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                        💡 You will receive a payment prompt on your phone. Enter your MoMo PIN to confirm.
+                      </p>
+                      {(momoStatus === "failed" || momoStatus === "timeout") && !momoError && (
+                        <p className="flex items-center gap-1 text-red-500 text-xs">
+                          <AlertCircle className="w-3.5 h-3.5" /> Payment unsuccessful. Please try again.
+                        </p>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 
               {payMethod === "card" && (
                 <div className="space-y-4">
+                  {errors.card && (
+                    <p className="flex items-center gap-1 text-red-500 text-sm">
+                      <AlertCircle className="w-4 h-4" /> {errors.card}
+                    </p>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Card Number</label>
                     <input
@@ -306,11 +452,13 @@ export default function CheckoutPage() {
                 </button>
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={loading}
+                  disabled={loading || momoStatus === "awaiting"}
                   className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-3.5 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
                 >
-                  {loading ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
+                  {loading && momoStatus !== "awaiting" ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</>
+                  ) : momoStatus === "awaiting" ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Waiting for MoMo approval…</>
                   ) : (
                     <><Check className="w-4 h-4" /> {t.placeOrder} — {formatPrice(total)}</>
                   )}

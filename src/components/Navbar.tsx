@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const { t, lang, setLang } = useLang();
-  const totalItems = useStore((s) => s.totalItems());
+  const totalItems = useStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
   const setCartOpen = useStore((s) => s.setCartOpen);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -24,6 +24,7 @@ export default function Navbar() {
     e.preventDefault();
     if (search.trim()) {
       router.push(`/products?q=${encodeURIComponent(search.trim())}`);
+      setSearch("");
       setMobileOpen(false);
     }
   }
@@ -88,6 +89,7 @@ export default function Navbar() {
             {mounted && (
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 {theme === "dark" ? (
@@ -115,6 +117,8 @@ export default function Navbar() {
             {/* Mobile menu */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
+              aria-expanded={mobileOpen}
+              aria-label="Toggle menu"
               className="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -123,20 +127,20 @@ export default function Navbar() {
         </div>
 
         {/* Desktop nav links */}
-        <nav className="hidden md:flex items-center gap-6 pb-2.5 text-sm border-t border-gray-100 dark:border-gray-800 pt-1">
-          <Link href="/" className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition-colors font-medium">
+        <nav className="hidden md:flex justify-center items-center gap-2 pb-2 border-t border-gray-100 dark:border-gray-800 pt-2">
+          <Link href="/" className="px-3 py-1.5 rounded-full text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-colors">
             {t.home}
           </Link>
-          <Link href="/products" className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition-colors font-medium">
+          <Link href="/products" className="px-3 py-1.5 rounded-full text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-colors">
             {t.allProducts}
           </Link>
-          {["Cosmetics & Personal Care","Alcoholic Drinks","Food Products","Cleaning & Sanitary"].map((cat) => (
+          {["Cosmetics & Personal Care","Alcoholic Drinks","Food Products","Cleaning & Sanitary","Baby Products"].map((cat) => (
             <Link
               key={cat}
               href={`/products?category=${encodeURIComponent(cat)}`}
-              className="text-gray-500 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-500 transition-colors text-xs"
+              className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-red-100 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-colors whitespace-nowrap"
             >
-              {cat}
+              {cat.split(" & ")[0]}
             </Link>
           ))}
         </nav>

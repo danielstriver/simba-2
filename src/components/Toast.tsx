@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { createContext, useContext, useState, useCallback, useRef } from "react";
 import { CheckCircle, X, ShoppingCart, AlertCircle } from "lucide-react";
 
 type ToastType = "success" | "error" | "cart";
@@ -10,10 +10,10 @@ const ToastContext = createContext<ToastCtx>({ toast: () => {} });
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
-  let counter = 0;
+  const counter = useRef(0);
 
   const toast = useCallback((message: string, type: ToastType = "success", sub?: string) => {
-    const id = ++counter;
+    const id = ++counter.current;
     setToasts((prev) => [...prev, { id, message, type, sub }]);
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3000);
   }, []);
@@ -23,7 +23,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 items-center pointer-events-none">
+      <div role="status" aria-live="polite" aria-atomic="false" className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 items-center pointer-events-none">
         {toasts.map((t) => (
           <div
             key={t.id}
@@ -46,7 +46,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <p className="leading-snug truncate">{t.message}</p>
               {t.sub && <p className="text-xs opacity-70 truncate">{t.sub}</p>}
             </div>
-            <button onClick={() => remove(t.id)} className="shrink-0 opacity-60 hover:opacity-100">
+            <button onClick={() => remove(t.id)} aria-label="Dismiss notification" className="shrink-0 opacity-60 hover:opacity-100">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>

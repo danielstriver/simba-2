@@ -150,6 +150,7 @@ let cachedData: ProductsData | null = null;
 export async function getProducts(): Promise<ProductsData> {
   if (cachedData) return cachedData;
   const res = await fetch("/simba_products.json");
+  if (!res.ok) throw new Error(`Failed to load products: ${res.status}`);
   const raw: ProductsData = await res.json();
 
   // Apply category overrides and name cleanup

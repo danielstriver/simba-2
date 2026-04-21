@@ -8,15 +8,15 @@ import { useLang } from "@/lib/LanguageContext";
 import { useToast } from "@/components/Toast";
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
-import { ArrowLeft, ShoppingCart, Check, Truck, Shield, ChevronRight, Minus, Plus } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Check, Truck, Shield, ChevronRight, Minus, Plus, Zap } from "lucide-react";
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { t } = useLang();
   const addItem = useStore((s) => s.addItem);
-  const setCartOpen = useStore((s) => s.setCartOpen);
-  const items = useStore((s) => s.items);
+  const updateQuantity = useStore((s) => s.updateQuantity);
+  const cartItems = useStore((s) => s.items);
   const { toast } = useToast();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -41,17 +41,22 @@ export default function ProductDetailPage() {
 
   function handleAdd() {
     if (!product?.inStock) return;
-    for (let i = 0; i < qty; i++) addItem(product);
+    const existing = cartItems.find((i) => i.product.id === product.id);
+    if (existing) {
+      updateQuantity(product.id, existing.quantity + qty);
+    } else {
+      for (let i = 0; i < qty; i++) addItem(product);
+    }
     toast(`${qty > 1 ? qty + "×" : ""} Added to cart`, "cart", product.name);
   }
 
   function handleBuyNow() {
     if (!product?.inStock) return;
     handleAdd();
-    setTimeout(() => setCartOpen(true), 300);
+    router.push("/checkout");
   }
 
-  const inCart = items.find((i) => i.product.id === product?.id);
+  const inCart = cartItems.find((i) => i.product.id === product?.id);
   const meta = product ? CATEGORY_META[product.category] : null;
   const imgSrc = product
     ? (product.image.includes("placehold.co")
@@ -70,7 +75,7 @@ export default function ProductDetailPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-6 flex-wrap">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-400 mb-6 flex-wrap">
         <Link href="/" className="hover:text-red-600 transition-colors">{t.home}</Link>
         <ChevronRight className="w-3 h-3 shrink-0" />
         <Link href="/products" className="hover:text-red-600 transition-colors">{t.allProducts}</Link>
@@ -175,6 +180,7 @@ export default function ProductDetailPage() {
                 <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
                   <button
                     onClick={() => setQty(Math.max(1, qty - 1))}
+                    aria-label="Decrease quantity"
                     className="px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300 font-bold"
                   >
                     <Minus className="w-4 h-4" />
@@ -184,6 +190,7 @@ export default function ProductDetailPage() {
                   </span>
                   <button
                     onClick={() => setQty(qty + 1)}
+                    aria-label="Increase quantity"
                     className="px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300 font-bold"
                   >
                     <Plus className="w-4 h-4" />
@@ -214,9 +221,9 @@ export default function ProductDetailPage() {
             {product.inStock && (
               <button
                 onClick={handleBuyNow}
-                className="flex-1 border-2 border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 py-3.5 rounded-xl font-bold transition-colors text-sm"
+                className="flex-1 flex items-center justify-center gap-2 border-2 border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 py-3.5 rounded-xl font-bold transition-colors text-sm"
               >
-                Buy Now →
+                <Zap className="w-4 h-4" /> Buy Now
               </button>
             )}
           </div>

@@ -138,7 +138,7 @@ function ProductsContent() {
       setSelectedCat(cat);
       prevCat.current = cat;
     }
-  }, [searchParams.get("q"), searchParams.get("category")]);
+  }, [searchParams]);
 
   useEffect(() => {
     getProducts()

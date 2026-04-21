@@ -300,8 +300,8 @@ function MessageText({ text }: { text: string }) {
 export default function SimbaAssistant() {
   const { t } = useLang();
   const items = useStore((s) => s.items);
-  const totalItems = useStore((s) => s.totalItems());
-  const totalPrice = useStore((s) => s.totalPrice());
+  const totalItems = useStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
+  const totalPrice = useStore((s) => s.items.reduce((sum, i) => sum + i.product.price * i.quantity, 0));
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -322,7 +322,7 @@ export default function SimbaAssistant() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
-  let msgId = useRef(1);
+  const msgId = useRef(1);
 
   // Load products
   useEffect(() => {
@@ -495,7 +495,7 @@ export default function SimbaAssistant() {
                       {msg.products.map((p) => <ChatProductCard key={p.id} product={p} />)}
                       {msg.products.length >= 5 && (
                         <Link
-                          href={`/products?q=${encodeURIComponent(msg.products[0]?.category || "")}`}
+                          href={`/products?category=${encodeURIComponent(msg.products[0]?.category || "")}`}
                           className="flex items-center justify-center gap-1 text-xs text-red-600 font-bold py-1 hover:underline"
                         >
                           See all results <ChevronRight className="w-3 h-3" />

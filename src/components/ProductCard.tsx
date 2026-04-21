@@ -40,9 +40,8 @@ function ProductImg({ product }: { product: Product }) {
 export default function ProductCard({ product }: { product: Product }) {
   const { t } = useLang();
   const addItem = useStore((s) => s.addItem);
-  const items = useStore((s) => s.items);
+  const inCart = useStore((s) => s.items.some((i) => i.product.id === product.id));
   const { toast } = useToast();
-  const inCart = items.some((i) => i.product.id === product.id);
 
   function handleAdd(e: React.MouseEvent) {
     e.preventDefault();

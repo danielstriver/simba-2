@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { getProductImage } from "@/lib/imageMap";
@@ -21,17 +21,24 @@ function CartItemImg({ imgSrc, product }: { imgSrc: string; product: Product }) 
 }
 
 export default function CartDrawer() {
-  const { items, cartOpen, setCartOpen, removeItem, updateQuantity, totalPrice } = useStore();
+  const { items, cartOpen, setCartOpen, removeItem, updateQuantity } = useStore();
   const { t } = useLang();
+  const total = useStore((s) => s.items.reduce((sum, i) => sum + i.product.price * i.quantity, 0));
+  const totalQty = items.reduce((s, i) => s + i.quantity, 0);
+
+  useEffect(() => {
+    if (!cartOpen) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setCartOpen(false); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [cartOpen, setCartOpen]);
 
   if (!cartOpen) return null;
-
-  const total = totalPrice();
 
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-50 backdrop-blur-sm" onClick={() => setCartOpen(false)} />
-      <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-white dark:bg-gray-900 z-50 shadow-2xl flex flex-col">
+      <div role="dialog" aria-modal="true" aria-label="Shopping cart" className="fixed right-0 top-0 h-full w-full max-w-sm bg-white dark:bg-gray-900 z-50 shadow-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-2">
@@ -39,7 +46,7 @@ export default function CartDrawer() {
             <h2 className="font-black text-lg dark:text-white">{t.cart}</h2>
             {items.length > 0 && (
               <span className="bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400 text-xs font-bold px-2 py-0.5 rounded-full">
-                {items.reduce((s, i) => s + i.quantity, 0)} {t.items}
+                {totalQty} {t.items}
               </span>
             )}
           </div>
@@ -82,6 +89,7 @@ export default function CartDrawer() {
                       <div className="flex items-center gap-2 mt-2">
                         <button
                           onClick={() => updateQuantity(product.id, quantity - 1)}
+                          aria-label="Decrease quantity"
                           className="w-7 h-7 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                         >
                           <Minus className="w-3 h-3" />
@@ -89,12 +97,13 @@ export default function CartDrawer() {
                         <span className="w-6 text-center text-sm font-black">{quantity}</span>
                         <button
                           onClick={() => updateQuantity(product.id, quantity + 1)}
+                          aria-label="Increase quantity"
                           className="w-7 h-7 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
                         <p className="text-xs text-gray-400 ml-1">{formatPrice(product.price * quantity)}</p>
-                        <button onClick={() => removeItem(product.id)} className="ml-auto text-gray-300 hover:text-red-500 transition-colors p-1">
+                        <button onClick={() => removeItem(product.id)} aria-label="Remove item" className="ml-auto text-gray-300 hover:text-red-500 transition-colors p-1">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -112,7 +121,7 @@ export default function CartDrawer() {
             {/* Subtotal */}
             <div className="space-y-1.5 text-sm">
               <div className="flex justify-between text-gray-500 dark:text-gray-400">
-                <span>Subtotal ({items.reduce((s,i) => s+i.quantity, 0)} items)</span>
+                <span>Subtotal ({totalQty} items)</span>
                 <span>{formatPrice(total)}</span>
               </div>
               <div className="flex justify-between text-green-600 dark:text-green-400 font-medium">

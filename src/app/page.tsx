@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getProducts, Product, CATEGORIES, CATEGORY_META, formatPrice } from "@/lib/products";
@@ -27,19 +27,16 @@ export default function HomePage() {
     if (heroSearch.trim()) router.push(`/products?q=${encodeURIComponent(heroSearch.trim())}`);
   }
 
-  // Curated product sets
-  const topCosmetics = products.filter((p) => p.category === "Cosmetics & Personal Care").slice(0, 4);
-  const topDrinks = products
+  // Curated product sets — memoised so they don't recompute on unrelated re-renders
+  const topCosmetics = useMemo(() => products.filter((p) => p.category === "Cosmetics & Personal Care").slice(0, 4), [products]);
+  const topDrinks = useMemo(() => products
     .filter((p) => p.category === "Alcoholic Drinks")
     .filter((p) => ["wine", "beer", "whisky", "gin", "cognac", "amarula"].some(k => p.name.toLowerCase().includes(k)))
-    .slice(0, 4);
-  const foodProducts = products.filter((p) => p.category === "Food Products").slice(0, 4);
-  const kitchenProducts = products.filter((p) => p.category === "Kitchenware & Electronics").slice(0, 4);
-  const cleaningProducts = products.filter((p) => p.category === "Cleaning & Sanitary").slice(0, 4);
-  const featured = [...topCosmetics, ...topDrinks].slice(0, 8);
-
-  // Popular categories by product count
-  const popularCats = CATEGORIES.slice(0, 6);
+    .slice(0, 4), [products]);
+  const foodProducts = useMemo(() => products.filter((p) => p.category === "Food Products").slice(0, 4), [products]);
+  const kitchenProducts = useMemo(() => products.filter((p) => p.category === "Kitchenware & Electronics").slice(0, 4), [products]);
+  const cleaningProducts = useMemo(() => products.filter((p) => p.category === "Cleaning & Sanitary").slice(0, 4), [products]);
+  const featured = useMemo(() => [...topCosmetics, ...topDrinks].slice(0, 8), [topCosmetics, topDrinks]);
 
   return (
     <div>

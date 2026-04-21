@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useMemo } from "react";
 import { translations, Language, Translations } from "./i18n";
 import { useStore } from "./store";
 
@@ -16,10 +16,12 @@ const LanguageContext = createContext<LangContext>({
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const { language, setLanguage } = useStore();
+  const language = useStore((s) => s.language);
+  const setLanguage = useStore((s) => s.setLanguage);
   const t = translations[language];
+  const value = useMemo(() => ({ lang: language, t, setLang: setLanguage }), [language, t, setLanguage]);
   return (
-    <LanguageContext.Provider value={{ lang: language, t, setLang: setLanguage }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );
