@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getProducts, Product, CATEGORIES, CATEGORY_META, formatPrice } from "@/lib/products";
 import { useLang } from "@/lib/LanguageContext";
 import ProductCard from "@/components/ProductCard";
+import Image from "next/image";
 import { ArrowRight, Search, Truck, Shield, Clock, ChevronRight, Zap, Phone } from "lucide-react";
 
 export default function HomePage() {
@@ -43,13 +44,17 @@ export default function HomePage() {
   return (
     <div>
       {/* ─── HERO — 10-second test: who, what, why ─── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-red-700 via-red-600 to-orange-500">
-        {/* Decorative circles */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/5" />
-          <div className="absolute -bottom-10 -left-10 w-60 h-60 rounded-full bg-white/5" />
-          <div className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full bg-white/[0.03] -translate-x-1/2 -translate-y-1/2" />
-        </div>
+      <section className="relative overflow-hidden">
+        {/* Background store image */}
+        <Image
+          src="/images/bg-suggested.jpg"
+          alt=""
+          fill
+          className="object-cover object-center"
+          priority
+        />
+        {/* Dark overlay — keeps text readable over the photo */}
+        <div className="absolute inset-0 bg-red-900/65" />
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center">
           {/* Eyebrow */}
