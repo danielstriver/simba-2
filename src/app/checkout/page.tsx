@@ -15,7 +15,7 @@ function MtnLogo() {
   return (
     <svg viewBox="0 0 60 24" className="h-6 w-auto" aria-label="MTN MoMo">
       <rect width="60" height="24" rx="4" fill="#FFCB00" />
-      <text x="5" y="17" fontSize="13" fontWeight="900" fontFamily="Arial,sans-serif" fill="#000">MTN</text>
+      <text x="30" y="17" fontSize="13" fontWeight="900" fontFamily="Arial,sans-serif" fill="#000" textAnchor="middle">MTN</text>
     </svg>
   );
 }
