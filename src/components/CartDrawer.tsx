@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { getProductImage } from "@/lib/imageMap";
-import { Product, formatPrice } from "@/lib/products";
+import { CATEGORY_META, Product, formatPrice } from "@/lib/products";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,7 +11,14 @@ import AuthModal from "./AuthModal";
 
 function CartItemImg({ imgSrc, product }: { imgSrc: string; product: Product }) {
   const [failed, setFailed] = useState(false);
-  if (failed) return <div className="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs">📦</div>;
+  const meta = CATEGORY_META[product.category];
+  if (failed) {
+    return (
+      <div className={`w-full h-full bg-gradient-to-br ${meta?.color || "from-gray-200 to-gray-400"} flex items-center justify-center`}>
+        <span className="text-2xl">{meta?.icon || "🛒"}</span>
+      </div>
+    );
+  }
   return <img src={imgSrc} alt={product.name} className="w-full h-full object-cover" onError={() => setFailed(true)} />;
 }
 
@@ -44,9 +51,9 @@ export default function CartDrawer() {
 
   return (
     <>
-      <AuthModal
-        isOpen={showAuth}
-        onClose={() => setShowAuth(false)}
+      <AuthModal 
+        isOpen={showAuth} 
+        onClose={() => setShowAuth(false)} 
         onSuccess={() => {
           setCartOpen(false);
           router.push("/checkout");

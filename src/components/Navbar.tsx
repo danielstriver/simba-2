@@ -5,6 +5,7 @@ import { ShoppingCart, Sun, Moon, Globe, Search, Menu, X, User as UserIcon, LogO
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import AuthModal from "./AuthModal";
 
 export default function Navbar() {
@@ -16,13 +17,27 @@ export default function Navbar() {
   const [search, setSearch] = useState("");
   const [mounted, setMounted] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(t);
   }, []);
 
-// ... rest of setup code
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (search.trim()) {
+      router.push(`/products?q=${encodeURIComponent(search.trim())}`);
+      setSearch("");
+      setMobileOpen(false);
+    }
+  }
+
+  const langs: { code: Language; label: string }[] = [
+    { code: "en", label: "EN" },
+    { code: "fr", label: "FR" },
+    { code: "rw", label: "RW" },
+  ];
 
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">

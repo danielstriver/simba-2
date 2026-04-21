@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
