@@ -4,9 +4,7 @@ import { useTheme } from "next-themes";
 import { ShoppingCart, Sun, Moon, Globe, Search, Menu, X, User as UserIcon, LogOut } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
-import { Language } from "@/lib/i18n";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import AuthModal from "./AuthModal";
 
 export default function Navbar() {
@@ -18,7 +16,11 @@ export default function Navbar() {
   const [search, setSearch] = useState("");
   const [mounted, setMounted] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
-  const router = useRouter();
+
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(t);
+  }, []);
 
 // ... rest of setup code
 

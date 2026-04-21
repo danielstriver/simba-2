@@ -3,14 +3,16 @@ import { useState, useEffect } from "react";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { getProductImage } from "@/lib/imageMap";
-import { CATEGORY_META, Product, formatPrice } from "@/lib/products";
+import { Product, formatPrice } from "@/lib/products";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthModal from "./AuthModal";
 
 function CartItemImg({ imgSrc, product }: { imgSrc: string; product: Product }) {
-// ... rest of CartItemImg
+  const [failed, setFailed] = useState(false);
+  if (failed) return <div className="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs">📦</div>;
+  return <img src={imgSrc} alt={product.name} className="w-full h-full object-cover" onError={() => setFailed(true)} />;
 }
 
 export default function CartDrawer() {

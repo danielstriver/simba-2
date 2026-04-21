@@ -2,7 +2,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getProducts, Product, CATEGORIES, CATEGORY_META, formatPrice } from "@/lib/products";
+import { getProducts, Product, CATEGORIES, CATEGORY_META } from "@/lib/products";
 import { useLang } from "@/lib/LanguageContext";
 import ProductCard from "@/components/ProductCard";
 import Image from "next/image";

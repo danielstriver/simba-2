@@ -316,7 +316,12 @@ export default function SimbaAssistant() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [listening, setListening] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(true);
-  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [voiceSupported] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    }
+    return false;
+  });
   const [thinking, setThinking] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -327,12 +332,6 @@ export default function SimbaAssistant() {
   // Load products
   useEffect(() => {
     getProducts().then((d) => setAllProducts(d.products));
-  }, []);
-
-  // Check voice support
-  useEffect(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    setVoiceSupported(!!SR);
   }, []);
 
   // Auto-scroll

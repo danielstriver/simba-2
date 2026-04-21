@@ -1,14 +1,12 @@
-"use client";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { formatPrice } from "@/lib/products";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { 
-  Check, Phone, MapPin, User, CreditCard, Banknote, 
-  ChevronRight, ShoppingBag, Loader2, AlertCircle, 
-  Smartphone, Clock, Calendar, Store, ArrowRight 
+  Check, Phone, User, CreditCard, Banknote, 
+  ChevronRight, ShoppingBag, Loader2,
+  Clock, Calendar, Store, ArrowRight 
 } from "lucide-react";
 
 type PaymentMethod = "momo" | "card" | "cash";
@@ -43,9 +41,7 @@ function MastercardLogo() {
 
 export default function CheckoutPage() {
   const { t } = useLang();
-  const router = useRouter();
   const items = useStore((s) => s.items);
-  const user = useStore((s) => s.user);
   const clearCart = useStore((s) => s.clearCart);
   const total = useStore((s) => s.items.reduce((sum, i) => sum + i.product.price * i.quantity, 0));
   const [step, setStep] = useState<"details" | "payment" | "success">("details");
@@ -53,17 +49,17 @@ export default function CheckoutPage() {
   const [momoStatus, setMomoStatus] = useState<MomoStatus>("idle");
   const [momoError, setMomoError] = useState("");
 
-  const [form, setForm] = useState({
-    name: user?.name || "",
-    phone: user?.phone || "",
+  const [form, setForm] = useState(() => ({
+    name: useStore.getState().user?.name || "",
+    phone: useStore.getState().user?.phone || "",
     branch: "Simba 1 - City Center",
     date: new Date().toISOString().split("T")[0],
     time: "12:00",
     notes: "",
-  });
+  }));
 
   const [payMethod, setPayMethod] = useState<PaymentMethod>("momo");
-  const [momoPhone, setMomoPhone] = useState(user?.phone || "");
+  const [momoPhone, setMomoPhone] = useState(() => useStore.getState().user?.phone || "");
   const [cardNum, setCardNum] = useState("");
   const [cardExp, setCardExp] = useState("");
   const [cardCvv, setCardCvv] = useState("");
@@ -83,19 +79,19 @@ export default function CheckoutPage() {
   }
 
   async function validatePayment(): Promise<boolean> {
+    const e: Record<string, string> = {};
     if (payMethod === "momo") {
       if (!momoPhone.trim() || momoPhone.replace(/\D/g, "").length < 9) {
-        setMomoError("Enter a valid MoMo phone number");
-        return false;
+        e.momo = "Enter a valid MoMo phone number";
       }
     }
     if (payMethod === "card") {
-      if (!cardNum.trim() || !cardExp.trim() || !cardCvv.trim()) {
-        setErrors({ card: "Please fill in all card details" });
-        return false;
-      }
+      if (!cardNum.trim()) e.cardNum = "Card number required";
+      if (!cardExp.trim()) e.cardExp = "Expiry required";
+      if (!cardCvv.trim()) e.cardCvv = "CVV required";
     }
-    return true;
+    setErrors(e);
+    return Object.keys(e).length === 0;
   }
 
   async function handlePlaceOrder() {
@@ -114,12 +110,13 @@ export default function CheckoutPage() {
         setLoading(false);
       } catch {
         setMomoStatus("failed");
-        setMomoError("Payment failed");
+        setMomoError("Payment failed. Please try again.");
         setLoading(false);
       }
       return;
     }
 
+    // Card or Cash flow
     await new Promise((r) => setTimeout(r, 1500));
     setStep("success");
     clearCart();
@@ -209,9 +206,10 @@ export default function CheckoutPage() {
                     <input
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                      className={`w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border ${errors.name ? "border-red-500" : "border-gray-200 dark:border-gray-700"} rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-sm`}
                     />
                   </div>
+                  {errors.name && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.name}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">
@@ -222,9 +220,10 @@ export default function CheckoutPage() {
                     <input
                       value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                      className={`w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border ${errors.phone ? "border-red-500" : "border-gray-200 dark:border-gray-700"} rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-sm`}
                     />
                   </div>
+                  {errors.phone && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.phone}</p>}
                 </div>
               </div>
 
@@ -336,10 +335,54 @@ export default function CheckoutPage() {
                       value={momoPhone}
                       onChange={(e) => setMomoPhone(e.target.value)}
                       placeholder="078 XXX XXXX"
-                      className="w-full px-4 py-3 rounded-xl border border-yellow-300 dark:border-yellow-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                      className={`w-full px-4 py-3 rounded-xl border ${errors.momo ? "border-red-500" : "border-yellow-300 dark:border-yellow-800"} bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500`}
+                    />
+                    {errors.momo && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.momo}</p>}
+                  </div>
+                  {momoStatus === "awaiting" ? (
+                    <div className="flex items-center gap-3 py-2 text-yellow-800 dark:text-yellow-300">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span className="text-sm font-bold">Please check your phone for the PIN prompt...</span>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-yellow-700 dark:text-yellow-400 italic">💡 You will receive a prompt to enter your MoMo PIN after clicking Place Order.</p>
+                  )}
+                  {momoError && <p className="text-sm text-red-600 font-bold bg-red-50 p-2 rounded-lg">{momoError}</p>}
+                </div>
+              )}
+
+              {payMethod === "card" && (
+                <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-900 rounded-xl p-5 space-y-4">
+                  <div className="flex items-center gap-2"><VisaLogo /><MastercardLogo /><span className="font-bold ml-2">Secure Card Payment</span></div>
+                  <div>
+                    <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 mb-1.5 ml-1 uppercase">Card Number</label>
+                    <input
+                      value={cardNum}
+                      onChange={(e) => setCardNum(e.target.value)}
+                      placeholder="0000 0000 0000 0000"
+                      className={`w-full px-4 py-3 rounded-xl border ${errors.cardNum ? "border-red-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     />
                   </div>
-                  <p className="text-xs text-yellow-700 dark:text-yellow-400 italic">💡 You will receive a prompt to enter your MoMo PIN after clicking Place Order.</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 mb-1.5 ml-1 uppercase">Expiry Date</label>
+                      <input
+                        value={cardExp}
+                        onChange={(e) => setCardExp(e.target.value)}
+                        placeholder="MM/YY"
+                        className={`w-full px-4 py-3 rounded-xl border ${errors.cardExp ? "border-red-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 mb-1.5 ml-1 uppercase">CVV</label>
+                      <input
+                        value={cardCvv}
+                        onChange={(e) => setCardCvv(e.target.value)}
+                        placeholder="123"
+                        className={`w-full px-4 py-3 rounded-xl border ${errors.cardCvv ? "border-red-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
 
