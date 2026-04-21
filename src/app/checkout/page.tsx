@@ -7,7 +7,7 @@ import Link from "next/link";
 import { 
   Check, Phone, User, CreditCard, Banknote, 
   ChevronRight, ShoppingBag, Loader2,
-  Clock, Calendar, Store, ArrowRight 
+  Clock, Calendar, Store, ArrowRight, MapPin 
 } from "lucide-react";
 
 type PaymentMethod = "momo" | "card" | "cash";
@@ -50,14 +50,29 @@ export default function CheckoutPage() {
   const [momoStatus, setMomoStatus] = useState<MomoStatus>("idle");
   const [momoError, setMomoError] = useState("");
 
+  const branches = [
+    { id: "UTC", label: t.kigaliCityCenter, addr: "Union Trade Centre, 1 KN 4 Ave" },
+    { id: "KN5", label: t.kicukiro, addr: "KN 5 Rd, Kigali" },
+    { id: "KG541", label: t.kimihurura, addr: "KG 541 St, Kigali" },
+    { id: "24Q5", label: t.nyamirambo, addr: "24Q5+R2R, Kigali" },
+    { id: "342F", label: t.kimironko, addr: "342F+3V5, Kimironko" },
+    { id: "KG192", label: t.nyarutarama, addr: "KG 192 St, Kigali" },
+    { id: "23H4", label: t.nyamiramboCosmos, addr: "23H4+26V, Kigali" },
+    { id: "KK35", label: t.kicukiroKK35, addr: "KK 35 Ave, Kigali" },
+    { id: "24G3", label: t.remera, addr: "24G3+MCV, Kigali" },
+    { id: "Gisenyi", label: t.gisenyi, addr: "8754+P7W, Gisenyi" },
+  ];
+
   const [form, setForm] = useState(() => ({
     name: useStore.getState().user?.name || "",
     phone: useStore.getState().user?.phone || "",
-    branch: "Simba 1 - City Center",
+    branch: useStore.getState().selectedBranch || "UTC",
     date: new Date().toISOString().split("T")[0],
     time: "12:00",
     notes: "",
   }));
+
+  const currentBranch = branches.find(b => b.id === form.branch) || branches[0];
 
   const [payMethod, setPayMethod] = useState<PaymentMethod>("momo");
   const [momoPhone, setMomoPhone] = useState(() => useStore.getState().user?.phone || "");
@@ -147,7 +162,11 @@ export default function CheckoutPage() {
         <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-8 text-left space-y-3 border border-gray-100 dark:border-gray-700">
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Pickup Location:</span>
-            <span className="font-bold text-gray-900 dark:text-white">{form.branch}</span>
+            <span className="font-bold text-gray-900 dark:text-white">{currentBranch.label}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Address:</span>
+            <span className="font-bold text-gray-900 dark:text-white text-right">{currentBranch.addr}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Pickup Time:</span>
@@ -233,25 +252,23 @@ export default function CheckoutPage() {
                   {t.selectBranch} *
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    { id: "Simba 1 - City Center", label: t.kigaliCityCenter },
-                    { id: "Simba 2 - Kicukiro", label: t.kicukiro },
-                    { id: "Simba 3 - Kimironko", label: t.kimironko },
-                    { id: "Simba 4 - Gishushu", label: t.gishushu },
-                  ].map((b) => (
+                  {branches.map((b) => (
                     <button
                       key={b.id}
                       onClick={() => setForm({ ...form, branch: b.id })}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
+                      className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${
                         form.branch === b.id 
                           ? "border-red-600 bg-red-50 dark:bg-red-950" 
                           : "border-gray-100 dark:border-gray-700 hover:border-gray-200"
                       }`}
                     >
-                      <Store className={`w-5 h-5 ${form.branch === b.id ? "text-red-600" : "text-gray-400"}`} />
-                      <span className={`text-sm font-bold ${form.branch === b.id ? "text-red-700 dark:text-red-400" : "text-gray-600 dark:text-gray-400"}`}>
-                        {b.label}
-                      </span>
+                      <Store className={`w-5 h-5 shrink-0 ${form.branch === b.id ? "text-red-600" : "text-gray-400"}`} />
+                      <div>
+                        <p className={`text-sm font-bold ${form.branch === b.id ? "text-red-700 dark:text-red-400" : "text-gray-600 dark:text-gray-400"}`}>
+                          {b.label}
+                        </p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">{b.addr}</p>
+                      </div>
                     </button>
                   ))}
                 </div>

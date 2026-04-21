@@ -26,6 +26,7 @@ interface CartStore {
   user: User | null;
   language: Language;
   cartOpen: boolean;
+  selectedBranch: string | null;
   addItem: (product: Product) => void;
   removeItem: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
@@ -33,6 +34,7 @@ interface CartStore {
   setUser: (user: User | null) => void;
   setLanguage: (lang: Language) => void;
   setCartOpen: (open: boolean) => void;
+  setSelectedBranch: (branch: string | null) => void;
   totalItems: () => number;
   totalPrice: () => number;
 }
@@ -44,6 +46,7 @@ export const useStore = create<CartStore>()(
       user: null,
       language: "en",
       cartOpen: false,
+      selectedBranch: null,
       addItem: (product) => {
         const items = get().items;
         const existing = items.find((i) => i.product.id === product.id);
@@ -77,6 +80,7 @@ export const useStore = create<CartStore>()(
       setUser: (user) => set({ user }),
       setLanguage: (lang) => set({ language: lang }),
       setCartOpen: (open) => set({ cartOpen: open }),
+      setSelectedBranch: (branch) => set({ selectedBranch: branch }),
       totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
       totalPrice: () =>
         get().items.reduce((sum, i) => sum + i.product.price * i.quantity, 0),
@@ -86,7 +90,8 @@ export const useStore = create<CartStore>()(
       partialize: (state) => ({ 
         items: state.items, 
         language: state.language,
-        user: state.user 
+        user: state.user,
+        selectedBranch: state.selectedBranch
       }),
     }
   )
