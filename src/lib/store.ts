@@ -14,6 +14,7 @@ export interface User {
   phone: string;
   email?: string;
   role?: "customer" | "manager" | "staff";
+  branchId?: string;
 }
 
 export interface PickupDetails {

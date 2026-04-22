@@ -27,6 +27,9 @@ body {
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* Safe area for mobile bottom nav (iPhone home bar) */
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
 /* Trust strip sticky positioning */
 .sticky-below-nav {
   position: sticky;

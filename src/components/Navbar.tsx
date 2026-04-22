@@ -11,10 +11,10 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AuthModal from "./AuthModal";
 
-const LANG_OPTIONS: { code: Language; flag: string; label: string }[] = [
-  { code: "en", flag: "🇬🇧", label: "English" },
-  { code: "fr", flag: "🇫🇷", label: "Français" },
-  { code: "rw", flag: "🇷🇼", label: "Kinyarwanda" },
+const LANG_OPTIONS: { code: Language; flagSrc: string; label: string }[] = [
+  { code: "en", flagSrc: "https://flagcdn.com/w40/gb.png", label: "English" },
+  { code: "fr", flagSrc: "https://flagcdn.com/w40/fr.png", label: "Français" },
+  { code: "rw", flagSrc: "https://flagcdn.com/w40/rw.png", label: "Kinyarwanda" },
 ];
 
 export default function Navbar() {
@@ -157,23 +157,37 @@ export default function Navbar() {
             <div className="relative hidden lg:block mr-1" ref={langRef}>
               <button
                 onClick={() => setLangOpen(!langOpen)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-sm font-medium text-gray-600 dark:text-gray-300"
+                className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label="Select language"
               >
-                <span className="text-lg leading-none">{currentLang.flag}</span>
-                <span className="uppercase text-xs font-bold">{lang}</span>
-                <ChevronDown className={`w-3 h-3 transition-transform ${langOpen ? "rotate-180" : ""}`} />
+                <img
+                  src={currentLang.flagSrc}
+                  alt={currentLang.label}
+                  width={20}
+                  height={14}
+                  className="rounded-sm object-cover"
+                  style={{ width: 20, height: 14 }}
+                />
+                <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform ${langOpen ? "rotate-180" : ""}`} />
               </button>
               {langOpen && (
-                <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 py-2 min-w-[170px] z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 py-2 min-w-[180px] z-50 animate-in fade-in zoom-in-95 duration-150">
                   {LANG_OPTIONS.map((l) => (
                     <button
                       key={l.code}
                       onClick={() => { setLang(l.code); setLangOpen(false); }}
                       className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left ${lang === l.code ? "text-red-600 font-bold" : "text-gray-700 dark:text-gray-300 font-medium"}`}
                     >
-                      <span className="text-xl leading-none">{l.flag}</span>
+                      <img
+                        src={l.flagSrc}
+                        alt={l.label}
+                        width={24}
+                        height={17}
+                        className="rounded-sm object-cover shrink-0"
+                        style={{ width: 24, height: 17 }}
+                      />
                       <span className="flex-1">{l.label}</span>
-                      {lang === l.code && <Check className="w-3.5 h-3.5 shrink-0" />}
+                      {lang === l.code && <Check className="w-3.5 h-3.5 shrink-0 text-red-600" />}
                     </button>
                   ))}
                 </div>
@@ -309,19 +323,26 @@ export default function Navbar() {
             )}
           </div>
           {/* Language switcher — mobile */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
             {LANG_OPTIONS.map((l) => (
               <button
                 key={l.code}
-                onClick={() => { setLang(l.code); }}
-                className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
+                onClick={() => setLang(l.code)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 font-medium text-sm transition-all ${
                   lang === l.code
-                    ? "bg-red-600 text-white border-red-600"
-                    : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
+                    ? "border-red-600 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400"
+                    : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-gray-300"
                 }`}
               >
-                <span className="text-base leading-none">{l.flag}</span>
-                {l.label}
+                <img
+                  src={l.flagSrc}
+                  alt={l.label}
+                  width={22}
+                  height={16}
+                  className="rounded-sm object-cover"
+                  style={{ width: 22, height: 16 }}
+                />
+                <span className="text-xs">{l.label}</span>
               </button>
             ))}
           </div>

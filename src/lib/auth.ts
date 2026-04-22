@@ -6,6 +6,7 @@ export interface RegisteredUser {
   passwordHash: string;
   noShowCount: number;
   role: "customer" | "manager" | "staff";
+  branchId?: string;
   createdAt: string;
 }
 
@@ -121,26 +122,28 @@ export function getDepositAmount(userId: string): number {
 }
 
 const STAFF_SEEDS = [
-  { id: "manager-1", email: "manager@simba.rw", password: "Simba2025!", name: "Branch Manager", phone: "+250788000001", role: "manager" as const },
-  { id: "staff-1",   email: "alice@simba.rw",   password: "Staff2025!",  name: "Alice Uwimana",         phone: "+250788000002", role: "staff" as const },
-  { id: "staff-2",   email: "bob@simba.rw",     password: "Staff2025!",  name: "Bob Nkurunziza",        phone: "+250788000003", role: "staff" as const },
-  { id: "staff-3",   email: "carol@simba.rw",   password: "Staff2025!",  name: "Carol Mukandayisenga",  phone: "+250788000004", role: "staff" as const },
-  { id: "staff-4",   email: "david@simba.rw",   password: "Staff2025!",  name: "David Habimana",        phone: "+250788000005", role: "staff" as const },
+  { id: "manager-1", email: "manager@simba.rw", password: "Simba2025!", name: "Branch Manager",        phone: "+250788000001", role: "manager" as const, branchId: "remera"     },
+  { id: "staff-1",   email: "alice@simba.rw",   password: "Staff2025!",  name: "Alice Uwimana",         phone: "+250788000002", role: "staff"   as const, branchId: "remera"     },
+  { id: "staff-2",   email: "bob@simba.rw",     password: "Staff2025!",  name: "Bob Nkurunziza",        phone: "+250788000003", role: "staff"   as const, branchId: "kimironko"  },
+  { id: "staff-3",   email: "carol@simba.rw",   password: "Staff2025!",  name: "Carol Mukandayisenga",  phone: "+250788000004", role: "staff"   as const, branchId: "kacyiru"    },
+  { id: "staff-4",   email: "david@simba.rw",   password: "Staff2025!",  name: "David Habimana",        phone: "+250788000005", role: "staff"   as const, branchId: "nyamirambo" },
 ];
 
 export function seedStaffAccounts(): void {
   if (typeof window === "undefined") return;
-  const users = readUsers();
-  const toAdd = STAFF_SEEDS.filter(s => !users.find(u => u.email === s.email));
-  if (!toAdd.length) return;
   const now = new Date().toISOString();
-  writeUsers([
-    ...users,
-    ...toAdd.map(({ password, ...s }) => ({
-      ...s,
-      passwordHash: hashPw(password),
-      noShowCount: 0,
-      createdAt: now,
-    })),
-  ]);
+  const existing = readUsers();
+  const merged = [...existing];
+
+  for (const seed of STAFF_SEEDS) {
+    const { password, ...fields } = seed;
+    const idx = merged.findIndex(u => u.email === fields.email);
+    if (idx === -1) {
+      merged.push({ ...fields, passwordHash: hashPw(password), noShowCount: 0, createdAt: now });
+    } else {
+      merged[idx] = { ...merged[idx], ...fields, passwordHash: hashPw(password) };
+    }
+  }
+
+  writeUsers(merged);
 }

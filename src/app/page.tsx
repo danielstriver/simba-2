@@ -55,24 +55,49 @@ export default function HomePage() {
         <div className="absolute left-0 bottom-0 w-[300px] h-[300px] bg-orange-50 dark:bg-orange-950/10 rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 py-14 lg:py-20 min-h-[560px]">
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 py-8 sm:py-14 lg:py-20 min-h-[560px]">
+
+            {/* Mobile-only: hero image at top */}
+            <div className="lg:hidden w-full relative">
+              <div className="relative w-full h-52 rounded-3xl overflow-hidden">
+                <Image
+                  src="/images/bg-suggested.jpg"
+                  alt="Fresh groceries at Simba"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                {/* Badge over image on mobile */}
+                <div className="absolute bottom-3 left-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl px-3 py-2 flex items-center gap-2 shadow">
+                  <span className="text-base">🛒</span>
+                  <div>
+                    <p className="text-[11px] font-black text-gray-900 dark:text-white">789 products</p>
+                    <p className="text-[10px] text-gray-500">{t.trustSameDay}</p>
+                  </div>
+                </div>
+                <div className="absolute bottom-3 right-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow">
+                  <p className="text-[10px] font-bold text-green-600">✓ MTN MoMo</p>
+                </div>
+              </div>
+            </div>
 
             {/* Left: Text + CTA */}
             <div className="flex-1 max-w-xl lg:max-w-none lg:pr-8 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 text-xs font-bold px-4 py-1.5 rounded-full mb-6 border border-green-200 dark:border-green-900">
+              <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 text-xs font-bold px-4 py-1.5 rounded-full mb-4 border border-green-200 dark:border-green-900">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 🇷🇼 9 branches across Kigali
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-[3.75rem] font-black text-gray-900 dark:text-white leading-[1.05] tracking-tight mb-4">
+              <h1 className="text-3xl sm:text-5xl lg:text-[3.75rem] font-black text-gray-900 dark:text-white leading-[1.05] tracking-tight mb-3">
                 {t.heroTitle}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400 text-lg leading-relaxed mb-8 max-w-lg mx-auto lg:mx-0">
+              <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg leading-relaxed mb-6 max-w-lg mx-auto lg:mx-0">
                 {t.heroSubtitle}
               </p>
 
               {/* Branch picker + CTA */}
-              <div className="flex flex-col sm:flex-row gap-3 mb-8 max-w-lg mx-auto lg:mx-0">
+              <div className="flex flex-col sm:flex-row gap-3 mb-6 max-w-lg mx-auto lg:mx-0">
                 <div className="relative flex-1">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-red-500 pointer-events-none" />
                   <select
@@ -95,7 +120,7 @@ export default function HomePage() {
               </div>
 
               {/* Mini trust badges */}
-              <div className="flex flex-wrap gap-5 justify-center lg:justify-start text-sm text-gray-500 dark:text-gray-400">
+              <div className="flex flex-wrap gap-4 justify-center lg:justify-start text-sm text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1.5">
                   <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
                   {t.trustAuthentic}
@@ -111,10 +136,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right: Visual */}
-            <div className="flex-1 flex items-center justify-center w-full max-w-sm lg:max-w-none">
+            {/* Right: Visual — desktop only */}
+            <div className="hidden lg:flex flex-1 items-center justify-center">
               <div className="relative w-full max-w-[420px] aspect-square">
-                {/* Subtle background ring */}
                 <div className="absolute inset-0 bg-gradient-to-br from-red-50 to-orange-100 dark:from-red-950/30 dark:to-orange-950/20 rounded-[2.5rem]" />
                 <Image
                   src="/images/bg-suggested.jpg"
@@ -123,7 +147,6 @@ export default function HomePage() {
                   className="object-cover rounded-[2.5rem] shadow-2xl"
                   priority
                 />
-                {/* Floating badge */}
                 <div className="absolute -bottom-4 -left-4 bg-white dark:bg-gray-900 rounded-2xl shadow-xl px-4 py-3 border border-gray-100 dark:border-gray-800 flex items-center gap-3">
                   <div className="w-10 h-10 bg-red-100 dark:bg-red-950 rounded-xl flex items-center justify-center text-xl">🛒</div>
                   <div>
@@ -131,7 +154,6 @@ export default function HomePage() {
                     <p className="text-[11px] text-gray-400">Ready for pickup</p>
                   </div>
                 </div>
-                {/* Floating badge 2 */}
                 <div className="absolute -top-4 -right-4 bg-white dark:bg-gray-900 rounded-2xl shadow-xl px-4 py-3 border border-gray-100 dark:border-gray-800">
                   <div className="flex items-center gap-2">
                     <span className="text-green-500 text-lg">✓</span>

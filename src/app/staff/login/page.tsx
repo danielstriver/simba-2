@@ -45,7 +45,7 @@ export default function StaffLoginPage() {
       setLoading(false);
       return;
     }
-    setUser({ id: res.data.id, name: res.data.name, phone: res.data.phone, email: res.data.email, role: res.data.role });
+    setUser({ id: res.data.id, name: res.data.name, phone: res.data.phone, email: res.data.email, role: res.data.role, branchId: res.data.branchId });
     router.replace("/dashboard");
   }
 

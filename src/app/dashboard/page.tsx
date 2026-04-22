@@ -61,6 +61,9 @@ export default function DashboardPage() {
       router.replace("/staff/login");
     } else if (user.role === "staff") {
       setRole("staff");
+      if (user.branchId) setBranchId(user.branchId);
+    } else if (user.role === "manager" && user.branchId) {
+      setBranchId(user.branchId);
     }
   }, [user, router]);
   const [staffId, setStaffId] = useState(DEMO_STAFF[0].id);
@@ -88,7 +91,7 @@ export default function DashboardPage() {
 
   const visibleOrders =
     role === "staff"
-      ? orders.filter((o) => o.assignedStaffId === staffId && o.status !== "picked_up" && o.status !== "cancelled")
+      ? orders.filter((o) => o.status !== "picked_up" && o.status !== "cancelled")
       : filtered;
 
   async function doAction(orderId: string, fn: () => void) {
