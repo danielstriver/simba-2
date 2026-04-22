@@ -4,16 +4,18 @@ import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { formatPrice } from "@/lib/products";
 import Link from "next/link";
-import { 
-  Check, Phone, User, CreditCard, Banknote, 
+import AuthModal from "@/components/AuthModal";
+import {
+  Check, Phone, User, CreditCard, Banknote,
   ChevronRight, ShoppingBag, Loader2,
-  Clock, Calendar, Store, ArrowRight, MapPin 
+  Clock, Calendar, Store, ArrowRight, MapPin, Package, AlertCircle,
 } from "lucide-react";
 
-type PaymentMethod = "momo" | "card" | "cash";
-type MomoStatus = "idle" | "awaiting" | "failed" | "timeout";
+const PACKAGING_FEE = 500;
 
-// ── SVG Logos ────────────────────────────────────────────────────────────────
+type PaymentMethod = "momo" | "card" | "cash";
+type MomoStatus = "idle" | "awaiting" | "failed";
+
 function MtnLogo() {
   return (
     <svg viewBox="0 0 60 24" className="h-6 w-auto" aria-label="MTN MoMo">
@@ -44,7 +46,9 @@ export default function CheckoutPage() {
   const { t } = useLang();
   const items = useStore((s) => s.items);
   const clearCart = useStore((s) => s.clearCart);
-  const total = useStore((s) => s.items.reduce((sum, i) => sum + i.product.price * i.quantity, 0));
+  const user = useStore((s) => s.user);
+  const subtotal = useStore((s) => s.items.reduce((sum, i) => sum + i.product.price * i.quantity, 0));
+
   const [step, setStep] = useState<"details" | "payment" | "success">("details");
   const [loading, setLoading] = useState(false);
   const [momoStatus, setMomoStatus] = useState<MomoStatus>("idle");
@@ -72,7 +76,7 @@ export default function CheckoutPage() {
     notes: "",
   }));
 
-  const currentBranch = branches.find(b => b.id === form.branch) || branches[0];
+  const currentBranch = branches.find((b) => b.id === form.branch) || branches[0];
 
   const [payMethod, setPayMethod] = useState<PaymentMethod>("momo");
   const [momoPhone, setMomoPhone] = useState(() => useStore.getState().user?.phone || "");
@@ -81,6 +85,99 @@ export default function CheckoutPage() {
   const [cardCvv, setCardCvv] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // ── Auth gate ────────────────────────────────────────────────────────────────
+  if (!user && step !== "success") {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4">
+        <AuthModal
+          isOpen={true}
+          onClose={() => window.history.back()}
+          onSuccess={() => {
+            setForm((f) => ({
+              ...f,
+              name: useStore.getState().user?.name || f.name,
+              phone: useStore.getState().user?.phone || f.phone,
+            }));
+          }}
+        />
+        <div className="text-center space-y-3 opacity-0 pointer-events-none" aria-hidden>
+          <ShoppingBag className="w-12 h-12 text-gray-200 mx-auto" />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Empty cart ───────────────────────────────────────────────────────────────
+  if (items.length === 0 && step !== "success") {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-24 text-center">
+        <ShoppingBag className="w-16 h-16 text-gray-200 mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">{t.cartEmpty}</h2>
+        <Link href="/products" className="text-red-600 font-bold hover:underline">{t.continueShopping}</Link>
+      </div>
+    );
+  }
+
+  // ── Success ──────────────────────────────────────────────────────────────────
+  if (step === "success") {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-20 text-center">
+        <div className="w-20 h-20 bg-green-100 dark:bg-green-950 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Check className="w-10 h-10 text-green-600" />
+        </div>
+        <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-2">{t.orderPlaced}</h2>
+        <p className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed text-sm">{t.pickupInstructions}</p>
+
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-6 text-left space-y-3 border border-gray-100 dark:border-gray-700">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Customer:</span>
+            <span className="font-bold text-gray-900 dark:text-white">{user?.name}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Phone:</span>
+            <span className="font-bold text-gray-900 dark:text-white">{user?.phone}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Pickup Location:</span>
+            <span className="font-bold text-gray-900 dark:text-white text-right">{currentBranch.label}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Pickup Time:</span>
+            <span className="font-bold text-gray-900 dark:text-white">{form.date} at {form.time}</span>
+          </div>
+
+          <div className="border-t border-gray-200 dark:border-gray-600 pt-3 mt-3 space-y-2">
+            <div className="flex justify-between text-sm text-green-600 dark:text-green-400 font-bold">
+              <span className="flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5" /> {t.packagingFeePaid}
+              </span>
+              <span>{formatPrice(PACKAGING_FEE)}</span>
+            </div>
+            <div className="flex justify-between text-sm font-black text-gray-900 dark:text-white">
+              <span>{t.remainingAtCounter}</span>
+              <span className="text-red-600">{formatPrice(subtotal)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 mb-8 text-left">
+          <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+            <strong>Important:</strong> Please arrive at your selected branch by <strong>{form.date} at {form.time}</strong>.
+            Your order will be held for <strong>24 hours</strong>. After that, the packaging fee is forfeited and the order is cancelled.
+          </p>
+        </div>
+
+        <Link
+          href="/"
+          className="inline-block bg-red-600 hover:bg-red-700 text-white font-black px-8 py-3.5 rounded-full transition-colors shadow-lg"
+        >
+          Back to Home
+        </Link>
+      </div>
+    );
+  }
+
+  // ── Form validation ──────────────────────────────────────────────────────────
   function validateDetails() {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Name is required";
@@ -94,7 +191,7 @@ export default function CheckoutPage() {
     if (validateDetails()) setStep("payment");
   }
 
-  async function validatePayment(): Promise<boolean> {
+  async function handlePlaceOrder() {
     const e: Record<string, string> = {};
     if (payMethod === "momo") {
       if (!momoPhone.trim() || momoPhone.replace(/\D/g, "").length < 9) {
@@ -107,91 +204,31 @@ export default function CheckoutPage() {
       if (!cardCvv.trim()) e.cardCvv = "CVV required";
     }
     setErrors(e);
-    return Object.keys(e).length === 0;
-  }
+    if (Object.keys(e).length > 0) return;
 
-  async function handlePlaceOrder() {
-    if (!(await validatePayment())) return;
     setMomoError("");
-    setErrors({});
     setLoading(true);
 
     if (payMethod === "momo") {
-      try {
-        setMomoStatus("awaiting");
-        // Simulated MoMo Flow
-        await new Promise((r) => setTimeout(r, 3000));
-        setStep("success");
-        clearCart();
-        setLoading(false);
-      } catch {
-        setMomoStatus("failed");
-        setMomoError("Payment failed. Please try again.");
-        setLoading(false);
-      }
-      return;
+      setMomoStatus("awaiting");
+      await new Promise((r) => setTimeout(r, 3000));
+      setMomoStatus("idle");
+    } else {
+      await new Promise((r) => setTimeout(r, 1500));
     }
 
-    // Card or Cash flow
-    await new Promise((r) => setTimeout(r, 1500));
     setStep("success");
     clearCart();
     setLoading(false);
   }
 
-  if (items.length === 0 && step !== "success") {
-    return (
-      <div className="max-w-lg mx-auto px-4 py-24 text-center">
-        <ShoppingBag className="w-16 h-16 text-gray-200 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">{t.cartEmpty}</h2>
-        <Link href="/products" className="text-red-600 font-bold hover:underline">{t.continueShopping}</Link>
-      </div>
-    );
-  }
-
-  if (step === "success") {
-    return (
-      <div className="max-w-lg mx-auto px-4 py-20 text-center">
-        <div className="w-20 h-20 bg-green-100 dark:bg-green-950 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Check className="w-10 h-10 text-green-600" />
-        </div>
-        <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-3">{t.orderPlaced}</h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
-          {t.pickupInstructions}
-        </p>
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-8 text-left space-y-3 border border-gray-100 dark:border-gray-700">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Pickup Location:</span>
-            <span className="font-bold text-gray-900 dark:text-white">{currentBranch.label}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Address:</span>
-            <span className="font-bold text-gray-900 dark:text-white text-right">{currentBranch.addr}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Pickup Time:</span>
-            <span className="font-bold text-gray-900 dark:text-white">{form.date} at {form.time}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Payment:</span>
-            <span className="font-bold text-gray-900 dark:text-white capitalize">{payMethod === "momo" ? "Mobile Money" : payMethod === "card" ? "Card" : "Cash on Pickup"}</span>
-          </div>
-        </div>
-        <Link
-          href="/"
-          className="inline-block bg-red-600 hover:bg-red-700 text-white font-black px-8 py-3.5 rounded-full transition-colors shadow-lg"
-        >
-          Back to Home
-        </Link>
-      </div>
-    );
-  }
-
+  // ── Main render ──────────────────────────────────────────────────────────────
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mb-8">{t.checkout}</h1>
 
-      <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+      {/* Steps */}
+      <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2">
         {[
           { id: "details", label: t.pickupDetails },
           { id: "payment", label: t.paymentMethod },
@@ -209,7 +246,10 @@ export default function CheckoutPage() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
+        {/* ── Left column ── */}
         <div className="lg:col-span-2">
+
+          {/* Details step */}
           {step === "details" && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-6">
               <h2 className="font-black text-xl text-gray-900 dark:text-white flex items-center gap-2">
@@ -218,9 +258,7 @@ export default function CheckoutPage() {
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">
-                    {t.fullName} *
-                  </label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">{t.fullName} *</label>
                   <div className="relative">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -232,9 +270,7 @@ export default function CheckoutPage() {
                   {errors.name && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.name}</p>}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">
-                    {t.phone} *
-                  </label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">{t.phone} *</label>
                   <div className="relative">
                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -248,37 +284,30 @@ export default function CheckoutPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">
-                  {t.selectBranch} *
-                </label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">{t.selectBranch} *</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {branches.map((b) => (
                     <button
                       key={b.id}
                       onClick={() => setForm({ ...form, branch: b.id })}
                       className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${
-                        form.branch === b.id 
-                          ? "border-red-600 bg-red-50 dark:bg-red-950" 
-                          : "border-gray-100 dark:border-gray-700 hover:border-gray-200"
+                        form.branch === b.id ? "border-red-600 bg-red-50 dark:bg-red-950" : "border-gray-100 dark:border-gray-700 hover:border-gray-200"
                       }`}
                     >
-                      <Store className={`w-5 h-5 shrink-0 ${form.branch === b.id ? "text-red-600" : "text-gray-400"}`} />
+                      <MapPin className={`w-5 h-5 shrink-0 mt-0.5 ${form.branch === b.id ? "text-red-600" : "text-gray-400"}`} />
                       <div>
-                        <p className={`text-sm font-bold ${form.branch === b.id ? "text-red-700 dark:text-red-400" : "text-gray-600 dark:text-gray-400"}`}>
-                          {b.label}
-                        </p>
+                        <p className={`text-sm font-bold ${form.branch === b.id ? "text-red-700 dark:text-red-400" : "text-gray-600 dark:text-gray-400"}`}>{b.label}</p>
                         <p className="text-[10px] text-gray-400 mt-0.5">{b.addr}</p>
                       </div>
                     </button>
                   ))}
                 </div>
+                {errors.branch && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.branch}</p>}
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">
-                    {t.pickupDate} *
-                  </label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">{t.pickupDate} *</label>
                   <div className="relative">
                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -290,9 +319,7 @@ export default function CheckoutPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">
-                    {t.pickupTime} *
-                  </label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">{t.pickupTime} *</label>
                   <div className="relative">
                     <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -314,11 +341,26 @@ export default function CheckoutPage() {
             </div>
           )}
 
+          {/* Payment step */}
           {step === "payment" && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-6">
               <h2 className="font-black text-xl text-gray-900 dark:text-white flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-red-600" /> {t.paymentMethod}
               </h2>
+
+              {/* Packaging fee callout */}
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex gap-3">
+                <Package className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-black text-amber-900 dark:text-amber-300">
+                    {t.packagingFee}: {formatPrice(PACKAGING_FEE)}
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">{t.packagingFeeNote}</p>
+                  <p className="text-[11px] text-amber-600 dark:text-amber-500 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> {t.noShowNote}
+                  </p>
+                </div>
+              </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <button
@@ -360,10 +402,12 @@ export default function CheckoutPage() {
                   {momoStatus === "awaiting" ? (
                     <div className="flex items-center gap-3 py-2 text-yellow-800 dark:text-yellow-300">
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      <span className="text-sm font-bold">Please check your phone for the PIN prompt...</span>
+                      <span className="text-sm font-bold">Check your phone for the PIN prompt...</span>
                     </div>
                   ) : (
-                    <p className="text-xs text-yellow-700 dark:text-yellow-400 italic">💡 You will receive a prompt to enter your MoMo PIN after clicking Place Order.</p>
+                    <p className="text-xs text-yellow-700 dark:text-yellow-400 italic">
+                      💡 You will receive a MoMo prompt to pay <strong>{formatPrice(PACKAGING_FEE)}</strong> after clicking Place Order.
+                    </p>
                   )}
                   {momoError && <p className="text-sm text-red-600 font-bold bg-red-50 p-2 rounded-lg">{momoError}</p>}
                 </div>
@@ -378,17 +422,17 @@ export default function CheckoutPage() {
                       value={cardNum}
                       onChange={(e) => setCardNum(e.target.value)}
                       placeholder="0000 0000 0000 0000"
-                      className={`w-full px-4 py-3 rounded-xl border ${errors.cardNum ? "border-red-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      className={`w-full px-4 py-3 rounded-xl border ${errors.cardNum ? "border-red-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 mb-1.5 ml-1 uppercase">Expiry Date</label>
+                      <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 mb-1.5 ml-1 uppercase">Expiry</label>
                       <input
                         value={cardExp}
                         onChange={(e) => setCardExp(e.target.value)}
                         placeholder="MM/YY"
-                        className={`w-full px-4 py-3 rounded-xl border ${errors.cardExp ? "border-red-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        className={`w-full px-4 py-3 rounded-xl border ${errors.cardExp ? "border-red-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                       />
                     </div>
                     <div>
@@ -397,7 +441,7 @@ export default function CheckoutPage() {
                         value={cardCvv}
                         onChange={(e) => setCardCvv(e.target.value)}
                         placeholder="123"
-                        className={`w-full px-4 py-3 rounded-xl border ${errors.cardCvv ? "border-red-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        className={`w-full px-4 py-3 rounded-xl border ${errors.cardCvv ? "border-red-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                       />
                     </div>
                   </div>
@@ -408,32 +452,38 @@ export default function CheckoutPage() {
                 <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-900 rounded-xl p-5">
                   <div className="flex items-center gap-2 text-green-800 dark:text-green-300 mb-2">
                     <Banknote className="w-5 h-5" />
-                    <span className="font-bold">Pay on Pickup</span>
+                    <span className="font-bold">Pay Packaging Fee at Counter</span>
                   </div>
                   <p className="text-sm text-green-700 dark:text-green-400">
-                    Pay <strong>{formatPrice(total)}</strong> at the Online Pickup counter using Cash, Card, or MoMo Pay.
+                    Pay <strong>{formatPrice(PACKAGING_FEE)}</strong> packaging fee in cash when you arrive at the Online Pickup counter. Your order will then be handed to you.
                   </p>
                 </div>
               )}
 
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setStep("details")} className="px-6 py-3 border border-gray-200 dark:border-gray-700 rounded-xl font-bold text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">Back</button>
+                <button onClick={() => setStep("details")} className="px-6 py-3 border border-gray-200 dark:border-gray-700 rounded-xl font-bold text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
+                  Back
+                </button>
                 <button
                   onClick={handlePlaceOrder}
                   disabled={loading}
                   className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-4 rounded-xl font-black text-sm transition-all shadow-lg flex items-center justify-center gap-2"
                 >
-                  {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</> : <><Check className="w-4 h-4" /> Place Order — {formatPrice(total)}</>}
+                  {loading
+                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
+                    : <><Package className="w-4 h-4" /> {t.payNow} — {formatPrice(PACKAGING_FEE)}</>
+                  }
                 </button>
               </div>
             </div>
           )}
         </div>
 
+        {/* ── Order summary sidebar ── */}
         <div>
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 sticky top-24 shadow-sm">
             <h3 className="font-black text-gray-900 dark:text-white mb-4 uppercase tracking-wider text-sm">{t.orderSummary}</h3>
-            <div className="space-y-4 mb-5 max-h-[40vh] overflow-y-auto pr-2 scrollbar-thin">
+            <div className="space-y-4 mb-5 max-h-[35vh] overflow-y-auto pr-2 scrollbar-thin">
               {items.map(({ product, quantity }) => (
                 <div key={product.id} className="flex gap-3">
                   <div className="w-14 h-14 bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden shrink-0">
@@ -447,12 +497,30 @@ export default function CheckoutPage() {
                 </div>
               ))}
             </div>
+
             <div className="border-t border-gray-100 dark:border-gray-700 pt-4 space-y-2">
-              <div className="flex justify-between text-xs text-gray-500 font-medium"><span>Subtotal</span><span>{formatPrice(total)}</span></div>
-              <div className="flex justify-between text-xs text-green-600 font-bold"><span>Service Fee</span><span>{t.free}</span></div>
-              <div className="flex justify-between font-black text-lg text-red-600 border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-                <span>{t.cartTotal}</span><span>{formatPrice(total)}</span>
+              <div className="flex justify-between text-xs text-gray-500 font-medium">
+                <span>Subtotal</span><span>{formatPrice(subtotal)}</span>
               </div>
+              <div className="flex justify-between text-xs text-amber-600 dark:text-amber-400 font-bold">
+                <span className="flex items-center gap-1"><Package className="w-3 h-3" /> {t.packagingFee}</span>
+                <span>{formatPrice(PACKAGING_FEE)}</span>
+              </div>
+              <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-1 space-y-2">
+                <div className="flex justify-between text-xs font-black text-amber-700 dark:text-amber-400">
+                  <span>{t.payNow}</span><span>{formatPrice(PACKAGING_FEE)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 font-medium">
+                  <span>{t.payAtCounter}</span><span>{formatPrice(subtotal)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Why this fee */}
+            <div className="mt-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed italic">
+                <strong>Why a packaging fee?</strong> We pack your order before you arrive. This small fee confirms you're committed to picking it up.
+              </p>
             </div>
           </div>
         </div>

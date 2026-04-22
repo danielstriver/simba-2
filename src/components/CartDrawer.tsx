@@ -51,14 +51,13 @@ export default function CartDrawer() {
 
   return (
     <>
-      <AuthModal 
-        isOpen={showAuth} 
-        onClose={() => setShowAuth(false)} 
+      <AuthModal
+        isOpen={showAuth}
+        onClose={() => setShowAuth(false)}
         onSuccess={() => {
           setCartOpen(false);
           router.push("/checkout");
         }}
-        showGuestOption
       />
       {cartOpen && (
         <>
