@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import { ShoppingCart, Sun, Moon, Globe, Search, Menu, X, User as UserIcon, LogOut, Store, MapPin, ChevronDown, Check } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
+import { Language } from "@/lib/i18n";
 import { useToast } from "@/components/Toast";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
