@@ -2,6 +2,7 @@
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { useToast } from "@/components/Toast";
+import { BRANCHES } from "@/lib/branches";
 import { X, Store, MapPin, Check, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -16,18 +17,7 @@ export default function BranchModal() {
     return () => clearTimeout(t);
   }, []);
 
-  const branches = [
-    { id: "UTC", label: t.kigaliCityCenter, addr: "Union Trade Centre, 1 KN 4 Ave" },
-    { id: "KN5", label: t.kicukiro, addr: "KN 5 Rd, Kigali" },
-    { id: "KG541", label: t.kimihurura, addr: "KG 541 St, Kigali" },
-    { id: "24Q5", label: t.nyamirambo, addr: "24Q5+R2R, Kigali" },
-    { id: "342F", label: t.kimironko, addr: "342F+3V5, Kimironko" },
-    { id: "KG192", label: t.nyarutarama, addr: "KG 192 St, Kigali" },
-    { id: "23H4", label: t.nyamiramboCosmos, addr: "23H4+26V, Kigali" },
-    { id: "KK35", label: t.kicukiroKK35, addr: "KK 35 Ave, Kigali" },
-    { id: "24G3", label: t.remera, addr: "24G3+MCV, Kigali" },
-    { id: "Gisenyi", label: t.gisenyi, addr: "8754+P7W, Gisenyi" },
-  ];
+  const branches = BRANCHES;
 
   if (!mounted || !showBranchModal) return null;
 

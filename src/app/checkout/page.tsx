@@ -5,13 +5,15 @@ import { useLang } from "@/lib/LanguageContext";
 import { formatPrice } from "@/lib/products";
 import Link from "next/link";
 import AuthModal from "@/components/AuthModal";
+import { BRANCHES, getBranch } from "@/lib/branches";
+import { createOrder } from "@/lib/orders";
+import { deductStock } from "@/lib/inventory";
+import { getDepositAmount } from "@/lib/auth";
 import {
   Check, Phone, User, CreditCard, Banknote,
   ChevronRight, ShoppingBag, Loader2,
-  Clock, Calendar, Store, ArrowRight, MapPin, Package, AlertCircle,
+  Clock, Calendar, Store, ArrowRight, MapPin, Package, AlertCircle, ExternalLink,
 } from "lucide-react";
-
-const PACKAGING_FEE = 500;
 
 type PaymentMethod = "momo" | "card" | "cash";
 type MomoStatus = "idle" | "awaiting" | "failed";
@@ -53,30 +55,25 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [momoStatus, setMomoStatus] = useState<MomoStatus>("idle");
   const [momoError, setMomoError] = useState("");
+  const [orderId, setOrderId] = useState("");
 
-  const branches = [
-    { id: "UTC", label: t.kigaliCityCenter, addr: "Union Trade Centre, 1 KN 4 Ave" },
-    { id: "KN5", label: t.kicukiro, addr: "KN 5 Rd, Kigali" },
-    { id: "KG541", label: t.kimihurura, addr: "KG 541 St, Kigali" },
-    { id: "24Q5", label: t.nyamirambo, addr: "24Q5+R2R, Kigali" },
-    { id: "342F", label: t.kimironko, addr: "342F+3V5, Kimironko" },
-    { id: "KG192", label: t.nyarutarama, addr: "KG 192 St, Kigali" },
-    { id: "23H4", label: t.nyamiramboCosmos, addr: "23H4+26V, Kigali" },
-    { id: "KK35", label: t.kicukiroKK35, addr: "KK 35 Ave, Kigali" },
-    { id: "24G3", label: t.remera, addr: "24G3+MCV, Kigali" },
-    { id: "Gisenyi", label: t.gisenyi, addr: "8754+P7W, Gisenyi" },
-  ];
+  const branches = BRANCHES;
 
-  const [form, setForm] = useState(() => ({
-    name: useStore.getState().user?.name || "",
-    phone: useStore.getState().user?.phone || "",
-    branch: useStore.getState().selectedBranch || "UTC",
-    date: new Date().toISOString().split("T")[0],
-    time: "12:00",
-    notes: "",
-  }));
+  const [form, setForm] = useState(() => {
+    const stored = useStore.getState().selectedBranch;
+    const validBranch = BRANCHES.find(b => b.id === stored);
+    return {
+      name: useStore.getState().user?.name || "",
+      phone: useStore.getState().user?.phone || "",
+      branch: validBranch?.id || "remera",
+      date: new Date().toISOString().split("T")[0],
+      time: "12:00",
+      notes: "",
+    };
+  });
 
-  const currentBranch = branches.find((b) => b.id === form.branch) || branches[0];
+  const PACKAGING_FEE = user ? getDepositAmount(user.id) : 500;
+  const currentBranch = getBranch(form.branch);
 
   const [payMethod, setPayMethod] = useState<PaymentMethod>("momo");
   const [momoPhone, setMomoPhone] = useState(() => useStore.getState().user?.phone || "");
@@ -121,21 +118,26 @@ export default function CheckoutPage() {
   // ── Success ──────────────────────────────────────────────────────────────────
   if (step === "success") {
     return (
-      <div className="max-w-lg mx-auto px-4 py-20 text-center">
+      <div className="max-w-lg mx-auto px-4 py-16 text-center">
         <div className="w-20 h-20 bg-green-100 dark:bg-green-950 rounded-full flex items-center justify-center mx-auto mb-6">
           <Check className="w-10 h-10 text-green-600" />
         </div>
         <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-2">{t.orderPlaced}</h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed text-sm">{t.pickupInstructions}</p>
+        {orderId && (
+          <div className="inline-flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-1.5 text-sm font-mono font-bold text-gray-700 dark:text-gray-300 mb-4">
+            {t.orderId}: {orderId}
+          </div>
+        )}
+        <p className="text-gray-500 dark:text-gray-400 mb-6 leading-relaxed text-sm">{t.pickupInstructions}</p>
 
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-6 text-left space-y-3 border border-gray-100 dark:border-gray-700">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-4 text-left space-y-3 border border-gray-100 dark:border-gray-700">
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Customer:</span>
             <span className="font-bold text-gray-900 dark:text-white">{user?.name}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Phone:</span>
-            <span className="font-bold text-gray-900 dark:text-white">{user?.phone}</span>
+            <span className="font-bold text-gray-900 dark:text-white">{form.phone}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Pickup Location:</span>
@@ -160,19 +162,27 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 mb-8 text-left">
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 mb-6 text-left">
           <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-            <strong>Important:</strong> Please arrive at your selected branch by <strong>{form.date} at {form.time}</strong>.
-            Your order will be held for <strong>24 hours</strong>. After that, the packaging fee is forfeited and the order is cancelled.
+            <strong>Important:</strong> Please arrive at {currentBranch.label} by <strong>{form.date} at {form.time}</strong>.
+            Your order will be held for <strong>24 hours</strong>.
           </p>
         </div>
 
-        <Link
-          href="/"
-          className="inline-block bg-red-600 hover:bg-red-700 text-white font-black px-8 py-3.5 rounded-full transition-colors shadow-lg"
-        >
-          Back to Home
-        </Link>
+        <div className="flex gap-3 justify-center">
+          <Link
+            href="/orders"
+            className="inline-flex items-center gap-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold px-6 py-3 rounded-full transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" /> {t.myOrders}
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-black px-6 py-3 rounded-full transition-colors shadow-lg"
+          >
+            Back to Home
+          </Link>
+        </div>
       </div>
     );
   }
@@ -217,6 +227,34 @@ export default function CheckoutPage() {
       await new Promise((r) => setTimeout(r, 1500));
     }
 
+    // Persist order to localStorage
+    const order = createOrder({
+      userId: user!.id,
+      userName: user!.name,
+      userPhone: form.phone,
+      userEmail: user!.email || "",
+      items: items.map((i) => ({
+        productId: i.product.id,
+        productName: i.product.name,
+        price: i.product.price,
+        quantity: i.quantity,
+        image: i.product.image,
+        unit: i.product.unit,
+      })),
+      branch: form.branch,
+      branchLabel: currentBranch.label,
+      pickupDate: form.date,
+      pickupTime: form.time,
+      paymentMethod: payMethod,
+      subtotal,
+      depositPaid: PACKAGING_FEE,
+      notes: form.notes,
+    });
+
+    // Deduct branch stock
+    deductStock(form.branch, items.map((i) => ({ productId: i.product.id, quantity: i.quantity })));
+
+    setOrderId(order.id);
     setStep("success");
     clearCart();
     setLoading(false);
