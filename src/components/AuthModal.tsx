@@ -56,13 +56,13 @@ export default function AuthModal({
     if (mode === "signup") {
       const res = register(form.name, form.phone, form.email, form.password);
       if (!res.ok) { setError(res.error); setLoading(false); return; }
-      setUser({ id: res.data.id, name: res.data.name, phone: res.data.phone, email: res.data.email });
+      setUser({ id: res.data.id, name: res.data.name, phone: res.data.phone, email: res.data.email, role: res.data.role });
       onSuccess?.();
       onClose();
     } else if (mode === "signin") {
       const res = login(form.email, form.password);
       if (!res.ok) { setError(res.error); setLoading(false); return; }
-      setUser({ id: res.data.id, name: res.data.name, phone: res.data.phone, email: res.data.email });
+      setUser({ id: res.data.id, name: res.data.name, phone: res.data.phone, email: res.data.email, role: res.data.role });
       onSuccess?.();
       onClose();
     } else if (mode === "forgot") {

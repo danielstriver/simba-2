@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { BRANCHES } from "@/lib/branches";
 import { readOrders, patchOrder, Order, OrderStatus, getBranchStats } from "@/lib/orders";
 import { markOutOfStock, restoreStock, getStock } from "@/lib/inventory";
 import { useLang } from "@/lib/LanguageContext";
+import { useStore } from "@/lib/store";
 import { formatPrice } from "@/lib/products";
 import {
   Store, ChevronDown, Check, Clock, Package, User,
@@ -49,8 +51,18 @@ function timeAgo(iso: string): string {
 
 export default function DashboardPage() {
   const { t } = useLang();
+  const router = useRouter();
+  const user = useStore((s) => s.user);
   const [role, setRole] = useState<Role>("manager");
   const [branchId, setBranchId] = useState(BRANCHES[0].id);
+
+  useEffect(() => {
+    if (user === null || (user.role !== "manager" && user.role !== "staff")) {
+      router.replace("/staff/login");
+    } else if (user.role === "staff") {
+      setRole("staff");
+    }
+  }, [user, router]);
   const [staffId, setStaffId] = useState(DEMO_STAFF[0].id);
   const [orders, setOrders] = useState<Order[]>([]);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
@@ -87,6 +99,8 @@ export default function DashboardPage() {
     setActionLoading(null);
   }
 
+  if (!user || (user.role !== "manager" && user.role !== "staff")) return null;
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Header */}
@@ -96,7 +110,7 @@ export default function DashboardPage() {
             <Store className="w-7 h-7 text-red-600" /> {t.dashboard}
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-            Branch operations dashboard — Demo mode
+            {user.name} · {user.role === "manager" ? t.managerView : t.staffView}
           </p>
         </div>
 

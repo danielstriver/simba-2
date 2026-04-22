@@ -13,6 +13,7 @@ export interface User {
   name: string;
   phone: string;
   email?: string;
+  role?: "customer" | "manager" | "staff";
 }
 
 export interface PickupDetails {

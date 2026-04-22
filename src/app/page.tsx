@@ -4,16 +4,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getProducts, Product, CATEGORIES, CATEGORY_META } from "@/lib/products";
 import { useLang } from "@/lib/LanguageContext";
+import { useStore } from "@/lib/store";
+import { BRANCHES, getBranch } from "@/lib/branches";
 import ProductCard from "@/components/ProductCard";
 import Image from "next/image";
-import { ArrowRight, Search, Truck, Shield, Clock, ChevronRight, Zap, Phone } from "lucide-react";
+import { ArrowRight, Search, Truck, Shield, Clock, ChevronRight, Zap, Phone, MapPin, ChevronDown, CheckCircle } from "lucide-react";
 
 export default function HomePage() {
   const { t } = useLang();
   const router = useRouter();
+  const { selectedBranch, setSelectedBranch } = useStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [heroSearch, setHeroSearch] = useState("");
+  const [heroBranch, setHeroBranch] = useState(selectedBranch || BRANCHES[0].id);
 
   useEffect(() => {
     getProducts().then((d) => {
@@ -27,7 +31,11 @@ export default function HomePage() {
     if (heroSearch.trim()) router.push(`/products?q=${encodeURIComponent(heroSearch.trim())}`);
   }
 
-  // Curated product sets — memoised so they don't recompute on unrelated re-renders
+  function handleStartShopping() {
+    setSelectedBranch(heroBranch);
+    router.push("/products");
+  }
+
   const topCosmetics = useMemo(() => products.filter((p) => p.category === "Cosmetics & Personal Care").slice(0, 4), [products]);
   const topDrinks = useMemo(() => products
     .filter((p) => p.category === "Alcoholic Drinks")
@@ -40,85 +48,138 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* ─── HERO — 10-second test: who, what, why ─── */}
-      <section className="relative overflow-hidden">
-        {/* Background store image */}
-        <Image
-          src="/images/bg-suggested.jpg"
-          alt=""
-          fill
-          className="object-cover object-center"
-          priority
-        />
-        {/* Dark overlay — keeps text readable over the photo */}
-        <div className="absolute inset-0 bg-red-900/65" />
+      {/* ─── HERO — split layout (Getir/Glovo inspired) ─── */}
+      <section className="relative bg-white dark:bg-gray-950 overflow-hidden">
+        {/* Decorative blobs */}
+        <div className="absolute right-0 top-0 w-[700px] h-[700px] bg-red-50 dark:bg-red-950/10 rounded-full -translate-y-1/3 translate-x-1/3 pointer-events-none" />
+        <div className="absolute left-0 bottom-0 w-[300px] h-[300px] bg-orange-50 dark:bg-orange-950/10 rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center">
-          {/* Eyebrow */}
-          <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white text-xs font-bold px-4 py-1.5 rounded-full mb-5 border border-white/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            🇷🇼 Rwanda&apos;s Most Popular Online Supermarket
-          </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 py-14 lg:py-20 min-h-[560px]">
 
-          {/* Headline — immediate value clarity */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-3">
-            {t.heroTitle}
-          </h1>
-          <p className="text-red-100 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-            789 real products · Delivered in Kigali · Pay with MoMo or Cash
-          </p>
+            {/* Left: Text + CTA */}
+            <div className="flex-1 max-w-xl lg:max-w-none lg:pr-8 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 text-xs font-bold px-4 py-1.5 rounded-full mb-6 border border-green-200 dark:border-green-900">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                🇷🇼 9 branches across Kigali
+              </div>
 
-          {/* Search — primary action, prominently placed */}
-          <form onSubmit={handleHeroSearch} className="max-w-xl mx-auto mb-6">
-            <div className="relative flex items-center bg-white rounded-2xl shadow-2xl overflow-hidden">
-              <Search className="absolute left-4 w-5 h-5 text-gray-400 pointer-events-none" />
-              <input
-                value={heroSearch}
-                onChange={(e) => setHeroSearch(e.target.value)}
-                placeholder={t.searchPlaceholder}
-                className="flex-1 pl-12 pr-4 py-4 text-gray-900 text-base bg-transparent focus:outline-none placeholder-gray-400"
-              />
-              <button
-                type="submit"
-                className="m-1.5 bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl transition-colors text-sm"
-              >
-                {t.shopNow}
-              </button>
+              <h1 className="text-4xl sm:text-5xl lg:text-[3.75rem] font-black text-gray-900 dark:text-white leading-[1.05] tracking-tight mb-4">
+                {t.heroTitle}
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 text-lg leading-relaxed mb-8 max-w-lg mx-auto lg:mx-0">
+                {t.heroSubtitle}
+              </p>
+
+              {/* Branch picker + CTA */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-8 max-w-lg mx-auto lg:mx-0">
+                <div className="relative flex-1">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-red-500 pointer-events-none" />
+                  <select
+                    value={heroBranch}
+                    onChange={(e) => setHeroBranch(e.target.value)}
+                    className="w-full pl-11 pr-10 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm font-medium appearance-none focus:outline-none focus:border-red-500 dark:text-white cursor-pointer"
+                  >
+                    {BRANCHES.map((b) => (
+                      <option key={b.id} value={b.id}>{b.label}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+                <button
+                  onClick={handleStartShopping}
+                  className="bg-red-600 hover:bg-red-700 text-white font-black px-8 py-4 rounded-2xl text-sm whitespace-nowrap transition-colors shadow-lg shadow-red-600/20 flex items-center justify-center gap-2"
+                >
+                  {t.shopNow} <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Mini trust badges */}
+              <div className="flex flex-wrap gap-5 justify-center lg:justify-start text-sm text-gray-500 dark:text-gray-400">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                  {t.trustAuthentic}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Phone className="w-4 h-4 text-yellow-500 shrink-0" />
+                  {t.trustMoMo}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-blue-500 shrink-0" />
+                  {t.trustSameDay}
+                </span>
+              </div>
             </div>
-          </form>
 
-          {/* Quick category links — reduce friction to first useful moment */}
-          <div className="flex flex-wrap justify-center gap-2">
-            {["Cosmetics & Personal Care", "Food Products", "Cleaning & Sanitary", "Kitchenware & Electronics"].map((cat) => (
-              <Link
-                key={cat}
-                href={`/products?category=${encodeURIComponent(cat)}`}
-                className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-medium px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm"
-              >
-                <span>{CATEGORY_META[cat].icon}</span>
-                <span>{cat.split("&")[0].trim()}</span>
-              </Link>
-            ))}
-            <Link
-              href="/products"
-              className="inline-flex items-center gap-1 bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-medium px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm"
-            >
-              {t.viewAll} <ArrowRight className="w-3 h-3" />
-            </Link>
+            {/* Right: Visual */}
+            <div className="flex-1 flex items-center justify-center w-full max-w-sm lg:max-w-none">
+              <div className="relative w-full max-w-[420px] aspect-square">
+                {/* Subtle background ring */}
+                <div className="absolute inset-0 bg-gradient-to-br from-red-50 to-orange-100 dark:from-red-950/30 dark:to-orange-950/20 rounded-[2.5rem]" />
+                <Image
+                  src="/images/bg-suggested.jpg"
+                  alt="Fresh groceries at Simba"
+                  fill
+                  className="object-cover rounded-[2.5rem] shadow-2xl"
+                  priority
+                />
+                {/* Floating badge */}
+                <div className="absolute -bottom-4 -left-4 bg-white dark:bg-gray-900 rounded-2xl shadow-xl px-4 py-3 border border-gray-100 dark:border-gray-800 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-red-100 dark:bg-red-950 rounded-xl flex items-center justify-center text-xl">🛒</div>
+                  <div>
+                    <p className="text-xs font-black text-gray-900 dark:text-white">789 products</p>
+                    <p className="text-[11px] text-gray-400">Ready for pickup</p>
+                  </div>
+                </div>
+                {/* Floating badge 2 */}
+                <div className="absolute -top-4 -right-4 bg-white dark:bg-gray-900 rounded-2xl shadow-xl px-4 py-3 border border-gray-100 dark:border-gray-800">
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-500 text-lg">✓</span>
+                    <div>
+                      <p className="text-xs font-black text-gray-900 dark:text-white">MTN MoMo</p>
+                      <p className="text-[11px] text-gray-400">{t.trustMoMo}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ─── TRUST STRIP — visible proof ─── */}
-      <section className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky-below-nav">
+      {/* ─── SEARCH BAR (below hero) ─── */}
+      <section className="bg-gray-50 dark:bg-gray-900 border-y border-gray-100 dark:border-gray-800">
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          <form onSubmit={handleHeroSearch} className="flex items-center gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                value={heroSearch}
+                onChange={(e) => setHeroSearch(e.target.value)}
+                placeholder={t.searchPlaceholder}
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-white"
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-3 rounded-xl text-sm transition-colors shadow-sm whitespace-nowrap"
+            >
+              {t.shopNow}
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* ─── TRUST STRIP ─── */}
+      <section className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-center flex-wrap gap-x-8 gap-y-2 text-sm">
             {[
-              { icon: <Truck className="w-4 h-4 text-green-600" />, text: "Free delivery in Kigali" },
-              { icon: <Phone className="w-4 h-4 text-yellow-600" />, text: "Pay with MTN MoMo" },
-              { icon: <Shield className="w-4 h-4 text-blue-600" />, text: "100% authentic products" },
-              { icon: <Clock className="w-4 h-4 text-purple-600" />, text: "Same-day delivery" },
-              { icon: <Zap className="w-4 h-4 text-red-600" />, text: "789 products in stock" },
+              { icon: <Truck className="w-4 h-4 text-green-600" />, text: t.trustFreePickup },
+              { icon: <Phone className="w-4 h-4 text-yellow-600" />, text: t.trustMoMo },
+              { icon: <Shield className="w-4 h-4 text-blue-600" />, text: t.trustAuthentic },
+              { icon: <Clock className="w-4 h-4 text-purple-600" />, text: t.trustSameDay },
+              { icon: <Zap className="w-4 h-4 text-red-600" />, text: t.trustProducts },
             ].map((b) => (
               <div key={b.text} className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 font-medium">
                 {b.icon}
@@ -129,10 +190,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── CATEGORIES — clear navigation ─── */}
+      {/* ─── CATEGORIES ─── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white">{t.categories}</h2>
+          <h2 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white">{t.shopByCategory}</h2>
           <Link href="/products" className="text-red-600 hover:text-red-700 font-semibold text-sm flex items-center gap-1">
             {t.viewAll} <ChevronRight className="w-4 h-4" />
           </Link>
@@ -164,7 +225,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white">{t.featuredProducts}</h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">Our most-loved products this week</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{t.featuredProductsSubtitle}</p>
             </div>
             <Link href="/products" className="text-red-600 hover:text-red-700 font-semibold text-sm flex items-center gap-1">
               {t.viewAll} <ChevronRight className="w-4 h-4" />
@@ -197,7 +258,7 @@ export default function HomePage() {
               href="/products?category=Cosmetics+%26+Personal+Care"
               className="shrink-0 inline-flex items-center gap-2 bg-white text-red-700 font-bold px-6 py-3 rounded-full hover:bg-red-50 transition-colors shadow-lg"
             >
-              Shop Now <ArrowRight className="w-4 h-4" />
+              {t.shopNow} <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
@@ -223,7 +284,7 @@ export default function HomePage() {
               <p className="text-orange-100 text-sm">Irons, kettles, pots & more</p>
             </div>
             <span className="inline-flex items-center gap-1 text-white font-bold text-sm group-hover:gap-2 transition-all">
-              Shop now <ArrowRight className="w-4 h-4" />
+              {t.shopNow} <ArrowRight className="w-4 h-4" />
             </span>
           </Link>
           <Link href="/products?category=Cleaning+%26+Sanitary" className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-400 to-cyan-500 p-6 min-h-[140px] flex flex-col justify-between hover:shadow-xl transition-shadow">
@@ -233,7 +294,7 @@ export default function HomePage() {
               <p className="text-teal-100 text-sm">Keep your home spotless</p>
             </div>
             <span className="inline-flex items-center gap-1 text-white font-bold text-sm group-hover:gap-2 transition-all">
-              Shop now <ArrowRight className="w-4 h-4" />
+              {t.shopNow} <ArrowRight className="w-4 h-4" />
             </span>
           </Link>
         </div>
@@ -261,20 +322,20 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ─── BOTTOM CTA — return reason ─── */}
+      {/* ─── BOTTOM CTA ─── */}
       <section className="bg-gray-900 dark:bg-gray-950 py-14">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-3xl font-black text-white mb-3">
-            Everything you need, delivered to your door
+            {t.bottomCtaTitle}
           </h2>
           <p className="text-gray-400 mb-8">
-            From cosmetics to food to cleaning supplies — 789 products ready for delivery anywhere in Kigali.
+            {t.bottomCtaSubtitle}
           </p>
           <Link
             href="/products"
             className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3.5 rounded-full transition-colors shadow-lg"
           >
-            Browse All Products <ArrowRight className="w-4 h-4" />
+            {t.browseAll} <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </section>

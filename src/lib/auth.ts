@@ -5,6 +5,7 @@ export interface RegisteredUser {
   email: string;
   passwordHash: string;
   noShowCount: number;
+  role: "customer" | "manager" | "staff";
   createdAt: string;
 }
 
@@ -48,6 +49,7 @@ export function register(
     email: trimmedEmail,
     passwordHash: hashPw(password),
     noShowCount: 0,
+    role: "customer",
     createdAt: new Date().toISOString(),
   };
   writeUsers([...users, user]);
@@ -116,4 +118,29 @@ export function getDepositAmount(userId: string): number {
   if (n >= 3) return 2000;
   if (n >= 1) return 1000;
   return 500;
+}
+
+const STAFF_SEEDS = [
+  { id: "manager-1", email: "manager@simba.rw", password: "Simba2025!", name: "Branch Manager", phone: "+250788000001", role: "manager" as const },
+  { id: "staff-1",   email: "alice@simba.rw",   password: "Staff2025!",  name: "Alice Uwimana",         phone: "+250788000002", role: "staff" as const },
+  { id: "staff-2",   email: "bob@simba.rw",     password: "Staff2025!",  name: "Bob Nkurunziza",        phone: "+250788000003", role: "staff" as const },
+  { id: "staff-3",   email: "carol@simba.rw",   password: "Staff2025!",  name: "Carol Mukandayisenga",  phone: "+250788000004", role: "staff" as const },
+  { id: "staff-4",   email: "david@simba.rw",   password: "Staff2025!",  name: "David Habimana",        phone: "+250788000005", role: "staff" as const },
+];
+
+export function seedStaffAccounts(): void {
+  if (typeof window === "undefined") return;
+  const users = readUsers();
+  const toAdd = STAFF_SEEDS.filter(s => !users.find(u => u.email === s.email));
+  if (!toAdd.length) return;
+  const now = new Date().toISOString();
+  writeUsers([
+    ...users,
+    ...toAdd.map(({ password, ...s }) => ({
+      ...s,
+      passwordHash: hashPw(password),
+      noShowCount: 0,
+      createdAt: now,
+    })),
+  ]);
 }

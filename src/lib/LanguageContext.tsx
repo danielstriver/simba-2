@@ -1,7 +1,8 @@
 "use client";
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext, useMemo, useEffect } from "react";
 import { translations, Language, Translations } from "./i18n";
 import { useStore } from "./store";
+import { seedStaffAccounts } from "./auth";
 
 interface LangContext {
   lang: Language;
@@ -20,6 +21,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const setLanguage = useStore((s) => s.setLanguage);
   const t = translations[language];
   const value = useMemo(() => ({ lang: language, t, setLang: setLanguage }), [language, t, setLanguage]);
+
+  useEffect(() => { seedStaffAccounts(); }, []);
   return (
     <LanguageContext.Provider value={value}>
       {children}

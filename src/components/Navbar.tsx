@@ -1,15 +1,21 @@
 "use client";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { ShoppingCart, Sun, Moon, Globe, Search, Menu, X, User as UserIcon, LogOut, Store, MapPin, ChevronDown, Check, Package } from "lucide-react";
+import { ShoppingCart, Sun, Moon, Search, Menu, X, User as UserIcon, LogOut, Store, MapPin, ChevronDown, Check, Package, LayoutDashboard } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { Language } from "@/lib/i18n";
 import { useToast } from "@/components/Toast";
 import { BRANCHES, getBranch } from "@/lib/branches";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AuthModal from "./AuthModal";
+
+const LANG_OPTIONS: { code: Language; flag: string; label: string }[] = [
+  { code: "en", flag: "🇬🇧", label: "English" },
+  { code: "fr", flag: "🇫🇷", label: "Français" },
+  { code: "rw", flag: "🇷🇼", label: "Kinyarwanda" },
+];
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
@@ -22,6 +28,8 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showBranches, setShowBranches] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -29,8 +37,20 @@ export default function Navbar() {
     return () => clearTimeout(t);
   }, []);
 
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const branches = BRANCHES;
   const currentBranch = getBranch(selectedBranch);
+  const currentLang = LANG_OPTIONS.find(l => l.code === lang) ?? LANG_OPTIONS[0];
+  const isStaff = user?.role === "manager" || user?.role === "staff";
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -41,16 +61,10 @@ export default function Navbar() {
     }
   }
 
-  const langs: { code: Language; label: string }[] = [
-    { code: "en", label: "EN" },
-    { code: "fr", label: "FR" },
-    { code: "rw", label: "RW" },
-  ];
-
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
       <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
-      
+
       {/* Branch Selector Modal */}
       {showBranches && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -66,9 +80,9 @@ export default function Navbar() {
               {branches.map((b) => (
                 <button
                   key={b.id}
-                  onClick={() => { 
-                    setSelectedBranch(b.id); 
-                    setShowBranches(false); 
+                  onClick={() => {
+                    setSelectedBranch(b.id);
+                    setShowBranches(false);
                     toast(`Switched to ${b.label}`, "success", "Stock availability updated.");
                   }}
                   className={`w-full flex items-start gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
@@ -85,11 +99,6 @@ export default function Navbar() {
                   {(selectedBranch || "remera") === b.id && <div className="ml-auto w-5 h-5 bg-red-600 rounded-full flex items-center justify-center"><Check className="w-3 h-3 text-white" /></div>}
                 </button>
               ))}
-            </div>
-            <div className="p-6 bg-gray-50 dark:bg-gray-800/50 text-center">
-              <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed italic">
-                💡 Prices and stock may vary slightly between branches. We recommend choosing your preferred pickup location before shopping.
-              </p>
             </div>
           </div>
         </div>
@@ -111,7 +120,7 @@ export default function Navbar() {
 
             {/* Branch Indicator */}
             {mounted && (
-              <button 
+              <button
                 onClick={() => setShowBranches(true)}
                 className="hidden lg:flex flex-col items-start px-3 py-1.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 border border-transparent hover:border-gray-100 dark:hover:border-gray-700 transition-all group text-left"
               >
@@ -144,33 +153,52 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-1">
-            {/* Language switcher */}
-            <div className="hidden lg:flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800 rounded-full px-1.5 py-1 mr-1">
-              {langs.map((l) => (
-                <button
-                  key={l.code}
-                  onClick={() => setLang(l.code)}
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${
-                    lang === l.code
-                      ? "bg-red-600 text-white shadow-sm"
-                      : "text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700"
-                  }`}
-                >
-                  {l.label}
-                </button>
-              ))}
+            {/* Language dropdown */}
+            <div className="relative hidden lg:block mr-1" ref={langRef}>
+              <button
+                onClick={() => setLangOpen(!langOpen)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-sm font-medium text-gray-600 dark:text-gray-300"
+              >
+                <span className="text-lg leading-none">{currentLang.flag}</span>
+                <span className="uppercase text-xs font-bold">{lang}</span>
+                <ChevronDown className={`w-3 h-3 transition-transform ${langOpen ? "rotate-180" : ""}`} />
+              </button>
+              {langOpen && (
+                <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 py-2 min-w-[170px] z-50 animate-in fade-in zoom-in-95 duration-150">
+                  {LANG_OPTIONS.map((l) => (
+                    <button
+                      key={l.code}
+                      onClick={() => { setLang(l.code); setLangOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left ${lang === l.code ? "text-red-600 font-bold" : "text-gray-700 dark:text-gray-300 font-medium"}`}
+                    >
+                      <span className="text-xl leading-none">{l.flag}</span>
+                      <span className="flex-1">{l.label}</span>
+                      {lang === l.code && <Check className="w-3.5 h-3.5 shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* User Profile / Login */}
+            {/* User / Login */}
             {mounted && (
               user ? (
                 <div className="flex items-center gap-1">
-                  <Link
-                    href="/orders"
-                    className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-red-600 hover:border-red-200 transition-all"
-                  >
-                    <Package className="w-3.5 h-3.5" /> {t.myOrders}
-                  </Link>
+                  {isStaff ? (
+                    <Link
+                      href="/dashboard"
+                      className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs font-bold text-red-600 hover:bg-red-100 transition-all"
+                    >
+                      <LayoutDashboard className="w-3.5 h-3.5" /> {t.dashboard}
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/orders"
+                      className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-red-600 hover:border-red-200 transition-all"
+                    >
+                      <Package className="w-3.5 h-3.5" /> {t.myOrders}
+                    </Link>
+                  )}
                   <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
                     <div className="w-6 h-6 bg-red-100 dark:bg-red-950 rounded-full flex items-center justify-center">
                       <UserIcon className="w-3.5 h-3.5 text-red-600" />
@@ -247,9 +275,6 @@ export default function Navbar() {
           <Link href="/products" className="px-3 py-1.5 rounded-full text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-colors">
             {t.allProducts}
           </Link>
-          <Link href="/dashboard" className="px-3 py-1.5 rounded-full text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-colors">
-            {t.dashboard}
-          </Link>
           {["Cosmetics & Personal Care","Alcoholic Drinks","Food Products","Cleaning & Sanitary","Baby Products"].map((cat) => (
             <Link
               key={cat}
@@ -279,19 +304,23 @@ export default function Navbar() {
           <div className="flex gap-4 text-sm font-medium">
             <Link href="/" onClick={() => setMobileOpen(false)} className="text-gray-700 dark:text-gray-300">{t.home}</Link>
             <Link href="/products" onClick={() => setMobileOpen(false)} className="text-gray-700 dark:text-gray-300">{t.allProducts}</Link>
+            {isStaff && (
+              <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="text-red-600 font-bold">{t.dashboard}</Link>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-gray-400" />
-            {langs.map((l) => (
+          {/* Language switcher — mobile */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {LANG_OPTIONS.map((l) => (
               <button
                 key={l.code}
-                onClick={() => setLang(l.code)}
-                className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors ${
+                onClick={() => { setLang(l.code); }}
+                className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
                   lang === l.code
                     ? "bg-red-600 text-white border-red-600"
                     : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
                 }`}
               >
+                <span className="text-base leading-none">{l.flag}</span>
                 {l.label}
               </button>
             ))}

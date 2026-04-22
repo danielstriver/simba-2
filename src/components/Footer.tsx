@@ -62,6 +62,11 @@ export default function Footer() {
               <li><Link href="#" className="hover:text-red-400 transition-colors">{t.footer.contact}</Link></li>
               <li><Link href="#" className="hover:text-red-400 transition-colors">{t.footer.terms}</Link></li>
               <li><Link href="#" className="hover:text-red-400 transition-colors">{t.footer.privacy}</Link></li>
+              <li className="pt-2 border-t border-gray-800">
+                <Link href="/staff/login" className="hover:text-red-400 transition-colors text-gray-500 text-xs">
+                  {t.staffPortal}
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
