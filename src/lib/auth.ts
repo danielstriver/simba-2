@@ -129,6 +129,33 @@ const STAFF_SEEDS = [
   { id: "staff-4",   email: "david@simba.rw",   password: "Staff2025!",  name: "David Habimana",        phone: "+250788000005", role: "staff"   as const, branchId: "nyamirambo" },
 ];
 
+export function loginOrCreateGoogleUser(
+  googleUid: string,
+  email: string,
+  displayName: string,
+): AuthResult<RegisteredUser> {
+  const trimmedEmail = email.toLowerCase().trim();
+  const users = readUsers();
+
+  const existing = users.find((u) => u.email === trimmedEmail);
+  if (existing) return { ok: true, data: existing };
+
+  const user: RegisteredUser = {
+    id: googleUid || (typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2) + Date.now().toString(36)),
+    name: displayName.trim() || "Google User",
+    phone: "",
+    email: trimmedEmail,
+    passwordHash: btoa(`google:${googleUid}:simba2025salt`),
+    noShowCount: 0,
+    role: "customer",
+    createdAt: new Date().toISOString(),
+  };
+  writeUsers([...users, user]);
+  return { ok: true, data: user };
+}
+
 export function seedStaffAccounts(): void {
   if (typeof window === "undefined") return;
   const now = new Date().toISOString();

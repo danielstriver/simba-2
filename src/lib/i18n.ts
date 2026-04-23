@@ -149,6 +149,7 @@ export const translations = {
     bottomCtaSubtitle: "From cosmetics to food to cleaning supplies — 789 products across Kigali.",
     browseAll: "Browse All Products",
     shopByCategory: "Shop by Category",
+    continueWithGoogle: "Continue with Google",
   },
   fr: {
     siteName: "Simba Supermarché",
@@ -298,6 +299,7 @@ export const translations = {
     bottomCtaSubtitle: "Cosmétiques, alimentation, nettoyage — 789 produits à Kigali.",
     browseAll: "Voir tous les produits",
     shopByCategory: "Acheter par catégorie",
+    continueWithGoogle: "Continuer avec Google",
   },
   rw: {
     siteName: "Simba Supermarket",
@@ -447,6 +449,7 @@ export const translations = {
     bottomCtaSubtitle: "Kuva mu bwiza kugeza mu biryo — ibicuruzwa 789 i Kigali.",
     browseAll: "Reba Ibicuruzwa Byose",
     shopByCategory: "Gura ukurikije Icyiciro",
+    continueWithGoogle: "Komeza na Google",
   },
 };
 

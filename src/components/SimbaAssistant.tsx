@@ -237,7 +237,7 @@ function notFoundMessage(query: string): string {
 }
 
 // ─── Product mini-card in chat ────────────────────────────────────────────────
-function ChatProductCard({ product }: { product: Product }) {
+function ChatProductCard({ product, onNavigate }: { product: Product; onNavigate: () => void }) {
   const addItem = useStore((s) => s.addItem);
   const { toast } = useToast();
   const [failed, setFailed] = useState(false);
@@ -248,7 +248,7 @@ function ChatProductCard({ product }: { product: Product }) {
 
   return (
     <div className="flex items-center gap-2.5 bg-white dark:bg-gray-700 rounded-xl p-2.5 border border-gray-100 dark:border-gray-600 hover:border-red-200 dark:hover:border-red-800 transition-colors">
-      <Link href={`/products/${product.id}`} className="shrink-0">
+      <Link href={`/products/${product.id}`} className="shrink-0" onClick={onNavigate}>
         <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600">
           {failed ? (
             <div className={`w-full h-full bg-gradient-to-br ${meta?.color || "from-gray-200 to-gray-300"} flex items-center justify-center`}>
@@ -260,7 +260,7 @@ function ChatProductCard({ product }: { product: Product }) {
         </div>
       </Link>
       <div className="flex-1 min-w-0">
-        <Link href={`/products/${product.id}`}>
+        <Link href={`/products/${product.id}`} onClick={onNavigate}>
           <p className="text-xs font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug hover:text-red-600 transition-colors">
             {product.name}
           </p>
@@ -565,10 +565,13 @@ export default function SimbaAssistant() {
                   {/* Product results */}
                   {msg.products && msg.products.length > 0 && (
                     <div className="mt-2 space-y-2">
-                      {msg.products.map((p) => <ChatProductCard key={p.id} product={p} />)}
+                      {msg.products.map((p) => (
+                        <ChatProductCard key={p.id} product={p} onNavigate={() => setOpen(false)} />
+                      ))}
                       {msg.products.length >= 5 && (
                         <Link
                           href={`/products?category=${encodeURIComponent(msg.products[0]?.category || "")}`}
+                          onClick={() => setOpen(false)}
                           className="flex items-center justify-center gap-1 text-xs text-red-600 font-bold py-1 hover:underline"
                         >
                           See all results <ChevronRight className="w-3 h-3" />
