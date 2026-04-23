@@ -21,40 +21,41 @@ export default function MobileBottomNav() {
     return pathname?.startsWith(href);
   }
 
-  const navBase = "flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl flex-1 transition-colors";
+  const navBase = "flex flex-col items-center justify-center gap-1 flex-1 transition-colors min-w-0 py-1";
   const active = "text-red-600";
   const inactive = "text-gray-400 dark:text-gray-500";
 
   return (
     <>
       <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 pb-safe">
-        <div className="flex items-stretch px-2 py-1">
+      {/* Nav bar — fixed height 64px flush at the bottom edge */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+        <div className="flex items-center h-16 px-1">
 
           <Link href="/" className={`${navBase} ${isActive("/") ? active : inactive}`}>
-            <Home className={`w-5 h-5 ${isActive("/") ? "fill-red-100 stroke-red-600" : ""}`} />
-            <span className="text-[10px] font-semibold">{t.home}</span>
+            <Home className="w-[22px] h-[22px]" strokeWidth={isActive("/") ? 2.5 : 1.75} />
+            <span className="text-[10px] font-semibold leading-none text-center">{t.home}</span>
           </Link>
 
           <Link href="/products" className={`${navBase} ${isActive("/products") ? active : inactive}`}>
-            <ShoppingBag className={`w-5 h-5 ${isActive("/products") ? "stroke-red-600" : ""}`} />
-            <span className="text-[10px] font-semibold">{t.allProducts}</span>
+            <ShoppingBag className="w-[22px] h-[22px]" strokeWidth={isActive("/products") ? 2.5 : 1.75} />
+            <span className="text-[10px] font-semibold leading-none text-center">{t.allProducts}</span>
           </Link>
 
-          {/* Cart — centred accent button */}
+          {/* Cart — prominent accent pill, same row as siblings */}
           <button
             onClick={() => setCartOpen(true)}
-            className="flex flex-col items-center justify-center gap-0.5 py-1 px-4 flex-1"
+            className="flex-1 flex flex-col items-center justify-center gap-1 py-1"
           >
-            <div className="relative -mt-5 bg-red-600 rounded-2xl w-12 h-12 flex items-center justify-center shadow-lg shadow-red-600/30">
-              <ShoppingCart className="w-5 h-5 text-white" />
+            <div className="relative w-11 h-9 bg-red-600 rounded-xl flex items-center justify-center shadow-md shadow-red-600/30">
+              <ShoppingCart className="w-[18px] h-[18px] text-white" strokeWidth={2.25} />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-white text-red-600 text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center border border-red-100 shadow">
+                <span className="absolute -top-1.5 -right-1.5 bg-white text-red-600 text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center border border-red-200 shadow">
                   {totalItems > 9 ? "9+" : totalItems}
                 </span>
               )}
             </div>
-            <span className="text-[10px] font-semibold text-red-600 mt-0.5">{t.cart}</span>
+            <span className="text-[10px] font-semibold text-red-600 leading-none">{t.cart}</span>
           </button>
 
           <Link
@@ -62,8 +63,8 @@ export default function MobileBottomNav() {
             onClick={!user ? (e) => { e.preventDefault(); setShowAuth(true); } : undefined}
             className={`${navBase} ${isActive("/orders") ? active : inactive}`}
           >
-            <Package className={`w-5 h-5 ${isActive("/orders") ? "stroke-red-600" : ""}`} />
-            <span className="text-[10px] font-semibold">{t.myOrders}</span>
+            <Package className="w-[22px] h-[22px]" strokeWidth={isActive("/orders") ? 2.5 : 1.75} />
+            <span className="text-[10px] font-semibold leading-none text-center">{t.myOrders}</span>
           </Link>
 
           <button
@@ -72,22 +73,24 @@ export default function MobileBottomNav() {
           >
             {user ? (
               <>
-                <div className="w-6 h-6 bg-red-100 dark:bg-red-950 rounded-full flex items-center justify-center">
-                  <UserIcon className="w-3.5 h-3.5 text-red-600" />
+                <div className="w-7 h-7 bg-red-100 dark:bg-red-950 rounded-full flex items-center justify-center">
+                  <UserIcon className="w-4 h-4 text-red-600" />
                 </div>
-                <span className="text-[10px] font-semibold text-red-600 truncate max-w-[52px]">
+                <span className="text-[10px] font-semibold text-red-600 leading-none truncate max-w-[56px]">
                   {user.name.split(" ")[0]}
                 </span>
               </>
             ) : (
               <>
-                <UserIcon className="w-5 h-5" />
-                <span className="text-[10px] font-semibold">{t.signIn}</span>
+                <UserIcon className="w-[22px] h-[22px]" strokeWidth={1.75} />
+                <span className="text-[10px] font-semibold leading-none">{t.signIn}</span>
               </>
             )}
           </button>
 
         </div>
+        {/* Extends the nav background into the iPhone home-bar safe area */}
+        <div className="pb-safe bg-white dark:bg-gray-900" />
       </nav>
     </>
   );

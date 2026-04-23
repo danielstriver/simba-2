@@ -282,15 +282,17 @@ function ChatProductCard({ product }: { product: Product }) {
   );
 }
 
-// ─── Format message text (bold **text**) ─────────────────────────────────────
+// ─── Format message text — supports **bold** and *italic* ────────────────────
 function MessageText({ text }: { text: string }) {
-  const parts = text.split(/(\*\*.*?\*\*|\n)/g);
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|\n)/g);
   return (
     <p className="text-sm leading-relaxed whitespace-pre-line">
       {parts.map((part, i) => {
         if (part === "\n") return <br key={i} />;
         if (part.startsWith("**") && part.endsWith("**"))
           return <strong key={i}>{part.slice(2, -2)}</strong>;
+        if (part.startsWith("*") && part.endsWith("*"))
+          return <em key={i} className="not-italic text-gray-500 dark:text-gray-400">{part.slice(1, -1)}</em>;
         return part;
       })}
     </p>
@@ -325,6 +327,10 @@ export default function SimbaAssistant() {
   });
   const [thinking, setThinking] = useState(false);
   const [groqAvailable, setGroqAvailable] = useState<boolean | null>(null);
+  const [panelBottom, setPanelBottom] = useState(88);
+  const [panelRight, setPanelRight] = useState(24);
+  const [panelMaxH, setPanelMaxH] = useState("min(580px, calc(100dvh - 120px))");
+  const [buttonBottom, setButtonBottom] = useState(24);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -355,6 +361,20 @@ export default function SimbaAssistant() {
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
   }, [open]);
+
+  // Responsive positioning — lift button/panel above mobile bottom nav
+  useEffect(() => {
+    const onResize = () => {
+      const mobile = window.innerWidth < 768;
+      setButtonBottom(mobile ? 80 : 24);
+      setPanelBottom(mobile ? 148 : 88);
+      setPanelRight(mobile ? 16 : 24);
+      setPanelMaxH(mobile ? "calc(100dvh - 220px)" : "min(580px, calc(100dvh - 120px))");
+    };
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   // TTS
   const speak = useCallback((text: string) => {
@@ -474,8 +494,6 @@ export default function SimbaAssistant() {
     "What categories do you have?",
   ];
 
-  const PANEL_BOTTOM = 88; // px — sits above the 56px button + 16px gap + 16px margin
-
   return (
     <>
       {/* ── Chat Panel (above the button) ────────────────────── */}
@@ -484,10 +502,10 @@ export default function SimbaAssistant() {
           className="flex flex-col rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-900"
           style={{
             position: "fixed",
-            bottom: PANEL_BOTTOM,
-            right: 24,
+            bottom: panelBottom,
+            right: panelRight,
             width: "min(384px, calc(100vw - 32px))",
-            height: "min(580px, calc(100dvh - 120px))",
+            height: panelMaxH,
             zIndex: 9998,
           }}
         >
@@ -630,11 +648,11 @@ export default function SimbaAssistant() {
         </div>
       )}
 
-      {/* ── Toggle Button — always fixed bottom-right, never hidden ── */}
+      {/* ── Toggle Button — bottom-right, lifted above mobile nav on small screens ── */}
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label={open ? "Close SIMBA Assistant" : "Open SIMBA Assistant"}
-        style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999 }}
+        style={{ position: "fixed", bottom: buttonBottom, right: 24, zIndex: 9999 }}
         className="w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 relative"
       >
         {!open && <div className="pulse-ring" />}
