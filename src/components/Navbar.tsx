@@ -214,8 +214,17 @@ export default function Navbar() {
                     </Link>
                   )}
                   <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-                    <div className="w-6 h-6 bg-red-100 dark:bg-red-950 rounded-full flex items-center justify-center">
-                      <UserIcon className="w-3.5 h-3.5 text-red-600" />
+                    <div className="w-6 h-6 rounded-full overflow-hidden bg-red-100 dark:bg-red-950 flex items-center justify-center shrink-0">
+                      {user.photoUrl ? (
+                        <img
+                          src={user.photoUrl}
+                          alt={user.name}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <UserIcon className="w-3.5 h-3.5 text-red-600" />
+                      )}
                     </div>
                     <span className="hidden sm:block text-xs font-bold text-gray-700 dark:text-gray-300 truncate max-w-[80px]">
                       {user.name.split(" ")[0]}

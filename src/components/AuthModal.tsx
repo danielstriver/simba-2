@@ -93,6 +93,7 @@ export default function AuthModal({
         email: res.data.email,
         role: res.data.role,
         branchId: res.data.branchId,
+        photoUrl: gUser.photoURL ?? undefined,
       });
       onSuccess?.();
       onClose();
@@ -290,18 +291,14 @@ export default function AuthModal({
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={googleLoading || loading}
-                className="group w-full relative flex items-center justify-center gap-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 disabled:opacity-60 disabled:cursor-not-allowed text-gray-700 dark:text-gray-200 py-3.5 rounded-xl font-semibold text-sm transition-all border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 active:scale-[0.98]"
+                className="w-full flex items-center justify-center gap-3 bg-white dark:bg-gray-800/60 disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 dark:text-gray-100 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-[0_4px_20px_rgba(66,133,244,0.18)] hover:border-[#4285F4]/40 dark:hover:border-[#4285F4]/40 hover:-translate-y-px active:translate-y-0 active:shadow-sm"
               >
                 {googleLoading ? (
-                  <span className="inline-block w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                  <span className="inline-block w-5 h-5 border-2 border-gray-300 border-t-[#4285F4] rounded-full animate-spin" />
                 ) : (
                   <GoogleIcon />
                 )}
                 <span>{t.continueWithGoogle}</span>
-                {/* subtle shimmer on hover */}
-                <span className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
-                  <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full duration-700 ease-in-out" />
-                </span>
               </button>
             </>
           )}

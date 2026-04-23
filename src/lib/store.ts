@@ -15,6 +15,7 @@ export interface User {
   email?: string;
   role?: "customer" | "manager" | "staff";
   branchId?: string;
+  photoUrl?: string;
 }
 
 export interface PickupDetails {
