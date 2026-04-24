@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { login } from "@/lib/auth";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
@@ -61,8 +62,8 @@ export default function StaffLoginPage() {
         {/* Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-black text-xl">S</span>
+            <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg bg-white border border-gray-100 shrink-0">
+              <Image src="/images/simba-logo.jpeg" alt="Simba Supermarket" width={56} height={56} className="w-full h-full object-cover" />
             </div>
             <div className="text-left">
               <p className="font-black text-xl text-gray-900 dark:text-white">Simba</p>

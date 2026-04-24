@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { useTheme } from "next-themes";
 import { ShoppingCart, Sun, Moon, Search, Menu, X, User as UserIcon, LogOut, Store, MapPin, ChevronDown, Check, Package, LayoutDashboard } from "lucide-react";
 import { useStore } from "@/lib/store";
@@ -109,8 +110,8 @@ export default function Navbar() {
           <div className="flex items-center gap-6">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 shrink-0">
-              <div className="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center shadow-sm">
-                <span className="text-white font-black text-base">S</span>
+              <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 bg-white shrink-0">
+                <Image src="/images/simba-logo.jpeg" alt="Simba Supermarket" width={36} height={36} className="w-full h-full object-cover" />
               </div>
               <div className="hidden sm:block">
                 <span className="font-black text-xl text-gray-900 dark:text-white tracking-tight">Simba</span>

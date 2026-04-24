@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { register, login, requestReset, confirmReset, loginOrCreateGoogleUser } from "@/lib/auth";
@@ -166,11 +167,16 @@ export default function AuthModal({
           >
             <X className="w-5 h-5" />
           </button>
-          <div className="w-16 h-16 bg-red-100 dark:bg-red-950 rounded-full flex items-center justify-center mx-auto mb-4">
-            {mode === "forgot" || mode === "reset"
-              ? <KeyRound className="w-8 h-8 text-red-600" />
-              : <UserIcon className="w-8 h-8 text-red-600" />
-            }
+          <div className="mx-auto mb-4 flex justify-center">
+            {mode === "forgot" || mode === "reset" ? (
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-950 rounded-full flex items-center justify-center">
+                <KeyRound className="w-8 h-8 text-red-600" />
+              </div>
+            ) : (
+              <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 bg-white">
+                <Image src="/images/simba-logo.jpeg" alt="Simba Supermarket" width={64} height={64} className="w-full h-full object-cover" />
+              </div>
+            )}
           </div>
           <h2 className="text-2xl font-black text-gray-900 dark:text-white">{title[mode]}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t.authSubtitle}</p>

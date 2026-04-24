@@ -1,6 +1,7 @@
 "use client";
 import { useLang } from "@/lib/LanguageContext";
 import Link from "next/link";
+import Image from "next/image";
 import { MapPin, Phone, Mail } from "lucide-react";
 
 export default function Footer() {
@@ -13,8 +14,8 @@ export default function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-black text-base">S</span>
+              <div className="w-10 h-10 rounded-xl overflow-hidden bg-white shadow-md shrink-0">
+                <Image src="/images/simba-logo.jpeg" alt="Simba Supermarket" width={40} height={40} className="w-full h-full object-cover" />
               </div>
               <div>
                 <span className="font-black text-xl text-white">Simba</span>

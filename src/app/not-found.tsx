@@ -1,10 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function NotFound() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
-      <div className="w-20 h-20 bg-red-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-        <span className="text-white font-black text-3xl">S</span>
+      <div className="w-20 h-20 rounded-2xl overflow-hidden mb-6 shadow-lg bg-white border border-gray-100">
+        <Image src="/images/simba-logo.jpeg" alt="Simba Supermarket" width={80} height={80} className="w-full h-full object-cover" />
       </div>
       <h1 className="text-6xl font-black text-gray-900 dark:text-white mb-2">404</h1>
       <p className="text-xl font-bold text-gray-600 dark:text-gray-400 mb-2">Page not found</p>
