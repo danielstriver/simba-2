@@ -106,7 +106,7 @@ export default function HomePage() {
                     <MapPin className="w-4 h-4 text-orange-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider leading-none mb-0.5">Pickup Branch</p>
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider leading-none mb-0.5">{t.pickupBranch}</p>
                     <p className="text-sm font-black text-gray-900 dark:text-white truncate">{getBranch(selectedBranch).label}</p>
                   </div>
                   <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-orange-600 transition-colors shrink-0" />

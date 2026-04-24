@@ -83,7 +83,7 @@ export default function Navbar() {
                 className="hidden lg:flex flex-col items-start px-3 py-1.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 border border-transparent hover:border-gray-100 dark:hover:border-gray-700 transition-all group text-left"
               >
                 <div className="flex items-center gap-1.5 text-[10px] font-black text-orange-600 uppercase tracking-wider">
-                  <MapPin className="w-3 h-3" /> Pickup Branch
+                  <MapPin className="w-3 h-3" /> {t.pickupBranch}
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{currentBranch.label}</span>
@@ -171,7 +171,21 @@ export default function Navbar() {
                       <Package className="w-3.5 h-3.5" /> {t.myOrders}
                     </Link>
                   )}
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                  {/* On mobile: tap avatar to open drawer (sign-out lives there). On desktop: sign-out icon visible inline. */}
+                  <button
+                    onClick={() => setMobileOpen(true)}
+                    className="md:hidden flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 active:bg-gray-100 transition-colors"
+                    aria-label="Account"
+                  >
+                    <div className="w-6 h-6 rounded-full overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0">
+                      {user.photoUrl ? (
+                        <img src={user.photoUrl} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        <UserIcon className="w-3.5 h-3.5 text-orange-600" />
+                      )}
+                    </div>
+                  </button>
+                  <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
                     <div className="w-6 h-6 rounded-full overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0">
                       {user.photoUrl ? (
                         <img
@@ -184,7 +198,7 @@ export default function Navbar() {
                         <UserIcon className="w-3.5 h-3.5 text-orange-600" />
                       )}
                     </div>
-                    <span className="hidden sm:block text-xs font-bold text-gray-700 dark:text-gray-300 truncate max-w-[80px]">
+                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300 truncate max-w-[80px]">
                       {user.name.split(" ")[0]}
                     </span>
                     <button
@@ -256,13 +270,19 @@ export default function Navbar() {
           <Link href="/products" className="px-3 py-1.5 rounded-full text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-950 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
             {t.allProducts}
           </Link>
-          {["Cosmetics & Personal Care","Alcoholic Drinks","Food Products","Cleaning & Sanitary","Baby Products"].map((cat) => (
+          {([
+            ["Cosmetics & Personal Care", t.catCosmetics],
+            ["Alcoholic Drinks", t.catAlcohol],
+            ["Food Products", t.catFood],
+            ["Cleaning & Sanitary", t.catCleaning],
+            ["Baby Products", t.catBaby],
+          ] as [string, string][]).map(([cat, label]) => (
             <Link
               key={cat}
               href={`/products?category=${encodeURIComponent(cat)}`}
               className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-orange-100 dark:hover:bg-orange-950 hover:text-orange-600 dark:hover:text-orange-400 transition-colors whitespace-nowrap"
             >
-              {cat.split(" & ")[0]}
+              {label}
             </Link>
           ))}
         </nav>
@@ -282,9 +302,37 @@ export default function Navbar() {
               />
             </div>
           </form>
+          {/* User section — sign out on mobile */}
+          {mounted && user && (
+            <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-full overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0">
+                  {user.photoUrl ? (
+                    <img src={user.photoUrl} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <UserIcon className="w-4 h-4 text-orange-600" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-black text-gray-900 dark:text-white truncate">{user.name}</p>
+                  <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setUser(null); setMobileOpen(false); }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-100 dark:hover:bg-red-950 transition-colors shrink-0 ml-2"
+              >
+                <LogOut className="w-3.5 h-3.5" /> {t.signOut}
+              </button>
+            </div>
+          )}
+
           <div className="flex gap-4 text-sm font-medium">
             <Link href="/" onClick={() => setMobileOpen(false)} className="text-gray-700 dark:text-gray-300">{t.home}</Link>
             <Link href="/products" onClick={() => setMobileOpen(false)} className="text-gray-700 dark:text-gray-300">{t.allProducts}</Link>
+            {user && !isStaff && (
+              <Link href="/orders" onClick={() => setMobileOpen(false)} className="text-gray-700 dark:text-gray-300">{t.myOrders}</Link>
+            )}
             {isStaff && (
               <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="text-orange-600 font-bold">{t.dashboard}</Link>
             )}
@@ -297,7 +345,7 @@ export default function Navbar() {
               <MapPin className="w-4 h-4 text-orange-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider leading-none mb-0.5">Pickup Branch</p>
+              <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider leading-none mb-0.5">{t.pickupBranch}</p>
               <p className="text-sm font-black text-gray-900 dark:text-white truncate">{currentBranch.label}</p>
             </div>
             <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />

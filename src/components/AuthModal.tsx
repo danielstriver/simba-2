@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
@@ -45,6 +45,15 @@ export default function AuthModal({
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -157,7 +166,7 @@ export default function AuthModal({
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white dark:bg-gray-900 z-[101] shadow-2xl rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-800 max-h-[92vh] overflow-y-auto">
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-gray-900 z-[101] shadow-2xl rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-800 max-h-[92vh] overflow-y-auto">
 
         {/* Header */}
         <div className="relative px-6 pt-8 pb-4 text-center">
@@ -288,7 +297,7 @@ export default function AuthModal({
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-white dark:bg-gray-900 px-3 text-gray-400 tracking-widest font-medium">
-                    or continue with
+                    {t.orContinueWith}
                   </span>
                 </div>
               </div>
