@@ -7,7 +7,7 @@ import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { Language } from "@/lib/i18n";
 import { useToast } from "@/components/Toast";
-import { BRANCHES, getBranch } from "@/lib/branches";
+import { BRANCHES, getBranch, DEFAULT_BRANCH_ID } from "@/lib/branches";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AuthModal from "./AuthModal";
@@ -87,17 +87,18 @@ export default function Navbar() {
                     toast(`Switched to ${b.label}`, "success", "Stock availability updated.");
                   }}
                   className={`w-full flex items-start gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
-                    (selectedBranch || "remera") === b.id
+                    (selectedBranch || DEFAULT_BRANCH_ID) === b.id
                       ? "border-orange-600 bg-orange-50 dark:bg-orange-950"
                       : "border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700"
                   }`}
                 >
-                  <MapPin className={`w-5 h-5 shrink-0 mt-0.5 ${(selectedBranch || "remera") === b.id ? "text-orange-600" : "text-gray-400"}`} />
+                  <MapPin className={`w-5 h-5 shrink-0 mt-0.5 ${(selectedBranch || DEFAULT_BRANCH_ID) === b.id ? "text-orange-600" : "text-gray-400"}`} />
                   <div>
-                    <p className={`font-bold text-sm ${(selectedBranch || "remera") === b.id ? "text-orange-700 dark:text-orange-400" : "text-gray-900 dark:text-white"}`}>{b.label}</p>
+                    <p className={`font-bold text-sm ${(selectedBranch || DEFAULT_BRANCH_ID) === b.id ? "text-orange-700 dark:text-orange-400" : "text-gray-900 dark:text-white"}`}>{b.label}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{b.addr}</p>
+                    {b.phone && <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5 font-medium">{b.phone}</p>}
                   </div>
-                  {(selectedBranch || "remera") === b.id && <div className="ml-auto w-5 h-5 bg-orange-600 rounded-full flex items-center justify-center"><Check className="w-3 h-3 text-white" /></div>}
+                  {(selectedBranch || DEFAULT_BRANCH_ID) === b.id && <div className="ml-auto w-5 h-5 bg-orange-600 rounded-full flex items-center justify-center"><Check className="w-3 h-3 text-white" /></div>}
                 </button>
               ))}
             </div>

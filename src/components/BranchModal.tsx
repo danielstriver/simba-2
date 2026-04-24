@@ -66,7 +66,8 @@ export default function BranchModal() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`font-black text-sm ${selectedBranch === b.id ? "text-orange-700 dark:text-orange-400" : "text-gray-900 dark:text-white"}`}>{b.label}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">{b.addr}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{b.addr}</p>
+                {b.phone && <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5 font-medium">{b.phone}</p>}
               </div>
               {selectedBranch === b.id && (
                 <div className="w-6 h-6 bg-orange-600 rounded-full flex items-center justify-center animate-in zoom-in-50 duration-300">

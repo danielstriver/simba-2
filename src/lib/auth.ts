@@ -122,11 +122,11 @@ export function getDepositAmount(userId: string): number {
 }
 
 const STAFF_SEEDS = [
-  { id: "manager-1", email: "manager@simba.rw", password: "Simba2025!", name: "Branch Manager",        phone: "+250788000001", role: "manager" as const, branchId: "remera"     },
-  { id: "staff-1",   email: "alice@simba.rw",   password: "Staff2025!",  name: "Alice Uwimana",         phone: "+250788000002", role: "staff"   as const, branchId: "remera"     },
-  { id: "staff-2",   email: "bob@simba.rw",     password: "Staff2025!",  name: "Bob Nkurunziza",        phone: "+250788000003", role: "staff"   as const, branchId: "kimironko"  },
-  { id: "staff-3",   email: "carol@simba.rw",   password: "Staff2025!",  name: "Carol Mukandayisenga",  phone: "+250788000004", role: "staff"   as const, branchId: "kacyiru"    },
-  { id: "staff-4",   email: "david@simba.rw",   password: "Staff2025!",  name: "David Habimana",        phone: "+250788000005", role: "staff"   as const, branchId: "nyamirambo" },
+  { id: "manager-1", email: "manager@simba.rw", password: "Simba2025!", name: "Branch Manager",        phone: "+250788000001", role: "manager" as const, branchId: "centenary"    },
+  { id: "staff-1",   email: "alice@simba.rw",   password: "Staff2025!",  name: "Alice Uwimana",         phone: "+250788000002", role: "staff"   as const, branchId: "centenary"    },
+  { id: "staff-2",   email: "bob@simba.rw",     password: "Staff2025!",  name: "Bob Nkurunziza",        phone: "+250788000003", role: "staff"   as const, branchId: "kimironko"   },
+  { id: "staff-3",   email: "carol@simba.rw",   password: "Staff2025!",  name: "Carol Mukandayisenga",  phone: "+250788000004", role: "staff"   as const, branchId: "gacuriro"    },
+  { id: "staff-4",   email: "david@simba.rw",   password: "Staff2025!",  name: "David Habimana",        phone: "+250788000005", role: "staff"   as const, branchId: "gikondo"     },
 ];
 
 export function loginOrCreateGoogleUser(

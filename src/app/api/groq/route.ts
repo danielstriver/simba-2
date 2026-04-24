@@ -31,7 +31,7 @@ RULES:
 {"text":"your response here","productIds":[array of up to 5 numeric product IDs]}
 - productIds must be integers that exist in the catalog, or empty [] if no match
 - Never invent product IDs not listed above
-- Pickup info: Simba has 9 branches in Kigali (Remera, Kimironko, Kacyiru, Nyamirambo, Gikondo, Kanombe, Kinyinya, Kibagabaga) and Nyanza`;
+- Pickup info: Simba has 11 branches across Kigali — Centenary (Kiyovu), Gishushu, Kimironko, Kicukiro, Kigali Heights (KG 541 St), UTC (Kiyovu), Gacuriro, Gikondo, Sonatube (Silverback Mall), Kisimenti, Rebero`;
 
   try {
     const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {

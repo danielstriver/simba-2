@@ -86,7 +86,7 @@ export default function HomePage() {
             <div className="flex-1 max-w-xl lg:max-w-none lg:pr-8 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 text-xs font-bold px-4 py-1.5 rounded-full mb-4 border border-green-200 dark:border-green-900">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                🇷🇼 9 branches across Kigali
+                🇷🇼 11 branches across Kigali
               </div>
 
               <h1 className="text-3xl sm:text-5xl lg:text-[3.75rem] font-black text-gray-900 dark:text-white leading-[1.05] tracking-tight mb-3">

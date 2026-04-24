@@ -5,7 +5,7 @@ import { useLang } from "@/lib/LanguageContext";
 import { formatPrice } from "@/lib/products";
 import Link from "next/link";
 import AuthModal from "@/components/AuthModal";
-import { BRANCHES, getBranch } from "@/lib/branches";
+import { BRANCHES, getBranch, DEFAULT_BRANCH_ID } from "@/lib/branches";
 import { createOrder } from "@/lib/orders";
 import { deductStock } from "@/lib/inventory";
 import { getDepositAmount } from "@/lib/auth";
@@ -65,7 +65,7 @@ export default function CheckoutPage() {
     return {
       name: useStore.getState().user?.name || "",
       phone: useStore.getState().user?.phone || "",
-      branch: validBranch?.id || "remera",
+      branch: validBranch?.id || DEFAULT_BRANCH_ID,
       date: new Date().toISOString().split("T")[0],
       time: "12:00",
       notes: "",
