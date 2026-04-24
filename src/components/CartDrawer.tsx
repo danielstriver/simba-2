@@ -66,10 +66,10 @@ export default function CartDrawer() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
               <div className="flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-red-600" />
+                <ShoppingBag className="w-5 h-5 text-orange-600" />
                 <h2 className="font-black text-lg dark:text-white">{t.cart}</h2>
                 {items.length > 0 && (
-                  <span className="bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400 text-xs font-bold px-2 py-0.5 rounded-full">
+                  <span className="bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-400 text-xs font-bold px-2 py-0.5 rounded-full">
                     {totalQty} {t.items}
                   </span>
                 )}
@@ -86,7 +86,7 @@ export default function CartDrawer() {
                   <ShoppingBag className="w-16 h-16 text-gray-200 dark:text-gray-700" />
                   <p className="font-bold text-gray-500 dark:text-gray-400">{t.cartEmpty}</p>
                   <p className="text-sm text-gray-400">Add items from our 789 products</p>
-                  <button onClick={() => setCartOpen(false)} className="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-full text-sm transition-colors">
+                  <button onClick={() => setCartOpen(false)} className="bg-orange-600 hover:bg-orange-700 text-white font-bold px-5 py-2.5 rounded-full text-sm transition-colors">
                     {t.continueShopping}
                   </button>
                 </div>
@@ -105,11 +105,11 @@ export default function CartDrawer() {
                         </Link>
                         <div className="flex-1 min-w-0">
                           <Link href={`/products/${product.id}`} onClick={() => setCartOpen(false)}
-                            className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug hover:text-red-600 transition-colors block"
+                            className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug hover:text-orange-600 transition-colors block"
                           >
                             {product.name}
                           </Link>
-                          <p className="text-red-600 font-black text-sm mt-0.5">{formatPrice(product.price)}</p>
+                          <p className="text-orange-600 font-black text-sm mt-0.5">{formatPrice(product.price)}</p>
                           <div className="flex items-center gap-2 mt-2">
                             <button
                               onClick={() => updateQuantity(product.id, quantity - 1)}
@@ -127,7 +127,7 @@ export default function CartDrawer() {
                               <Plus className="w-3 h-3" />
                             </button>
                             <p className="text-xs text-gray-400 ml-1">{formatPrice(product.price * quantity)}</p>
-                            <button onClick={() => removeItem(product.id)} aria-label="Remove item" className="ml-auto text-gray-300 hover:text-red-500 transition-colors p-1">
+                            <button onClick={() => removeItem(product.id)} aria-label="Remove item" className="ml-auto text-gray-300 hover:text-orange-500 transition-colors p-1">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -154,12 +154,12 @@ export default function CartDrawer() {
                   </div>
                   <div className="flex justify-between font-black text-lg text-gray-900 dark:text-white border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
                     <span>{t.cartTotal}</span>
-                    <span className="text-red-600">{formatPrice(total)}</span>
+                    <span className="text-orange-600">{formatPrice(total)}</span>
                   </div>
                 </div>
                 <button
                   onClick={handleCheckout}
-                  className="flex items-center justify-center gap-2 w-full bg-red-600 hover:bg-red-700 text-white py-3.5 rounded-xl font-black text-sm transition-colors shadow-lg"
+                  className="flex items-center justify-center gap-2 w-full bg-orange-600 hover:bg-orange-700 text-white py-3.5 rounded-xl font-black text-sm transition-colors shadow-lg"
                 >
                   {t.checkout} <ArrowRight className="w-4 h-4" />
                 </button>

@@ -169,8 +169,8 @@ export default function AuthModal({
           </button>
           <div className="mx-auto mb-4 flex justify-center">
             {mode === "forgot" || mode === "reset" ? (
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-950 rounded-full flex items-center justify-center">
-                <KeyRound className="w-8 h-8 text-red-600" />
+              <div className="w-16 h-16 bg-orange-100 dark:bg-orange-950 rounded-full flex items-center justify-center">
+                <KeyRound className="w-8 h-8 text-orange-600" />
               </div>
             ) : (
               <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 bg-white">
@@ -248,7 +248,7 @@ export default function AuthModal({
           )}
 
           {error && (
-            <p className="text-xs text-red-600 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-900 rounded-xl px-3 py-2">
+            <p className="text-xs text-orange-600 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-900 rounded-xl px-3 py-2">
               {error}
             </p>
           )}
@@ -260,7 +260,7 @@ export default function AuthModal({
 
           <button
             type="submit" disabled={loading}
-            className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-3.5 rounded-xl font-black text-sm transition-colors shadow-lg flex items-center justify-center gap-2 mt-2"
+            className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white py-3.5 rounded-xl font-black text-sm transition-colors shadow-lg flex items-center justify-center gap-2 mt-2"
           >
             {loading ? (
               <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -333,7 +333,7 @@ export default function AuthModal({
           {mode === "signin" && (
             <button
               onClick={() => switchMode("forgot")}
-              className="w-full text-center text-sm text-gray-500 hover:text-red-600 transition-colors"
+              className="w-full text-center text-sm text-gray-500 hover:text-orange-600 transition-colors"
             >
               {t.forgotPassword}
             </button>
@@ -342,7 +342,7 @@ export default function AuthModal({
           {(mode === "forgot" || mode === "reset") && (
             <button
               onClick={() => switchMode("signin")}
-              className="w-full text-center text-sm font-bold text-red-600 hover:text-red-700 transition-colors"
+              className="w-full text-center text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors"
             >
               {t.backToSignIn}
             </button>
@@ -351,7 +351,7 @@ export default function AuthModal({
           {(mode === "signin" || mode === "signup") && (
             <button
               onClick={() => switchMode(mode === "signup" ? "signin" : "signup")}
-              className="w-full text-center text-sm font-bold text-red-600 hover:text-red-700 transition-colors"
+              className="w-full text-center text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors"
             >
               {mode === "signup" ? t.alreadyAccount : t.noAccount}
             </button>

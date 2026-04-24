@@ -18,7 +18,7 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
   preparing: "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300",
   ready: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
   picked_up: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-  cancelled: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
+  cancelled: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
 };
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -51,7 +51,7 @@ export default function OrdersPage() {
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">{t.authRequiredDesc}</p>
           <button
             onClick={() => setShowAuth(true)}
-            className="bg-red-600 hover:bg-red-700 text-white font-black px-6 py-3 rounded-full transition-colors"
+            className="bg-orange-600 hover:bg-orange-700 text-white font-black px-6 py-3 rounded-full transition-colors"
           >
             {t.signIn}
           </button>
@@ -74,7 +74,7 @@ export default function OrdersPage() {
         </div>
         <Link
           href="/products"
-          className="inline-flex items-center gap-2 text-sm font-bold text-red-600 hover:text-red-700 transition-colors"
+          className="inline-flex items-center gap-2 text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors"
         >
           {t.continueShopping} <ArrowRight className="w-4 h-4" />
         </Link>
@@ -84,7 +84,7 @@ export default function OrdersPage() {
         <div className="text-center py-20">
           <Package className="w-14 h-14 text-gray-200 mx-auto mb-4" />
           <p className="font-bold text-gray-500 dark:text-gray-400">{t.noOrders}</p>
-          <Link href="/products" className="mt-4 inline-block text-red-600 font-bold hover:underline">
+          <Link href="/products" className="mt-4 inline-block text-orange-600 font-bold hover:underline">
             {t.shopNow}
           </Link>
         </div>

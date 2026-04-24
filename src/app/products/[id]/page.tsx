@@ -74,7 +74,7 @@ export default function ProductDetailPage() {
   if (loading || !product) {
     return (
       <div className="flex items-center justify-center py-32">
-        <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-orange-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -83,11 +83,11 @@ export default function ProductDetailPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-400 mb-6 flex-wrap">
-        <Link href="/" className="hover:text-red-600 transition-colors">{t.home}</Link>
+        <Link href="/" className="hover:text-orange-600 transition-colors">{t.home}</Link>
         <ChevronRight className="w-3 h-3 shrink-0" />
-        <Link href="/products" className="hover:text-red-600 transition-colors">{t.allProducts}</Link>
+        <Link href="/products" className="hover:text-orange-600 transition-colors">{t.allProducts}</Link>
         <ChevronRight className="w-3 h-3 shrink-0" />
-        <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="hover:text-red-600 transition-colors">
+        <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="hover:text-orange-600 transition-colors">
           {product.category}
         </Link>
         <ChevronRight className="w-3 h-3 shrink-0" />
@@ -97,7 +97,7 @@ export default function ProductDetailPage() {
       {/* Back button */}
       <button
         onClick={() => router.back()}
-        className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-red-600 font-medium mb-6 transition-colors"
+        className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-orange-600 font-medium mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> {t.backToShop}
       </button>
@@ -134,7 +134,7 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="flex flex-wrap gap-2 mt-4">
-            <span className={`text-xs font-bold px-3 py-1 rounded-full ${product.inStock ? "bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400" : "bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400"}`}>
+            <span className={`text-xs font-bold px-3 py-1 rounded-full ${product.inStock ? "bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400" : "bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-400"}`}>
               {product.inStock ? "✓ In Stock" : "✗ Out of Stock"}
             </span>
             <span className="text-xs font-medium px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
@@ -167,7 +167,7 @@ export default function ProductDetailPage() {
               </div>
               <button 
                 onClick={() => setShowBranchModal(true)}
-                className="text-[10px] font-bold text-gray-400 hover:text-red-600 underline underline-offset-2 transition-colors"
+                className="text-[10px] font-bold text-gray-400 hover:text-orange-600 underline underline-offset-2 transition-colors"
               >
                 Change branch
               </button>
@@ -175,7 +175,7 @@ export default function ProductDetailPage() {
           )}
 
           <div className="flex items-baseline gap-3 mb-6">
-            <span className="text-4xl font-black text-red-600">{formatPrice(product.price)}</span>
+            <span className="text-4xl font-black text-orange-600">{formatPrice(product.price)}</span>
             <span className="text-sm text-gray-400">per {product.unit}</span>
           </div>
 
@@ -228,7 +228,7 @@ export default function ProductDetailPage() {
               disabled={!product.inStock}
               className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold transition-all text-sm ${
                 product.inStock
-                  ? "bg-red-600 hover:bg-red-700 text-white active:scale-[0.98]"
+                  ? "bg-orange-600 hover:bg-orange-700 text-white active:scale-[0.98]"
                   : "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
               }`}
             >
@@ -237,7 +237,7 @@ export default function ProductDetailPage() {
             {product.inStock && (
               <button
                 onClick={handleBuyNow}
-                className="flex-1 flex items-center justify-center gap-2 border-2 border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 py-3.5 rounded-xl font-bold transition-colors text-sm"
+                className="flex-1 flex items-center justify-center gap-2 border-2 border-orange-600 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950 py-3.5 rounded-xl font-bold transition-colors text-sm"
               >
                 <Zap className="w-4 h-4" /> Buy Now
               </button>
@@ -270,7 +270,7 @@ export default function ProductDetailPage() {
             <h2 className="text-xl font-black text-gray-900 dark:text-white">{t.relatedProducts}</h2>
             <Link
               href={`/products?category=${encodeURIComponent(product.category)}`}
-              className="text-red-600 hover:text-red-700 text-sm font-semibold flex items-center gap-1"
+              className="text-orange-600 hover:text-orange-700 text-sm font-semibold flex items-center gap-1"
             >
               {t.viewAll} <ChevronRight className="w-4 h-4" />
             </Link>

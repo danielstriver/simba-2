@@ -110,7 +110,7 @@ export default function CheckoutPage() {
       <div className="max-w-lg mx-auto px-4 py-24 text-center">
         <ShoppingBag className="w-16 h-16 text-gray-200 mx-auto mb-4" />
         <h2 className="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">{t.cartEmpty}</h2>
-        <Link href="/products" className="text-red-600 font-bold hover:underline">{t.continueShopping}</Link>
+        <Link href="/products" className="text-orange-600 font-bold hover:underline">{t.continueShopping}</Link>
       </div>
     );
   }
@@ -157,7 +157,7 @@ export default function CheckoutPage() {
             </div>
             <div className="flex justify-between text-sm font-black text-gray-900 dark:text-white">
               <span>{t.remainingAtCounter}</span>
-              <span className="text-red-600">{formatPrice(subtotal)}</span>
+              <span className="text-orange-600">{formatPrice(subtotal)}</span>
             </div>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function CheckoutPage() {
           </Link>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-black px-6 py-3 rounded-full transition-colors shadow-lg"
+            className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-black px-6 py-3 rounded-full transition-colors shadow-lg"
           >
             Back to Home
           </Link>
@@ -274,9 +274,9 @@ export default function CheckoutPage() {
           <div key={s.id} className="flex items-center gap-2 shrink-0">
             {i > 0 && <ChevronRight className="w-4 h-4 text-gray-300" />}
             <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
-              step === s.id ? "bg-red-600 text-white shadow-md" : "bg-gray-100 dark:bg-gray-800 text-gray-500"
+              step === s.id ? "bg-orange-600 text-white shadow-md" : "bg-gray-100 dark:bg-gray-800 text-gray-500"
             }`}>
-              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === s.id ? "bg-white text-red-600" : "bg-gray-300 dark:bg-gray-700 text-white"}`}>{i + 1}</span>
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === s.id ? "bg-white text-orange-600" : "bg-gray-300 dark:bg-gray-700 text-white"}`}>{i + 1}</span>
               <span>{s.label}</span>
             </div>
           </div>
@@ -291,7 +291,7 @@ export default function CheckoutPage() {
           {step === "details" && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-6">
               <h2 className="font-black text-xl text-gray-900 dark:text-white flex items-center gap-2">
-                <Store className="w-5 h-5 text-red-600" /> {t.pickupDetails}
+                <Store className="w-5 h-5 text-orange-600" /> {t.pickupDetails}
               </h2>
 
               <div className="grid sm:grid-cols-2 gap-4">
@@ -302,10 +302,10 @@ export default function CheckoutPage() {
                     <input
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      className={`w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border ${errors.name ? "border-red-500" : "border-gray-200 dark:border-gray-700"} rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-sm`}
+                      className={`w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border ${errors.name ? "border-orange-500" : "border-gray-200 dark:border-gray-700"} rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm`}
                     />
                   </div>
-                  {errors.name && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.name}</p>}
+                  {errors.name && <p className="text-[10px] text-orange-500 mt-1 ml-1">{errors.name}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">{t.phone} *</label>
@@ -314,10 +314,10 @@ export default function CheckoutPage() {
                     <input
                       value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      className={`w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border ${errors.phone ? "border-red-500" : "border-gray-200 dark:border-gray-700"} rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-sm`}
+                      className={`w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border ${errors.phone ? "border-orange-500" : "border-gray-200 dark:border-gray-700"} rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm`}
                     />
                   </div>
-                  {errors.phone && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.phone}</p>}
+                  {errors.phone && <p className="text-[10px] text-orange-500 mt-1 ml-1">{errors.phone}</p>}
                 </div>
               </div>
 
@@ -329,18 +329,18 @@ export default function CheckoutPage() {
                       key={b.id}
                       onClick={() => setForm({ ...form, branch: b.id })}
                       className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${
-                        form.branch === b.id ? "border-red-600 bg-red-50 dark:bg-red-950" : "border-gray-100 dark:border-gray-700 hover:border-gray-200"
+                        form.branch === b.id ? "border-orange-600 bg-orange-50 dark:bg-orange-950" : "border-gray-100 dark:border-gray-700 hover:border-gray-200"
                       }`}
                     >
-                      <MapPin className={`w-5 h-5 shrink-0 mt-0.5 ${form.branch === b.id ? "text-red-600" : "text-gray-400"}`} />
+                      <MapPin className={`w-5 h-5 shrink-0 mt-0.5 ${form.branch === b.id ? "text-orange-600" : "text-gray-400"}`} />
                       <div>
-                        <p className={`text-sm font-bold ${form.branch === b.id ? "text-red-700 dark:text-red-400" : "text-gray-600 dark:text-gray-400"}`}>{b.label}</p>
+                        <p className={`text-sm font-bold ${form.branch === b.id ? "text-orange-700 dark:text-orange-400" : "text-gray-600 dark:text-gray-400"}`}>{b.label}</p>
                         <p className="text-[10px] text-gray-400 mt-0.5">{b.addr}</p>
                       </div>
                     </button>
                   ))}
                 </div>
-                {errors.branch && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.branch}</p>}
+                {errors.branch && <p className="text-[10px] text-orange-500 mt-1 ml-1">{errors.branch}</p>}
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
@@ -352,7 +352,7 @@ export default function CheckoutPage() {
                       type="date"
                       value={form.date}
                       onChange={(e) => setForm({ ...form, date: e.target.value })}
-                      className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                      className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
                     />
                   </div>
                 </div>
@@ -364,7 +364,7 @@ export default function CheckoutPage() {
                       type="time"
                       value={form.time}
                       onChange={(e) => setForm({ ...form, time: e.target.value })}
-                      className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                      className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
                     />
                   </div>
                 </div>
@@ -372,7 +372,7 @@ export default function CheckoutPage() {
 
               <button
                 onClick={handleNext}
-                className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl font-black transition-all shadow-lg flex items-center justify-center gap-2"
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white py-4 rounded-xl font-black transition-all shadow-lg flex items-center justify-center gap-2"
               >
                 Continue to Payment <ArrowRight className="w-4 h-4" />
               </button>
@@ -383,7 +383,7 @@ export default function CheckoutPage() {
           {step === "payment" && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-6">
               <h2 className="font-black text-xl text-gray-900 dark:text-white flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-red-600" /> {t.paymentMethod}
+                <CreditCard className="w-5 h-5 text-orange-600" /> {t.paymentMethod}
               </h2>
 
               {/* Packaging fee callout */}
@@ -433,9 +433,9 @@ export default function CheckoutPage() {
                       value={momoPhone}
                       onChange={(e) => setMomoPhone(e.target.value)}
                       placeholder="078 XXX XXXX"
-                      className={`w-full px-4 py-3 rounded-xl border ${errors.momo ? "border-red-500" : "border-yellow-300 dark:border-yellow-800"} bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500`}
+                      className={`w-full px-4 py-3 rounded-xl border ${errors.momo ? "border-orange-500" : "border-yellow-300 dark:border-yellow-800"} bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500`}
                     />
-                    {errors.momo && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.momo}</p>}
+                    {errors.momo && <p className="text-[10px] text-orange-500 mt-1 ml-1">{errors.momo}</p>}
                   </div>
                   {momoStatus === "awaiting" ? (
                     <div className="flex items-center gap-3 py-2 text-yellow-800 dark:text-yellow-300">
@@ -447,7 +447,7 @@ export default function CheckoutPage() {
                       💡 You will receive a MoMo prompt to pay <strong>{formatPrice(PACKAGING_FEE)}</strong> after clicking Place Order.
                     </p>
                   )}
-                  {momoError && <p className="text-sm text-red-600 font-bold bg-red-50 p-2 rounded-lg">{momoError}</p>}
+                  {momoError && <p className="text-sm text-orange-600 font-bold bg-orange-50 p-2 rounded-lg">{momoError}</p>}
                 </div>
               )}
 
@@ -460,7 +460,7 @@ export default function CheckoutPage() {
                       value={cardNum}
                       onChange={(e) => setCardNum(e.target.value)}
                       placeholder="0000 0000 0000 0000"
-                      className={`w-full px-4 py-3 rounded-xl border ${errors.cardNum ? "border-red-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      className={`w-full px-4 py-3 rounded-xl border ${errors.cardNum ? "border-orange-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -470,7 +470,7 @@ export default function CheckoutPage() {
                         value={cardExp}
                         onChange={(e) => setCardExp(e.target.value)}
                         placeholder="MM/YY"
-                        className={`w-full px-4 py-3 rounded-xl border ${errors.cardExp ? "border-red-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        className={`w-full px-4 py-3 rounded-xl border ${errors.cardExp ? "border-orange-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                       />
                     </div>
                     <div>
@@ -479,7 +479,7 @@ export default function CheckoutPage() {
                         value={cardCvv}
                         onChange={(e) => setCardCvv(e.target.value)}
                         placeholder="123"
-                        className={`w-full px-4 py-3 rounded-xl border ${errors.cardCvv ? "border-red-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        className={`w-full px-4 py-3 rounded-xl border ${errors.cardCvv ? "border-orange-500" : "border-blue-300 dark:border-blue-800"} bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                       />
                     </div>
                   </div>
@@ -505,7 +505,7 @@ export default function CheckoutPage() {
                 <button
                   onClick={handlePlaceOrder}
                   disabled={loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-4 rounded-xl font-black text-sm transition-all shadow-lg flex items-center justify-center gap-2"
+                  className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white py-4 rounded-xl font-black text-sm transition-all shadow-lg flex items-center justify-center gap-2"
                 >
                   {loading
                     ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>

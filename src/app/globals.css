@@ -21,7 +21,7 @@ body {
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #ea580c; border-radius: 3px; }
 
 /* Hide scrollbar for category pills */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -47,7 +47,7 @@ body {
   position: absolute;
   inset: -4px;
   border-radius: 9999px;
-  background: #dc2626;
+  background: #ea580c;
   animation: pulse-ring 1.5s ease-out infinite;
   z-index: -1;
 }

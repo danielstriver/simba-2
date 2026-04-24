@@ -31,7 +31,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               t.type === "cart"
                 ? "bg-gray-900 dark:bg-gray-100 dark:text-gray-900"
                 : t.type === "error"
-                ? "bg-red-600"
+                ? "bg-orange-600"
                 : "bg-green-600"
             }`}
           >

@@ -59,7 +59,7 @@ function Card({ product }: { product: Product }) {
 
   return (
     <Link href={`/products/${product.id}`} className="group block h-full">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-200 border border-gray-100 dark:border-gray-700 group-hover:border-red-200 dark:group-hover:border-red-900 h-full flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-200 border border-gray-100 dark:border-gray-700 group-hover:border-orange-200 dark:group-hover:border-orange-900 h-full flex flex-col">
         <div className="relative aspect-square bg-gray-50 dark:bg-gray-700 overflow-hidden">
           <ProductImg product={product} />
           {!product.inStock && (
@@ -78,12 +78,12 @@ function Card({ product }: { product: Product }) {
         </div>
         <div className="p-3 flex flex-col flex-1">
           <p className="text-[10px] text-gray-400 font-medium truncate mb-0.5">{product.category}</p>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug flex-1 group-hover:text-red-600 transition-colors">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug flex-1 group-hover:text-orange-600 transition-colors">
             {product.name}
           </h3>
           <div className="flex items-end justify-between gap-2 mt-3">
             <div>
-              <p className="text-red-600 font-black text-sm leading-none">{formatPrice(product.price)}</p>
+              <p className="text-orange-600 font-black text-sm leading-none">{formatPrice(product.price)}</p>
               <p className="text-[10px] text-gray-400 mt-0.5">/{product.unit}</p>
             </div>
             <button
@@ -91,7 +91,7 @@ function Card({ product }: { product: Product }) {
               disabled={!product.inStock}
               className={`shrink-0 p-2 rounded-xl font-bold transition-all active:scale-95 ${
                 product.inStock
-                  ? "bg-red-600 hover:bg-red-700 text-white hover:scale-105"
+                  ? "bg-orange-600 hover:bg-orange-700 text-white hover:scale-105"
                   : "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
               }`}
             >
@@ -183,7 +183,7 @@ function ProductsContent() {
       {/* ── Search bar + sort ─────────────────── */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         {/* Search input with explicit Search button */}
-        <div className="relative flex flex-1 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-red-500 focus-within:border-transparent">
+        <div className="relative flex flex-1 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           <input
             value={inputValue}
@@ -206,7 +206,7 @@ function ProductsContent() {
           )}
           <button
             onClick={commitSearch}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold text-sm px-4 py-2.5 transition-colors"
+            className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm px-4 py-2.5 transition-colors"
           >
             Search
           </button>
@@ -217,7 +217,7 @@ function ProductsContent() {
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortOption)}
-            className="appearance-none w-full sm:w-auto pl-4 pr-8 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer text-gray-900 dark:text-white"
+            className="appearance-none w-full sm:w-auto pl-4 pr-8 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer text-gray-900 dark:text-white"
           >
             <option value="default">Sort: Default</option>
             <option value="price-asc">{t.priceLowHigh}</option>
@@ -234,7 +234,7 @@ function ProductsContent() {
         >
           <SlidersHorizontal className="w-4 h-4" />
           {t.filters}
-          {hasFilters && <span className="w-2 h-2 rounded-full bg-red-600 shrink-0" />}
+          {hasFilters && <span className="w-2 h-2 rounded-full bg-orange-600 shrink-0" />}
         </button>
       </div>
 
@@ -242,9 +242,9 @@ function ProductsContent() {
       {activeSearch && (
         <div className="flex items-center gap-2 mb-4">
           <span className="text-sm text-gray-500 dark:text-gray-400">Results for:</span>
-          <span className="inline-flex items-center gap-1.5 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 text-sm font-bold px-3 py-1 rounded-full border border-red-200 dark:border-red-900">
+          <span className="inline-flex items-center gap-1.5 bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-400 text-sm font-bold px-3 py-1 rounded-full border border-orange-200 dark:border-orange-900">
             &ldquo;{activeSearch}&rdquo;
-            <button onClick={() => { setInputValue(""); setActiveSearch(""); }} className="hover:text-red-900">
+            <button onClick={() => { setInputValue(""); setActiveSearch(""); }} className="hover:text-orange-900">
               <X className="w-3.5 h-3.5" />
             </button>
           </span>
@@ -259,7 +259,7 @@ function ProductsContent() {
         <button
           onClick={() => setSelectedCat("")}
           className={`shrink-0 text-xs px-3.5 py-1.5 rounded-full font-medium border transition-colors whitespace-nowrap ${
-            !selectedCat ? "bg-red-600 text-white border-red-600" : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 hover:border-red-300"
+            !selectedCat ? "bg-orange-600 text-white border-orange-600" : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 hover:border-orange-300"
           }`}
         >
           All ({allProducts.length})
@@ -271,12 +271,12 @@ function ProductsContent() {
               key={cat}
               onClick={() => setSelectedCat(cat === selectedCat ? "" : cat)}
               className={`shrink-0 text-xs px-3.5 py-1.5 rounded-full font-medium border transition-colors flex items-center gap-1.5 whitespace-nowrap ${
-                selectedCat === cat ? "bg-red-600 text-white border-red-600" : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 hover:border-red-300"
+                selectedCat === cat ? "bg-orange-600 text-white border-orange-600" : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 hover:border-orange-300"
               }`}
             >
               <span>{CATEGORY_META[cat]?.icon}</span>
               <span>{cat.split(" & ")[0]}</span>
-              <span className={selectedCat === cat ? "text-red-200" : "text-gray-400"}>{count}</span>
+              <span className={selectedCat === cat ? "text-orange-200" : "text-gray-400"}>{count}</span>
             </button>
           );
         })}
@@ -293,7 +293,7 @@ function ProductsContent() {
           )}
         </div>
         {hasFilters && (
-          <button onClick={clearAll} className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 font-bold">
+          <button onClick={clearAll} className="flex items-center gap-1 text-xs text-orange-600 hover:text-orange-700 font-bold">
             <X className="w-3.5 h-3.5" /> {t.clearFilters}
           </button>
         )}
@@ -313,27 +313,27 @@ function ProductsContent() {
         }>
           <div className="bg-white dark:bg-gray-800 rounded-r-2xl sm:rounded-2xl border-r border-gray-200 dark:border-gray-700 sm:border p-4 h-full sm:h-auto sm:sticky sm:top-24 space-y-5">
             <label className="flex items-center gap-2.5 cursor-pointer select-none">
-              <input type="checkbox" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} className="w-4 h-4 accent-red-600 rounded" />
+              <input type="checkbox" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} className="w-4 h-4 accent-orange-600 rounded" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.inStockOnly}</span>
             </label>
 
             <div>
               <p className="text-sm font-bold text-gray-900 dark:text-white mb-2">
-                Max price: <span className="text-red-600">{formatPrice(maxPrice)}</span>
+                Max price: <span className="text-orange-600">{formatPrice(maxPrice)}</span>
               </p>
-              <input type="range" min={350} max={800000} step={5000} value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} className="w-full accent-red-600" />
+              <input type="range" min={350} max={800000} step={5000} value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} className="w-full accent-orange-600" />
               <div className="flex justify-between text-[10px] text-gray-400 mt-1"><span>RWF 350</span><span>RWF 800K</span></div>
             </div>
 
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{t.categories}</p>
               <div className="space-y-0.5">
-                <button onClick={() => setSelectedCat("")} className={`w-full text-left text-sm px-2.5 py-1.5 rounded-lg transition-colors ${!selectedCat ? "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 font-bold" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"}`}>
+                <button onClick={() => setSelectedCat("")} className={`w-full text-left text-sm px-2.5 py-1.5 rounded-lg transition-colors ${!selectedCat ? "bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-400 font-bold" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"}`}>
                   All categories
                 </button>
                 {CATEGORIES.map((cat) => (
                   <button key={cat} onClick={() => setSelectedCat(cat === selectedCat ? "" : cat)}
-                    className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-2 ${selectedCat === cat ? "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 font-bold" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"}`}
+                    className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-2 ${selectedCat === cat ? "bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-400 font-bold" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"}`}
                   >
                     <span>{CATEGORY_META[cat]?.icon}</span>
                     <span className="flex-1 leading-tight">{cat}</span>
@@ -361,7 +361,7 @@ function ProductsContent() {
                   No matches for &ldquo;<strong>{activeSearch}</strong>&rdquo;. Try a different word.
                 </p>
               )}
-              <button onClick={clearAll} className="mt-2 bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-full text-sm transition-colors">
+              <button onClick={clearAll} className="mt-2 bg-orange-600 hover:bg-orange-700 text-white font-bold px-6 py-2.5 rounded-full text-sm transition-colors">
                 {t.clearFilters}
               </button>
             </div>
@@ -380,7 +380,7 @@ export default function ProductsPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-24">
-        <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <ProductsContent />

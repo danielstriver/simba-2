@@ -51,7 +51,7 @@ export default function HomePage() {
       {/* ─── HERO — split layout (Getir/Glovo inspired) ─── */}
       <section className="relative bg-white dark:bg-gray-950 overflow-hidden">
         {/* Decorative blobs */}
-        <div className="absolute right-0 top-0 w-[700px] h-[700px] bg-red-50 dark:bg-red-950/10 rounded-full -translate-y-1/3 translate-x-1/3 pointer-events-none" />
+        <div className="absolute right-0 top-0 w-[700px] h-[700px] bg-orange-50 dark:bg-orange-950/10 rounded-full -translate-y-1/3 translate-x-1/3 pointer-events-none" />
         <div className="absolute left-0 bottom-0 w-[300px] h-[300px] bg-orange-50 dark:bg-orange-950/10 rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -99,11 +99,11 @@ export default function HomePage() {
               {/* Branch picker + CTA */}
               <div className="flex flex-col sm:flex-row gap-3 mb-6 max-w-lg mx-auto lg:mx-0">
                 <div className="relative flex-1">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-red-500 pointer-events-none" />
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-500 pointer-events-none" />
                   <select
                     value={heroBranch}
                     onChange={(e) => setHeroBranch(e.target.value)}
-                    className="w-full pl-11 pr-10 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm font-medium appearance-none focus:outline-none focus:border-red-500 dark:text-white cursor-pointer"
+                    className="w-full pl-11 pr-10 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm font-medium appearance-none focus:outline-none focus:border-orange-500 dark:text-white cursor-pointer"
                   >
                     {BRANCHES.map((b) => (
                       <option key={b.id} value={b.id}>{b.label}</option>
@@ -113,7 +113,7 @@ export default function HomePage() {
                 </div>
                 <button
                   onClick={handleStartShopping}
-                  className="bg-red-600 hover:bg-red-700 text-white font-black px-8 py-4 rounded-2xl text-sm whitespace-nowrap transition-colors shadow-lg shadow-red-600/20 flex items-center justify-center gap-2"
+                  className="bg-orange-600 hover:bg-orange-700 text-white font-black px-8 py-4 rounded-2xl text-sm whitespace-nowrap transition-colors shadow-lg shadow-orange-600/20 flex items-center justify-center gap-2"
                 >
                   {t.shopNow} <ArrowRight className="w-4 h-4" />
                 </button>
@@ -139,7 +139,7 @@ export default function HomePage() {
             {/* Right: Visual — desktop only */}
             <div className="hidden lg:flex flex-1 items-center justify-center">
               <div className="relative w-full max-w-[420px] aspect-square">
-                <div className="absolute inset-0 bg-gradient-to-br from-red-50 to-orange-100 dark:from-red-950/30 dark:to-orange-950/20 rounded-[2.5rem]" />
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-950/20 rounded-[2.5rem]" />
                 <Image
                   src="/images/bg-suggested.jpg"
                   alt="Fresh groceries at Simba"
@@ -148,7 +148,7 @@ export default function HomePage() {
                   priority
                 />
                 <div className="absolute -bottom-4 -left-4 bg-white dark:bg-gray-900 rounded-2xl shadow-xl px-4 py-3 border border-gray-100 dark:border-gray-800 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-red-100 dark:bg-red-950 rounded-xl flex items-center justify-center text-xl">🛒</div>
+                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-950 rounded-xl flex items-center justify-center text-xl">🛒</div>
                   <div>
                     <p className="text-xs font-black text-gray-900 dark:text-white">789 products</p>
                     <p className="text-[11px] text-gray-400">Ready for pickup</p>
@@ -179,12 +179,12 @@ export default function HomePage() {
                 value={heroSearch}
                 onChange={(e) => setHeroSearch(e.target.value)}
                 placeholder={t.searchPlaceholder}
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-white"
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 dark:text-white"
               />
             </div>
             <button
               type="submit"
-              className="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-3 rounded-xl text-sm transition-colors shadow-sm whitespace-nowrap"
+              className="bg-orange-600 hover:bg-orange-700 text-white font-bold px-5 py-3 rounded-xl text-sm transition-colors shadow-sm whitespace-nowrap"
             >
               {t.shopNow}
             </button>
@@ -201,7 +201,7 @@ export default function HomePage() {
               { icon: <Phone className="w-4 h-4 text-yellow-600" />, text: t.trustMoMo },
               { icon: <Shield className="w-4 h-4 text-blue-600" />, text: t.trustAuthentic },
               { icon: <Clock className="w-4 h-4 text-purple-600" />, text: t.trustSameDay },
-              { icon: <Zap className="w-4 h-4 text-red-600" />, text: t.trustProducts },
+              { icon: <Zap className="w-4 h-4 text-orange-600" />, text: t.trustProducts },
             ].map((b) => (
               <div key={b.text} className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 font-medium">
                 {b.icon}
@@ -216,7 +216,7 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white">{t.shopByCategory}</h2>
-          <Link href="/products" className="text-red-600 hover:text-red-700 font-semibold text-sm flex items-center gap-1">
+          <Link href="/products" className="text-orange-600 hover:text-orange-700 font-semibold text-sm flex items-center gap-1">
             {t.viewAll} <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
@@ -227,12 +227,12 @@ export default function HomePage() {
               <Link
                 key={cat}
                 href={`/products?category=${encodeURIComponent(cat)}`}
-                className="group flex flex-col items-center gap-2 p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-800 hover:shadow-md transition-all"
+                className="group flex flex-col items-center gap-2 p-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-800 hover:shadow-md transition-all"
               >
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${meta.color} flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform`}>
                   {meta.icon}
                 </div>
-                <span className="text-[11px] font-medium text-gray-600 dark:text-gray-400 text-center leading-tight group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                <span className="text-[11px] font-medium text-gray-600 dark:text-gray-400 text-center leading-tight group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                   {cat.replace(" & ", " &\n")}
                 </span>
               </Link>
@@ -249,7 +249,7 @@ export default function HomePage() {
               <h2 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white">{t.featuredProducts}</h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{t.featuredProductsSubtitle}</p>
             </div>
-            <Link href="/products" className="text-red-600 hover:text-red-700 font-semibold text-sm flex items-center gap-1">
+            <Link href="/products" className="text-orange-600 hover:text-orange-700 font-semibold text-sm flex items-center gap-1">
               {t.viewAll} <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -267,7 +267,7 @@ export default function HomePage() {
 
       {/* ─── PROMO BANNER (Cosmetics) ─── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-pink-500 via-rose-500 to-red-600 p-8 md:p-12">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-pink-500 via-rose-500 to-orange-600 p-8 md:p-12">
           <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
           <div className="absolute -left-8 -bottom-8 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
           <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -278,7 +278,7 @@ export default function HomePage() {
             </div>
             <Link
               href="/products?category=Cosmetics+%26+Personal+Care"
-              className="shrink-0 inline-flex items-center gap-2 bg-white text-red-700 font-bold px-6 py-3 rounded-full hover:bg-red-50 transition-colors shadow-lg"
+              className="shrink-0 inline-flex items-center gap-2 bg-white text-orange-700 font-bold px-6 py-3 rounded-full hover:bg-orange-50 transition-colors shadow-lg"
             >
               {t.shopNow} <ArrowRight className="w-4 h-4" />
             </Link>
@@ -355,7 +355,7 @@ export default function HomePage() {
           </p>
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3.5 rounded-full transition-colors shadow-lg"
+            className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold px-8 py-3.5 rounded-full transition-colors shadow-lg"
           >
             {t.browseAll} <ArrowRight className="w-4 h-4" />
           </Link>
@@ -372,7 +372,7 @@ function SectionHeader({ title, icon, cat, t }: { title: string; icon: string; c
         <span className="text-2xl">{icon}</span>
         <h2 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white">{title}</h2>
       </div>
-      <Link href={`/products?category=${encodeURIComponent(cat)}`} className="text-red-600 hover:text-red-700 font-semibold text-sm flex items-center gap-1">
+      <Link href={`/products?category=${encodeURIComponent(cat)}`} className="text-orange-600 hover:text-orange-700 font-semibold text-sm flex items-center gap-1">
         {t.viewAll} <ChevronRight className="w-4 h-4" />
       </Link>
     </div>

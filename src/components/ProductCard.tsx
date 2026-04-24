@@ -59,7 +59,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link href={`/products/${product.id}`} className="group block h-full">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-200 border border-gray-100 dark:border-gray-700 group-hover:border-red-200 dark:group-hover:border-red-900 h-full flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-200 border border-gray-100 dark:border-gray-700 group-hover:border-orange-200 dark:group-hover:border-orange-900 h-full flex flex-col">
         <div className="relative aspect-square bg-gray-50 dark:bg-gray-700 overflow-hidden">
           <ProductImg product={product} />
           {!product.inStock && (
@@ -83,12 +83,12 @@ export default function ProductCard({ product }: { product: Product }) {
         </div>
         <div className="p-3 flex flex-col flex-1">
           <p className="text-[10px] text-gray-400 font-medium truncate mb-0.5">{product.category}</p>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug flex-1 group-hover:text-red-600 transition-colors">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug flex-1 group-hover:text-orange-600 transition-colors">
             {product.name}
           </h3>
           <div className="flex items-end justify-between gap-2 mt-3">
             <div>
-              <p className="text-red-600 font-black text-sm leading-none">{formatPrice(product.price)}</p>
+              <p className="text-orange-600 font-black text-sm leading-none">{formatPrice(product.price)}</p>
               <p className="text-[10px] text-gray-400 mt-0.5">/{product.unit}</p>
             </div>
             <button
@@ -96,7 +96,7 @@ export default function ProductCard({ product }: { product: Product }) {
               disabled={!product.inStock}
               className={`shrink-0 p-2 rounded-xl font-bold transition-all active:scale-95 ${
                 product.inStock
-                  ? "bg-red-600 hover:bg-red-700 text-white hover:scale-105"
+                  ? "bg-orange-600 hover:bg-orange-700 text-white hover:scale-105"
                   : "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
               }`}
             >

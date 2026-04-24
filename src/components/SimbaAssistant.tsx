@@ -248,7 +248,7 @@ function ChatProductCard({ product, onNavigate }: { product: Product; onNavigate
     : product.image;
 
   return (
-    <div className="flex items-center gap-2.5 bg-white dark:bg-gray-700 rounded-xl p-2.5 border border-gray-100 dark:border-gray-600 hover:border-red-200 dark:hover:border-red-800 transition-colors">
+    <div className="flex items-center gap-2.5 bg-white dark:bg-gray-700 rounded-xl p-2.5 border border-gray-100 dark:border-gray-600 hover:border-orange-200 dark:hover:border-orange-800 transition-colors">
       <Link href={`/products/${product.id}`} className="shrink-0" onClick={onNavigate}>
         <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600">
           {failed ? (
@@ -262,11 +262,11 @@ function ChatProductCard({ product, onNavigate }: { product: Product; onNavigate
       </Link>
       <div className="flex-1 min-w-0">
         <Link href={`/products/${product.id}`} onClick={onNavigate}>
-          <p className="text-xs font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug hover:text-red-600 transition-colors">
+          <p className="text-xs font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug hover:text-orange-600 transition-colors">
             {product.name}
           </p>
         </Link>
-        <p className="text-red-600 font-black text-xs mt-0.5">{formatPrice(product.price)}</p>
+        <p className="text-orange-600 font-black text-xs mt-0.5">{formatPrice(product.price)}</p>
       </div>
       <button
         onClick={() => {
@@ -275,7 +275,7 @@ function ChatProductCard({ product, onNavigate }: { product: Product; onNavigate
           toast("Added to cart", "cart", product.name);
         }}
         disabled={!product.inStock}
-        className={`shrink-0 p-1.5 rounded-lg transition-colors ${product.inStock ? "bg-red-600 hover:bg-red-700 text-white" : "bg-gray-200 dark:bg-gray-600 text-gray-400 cursor-not-allowed"}`}
+        className={`shrink-0 p-1.5 rounded-lg transition-colors ${product.inStock ? "bg-orange-600 hover:bg-orange-700 text-white" : "bg-gray-200 dark:bg-gray-600 text-gray-400 cursor-not-allowed"}`}
       >
         <ShoppingCart className="w-3.5 h-3.5" />
       </button>
@@ -333,6 +333,7 @@ export default function SimbaAssistant() {
   const [panelMaxH, setPanelMaxH] = useState("min(580px, calc(100dvh - 120px))");
   const [buttonBottom, setButtonBottom] = useState(24);
   const [hovered, setHovered] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -363,6 +364,11 @@ export default function SimbaAssistant() {
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
   }, [open]);
+
+  // Detect touch-only devices so hover tooltip is never shown on them
+  useEffect(() => {
+    setIsTouch(window.matchMedia("(hover: none)").matches);
+  }, []);
 
   // Responsive positioning — lift button/panel above mobile bottom nav
   useEffect(() => {
@@ -512,13 +518,13 @@ export default function SimbaAssistant() {
           }}
         >
           {/* Header */}
-          <div className="flex items-center gap-3 px-4 py-3 bg-red-600 text-white shrink-0">
+          <div className="flex items-center gap-3 px-4 py-3 bg-orange-600 text-white shrink-0">
             <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/30 shrink-0">
               <Image src="/images/simba-logo.jpeg" alt="Simba" width={36} height={36} className="w-full h-full object-cover" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-black text-sm">SIMBA Assistant</p>
-              <p className="text-red-200 text-[10px]">
+              <p className="text-orange-200 text-[10px]">
                 {allProducts.length > 0
                   ? `${allProducts.length} products · ${groqAvailable ? "🤖 Groq AI" : "Smart search"}`
                   : "Loading..."}
@@ -546,7 +552,7 @@ export default function SimbaAssistant() {
                 <div className={`max-w-[90%] ${msg.role === "user" ? "" : "w-full"}`}>
                   {msg.role === "assistant" && (
                     <div className="flex items-center gap-1.5 mb-1">
-                      <div className="w-5 h-5 rounded-full overflow-hidden ring-1 ring-red-200 dark:ring-red-800 shrink-0">
+                      <div className="w-5 h-5 rounded-full overflow-hidden ring-1 ring-orange-200 dark:ring-orange-800 shrink-0">
                         <Image src="/images/simba-logo.jpeg" alt="Simba" width={20} height={20} className="w-full h-full object-cover" />
                       </div>
                       <span className="text-[10px] font-bold text-gray-400">SIMBA</span>
@@ -559,7 +565,7 @@ export default function SimbaAssistant() {
                   )}
                   <div className={`rounded-2xl px-3.5 py-2.5 ${
                     msg.role === "user"
-                      ? "bg-red-600 text-white rounded-tr-sm"
+                      ? "bg-orange-600 text-white rounded-tr-sm"
                       : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-tl-sm shadow-sm border border-gray-100 dark:border-gray-700"
                   }`}>
                     <MessageText text={msg.text} />
@@ -574,7 +580,7 @@ export default function SimbaAssistant() {
                         <Link
                           href={`/products?category=${encodeURIComponent(msg.products[0]?.category || "")}`}
                           onClick={() => setOpen(false)}
-                          className="flex items-center justify-center gap-1 text-xs text-red-600 font-bold py-1 hover:underline"
+                          className="flex items-center justify-center gap-1 text-xs text-orange-600 font-bold py-1 hover:underline"
                         >
                           See all results <ChevronRight className="w-3 h-3" />
                         </Link>
@@ -591,7 +597,7 @@ export default function SimbaAssistant() {
                 <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm border border-gray-100 dark:border-gray-700">
                   <div className="flex gap-1 items-center h-4">
                     {[0, 1, 2].map((i) => (
-                      <span key={i} className="w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                      <span key={i} className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
                     ))}
                   </div>
                 </div>
@@ -607,7 +613,7 @@ export default function SimbaAssistant() {
                 <button
                   key={p}
                   onClick={() => send(p)}
-                  className="shrink-0 text-[11px] font-medium border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded-full px-3 py-1.5 hover:bg-red-100 dark:hover:bg-red-900 transition-colors whitespace-nowrap"
+                  className="shrink-0 text-[11px] font-medium border border-orange-200 dark:border-orange-900 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950 rounded-full px-3 py-1.5 hover:bg-orange-100 dark:hover:bg-orange-900 transition-colors whitespace-nowrap"
                 >
                   {p}
                 </button>
@@ -624,8 +630,8 @@ export default function SimbaAssistant() {
                 onClick={toggleVoice}
                 className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
                   listening
-                    ? "bg-red-100 dark:bg-red-950 text-red-600 animate-pulse"
-                    : "text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                    ? "bg-orange-100 dark:bg-orange-950 text-orange-600 animate-pulse"
+                    : "text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
                 }`}
                 title={listening ? "Stop listening" : "Speak"}
               >
@@ -638,14 +644,14 @@ export default function SimbaAssistant() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={listening ? "Listening…" : "Ask about products…"}
-              className="flex-1 text-sm bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-400"
+              className="flex-1 text-sm bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-400"
               disabled={listening}
             />
 
             <button
               type="submit"
               disabled={!input.trim() || thinking}
-              className="shrink-0 w-9 h-9 bg-red-600 hover:bg-red-700 disabled:bg-gray-200 dark:disabled:bg-gray-700 text-white disabled:text-gray-400 rounded-full flex items-center justify-center transition-colors"
+              className="shrink-0 w-9 h-9 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-200 dark:disabled:bg-gray-700 text-white disabled:text-gray-400 rounded-full flex items-center justify-center transition-colors"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -654,7 +660,7 @@ export default function SimbaAssistant() {
       )}
 
       {/* ── Hover tooltip ─────────────────────────────────────────────────────── */}
-      {hovered && !open && (
+      {!isTouch && hovered && !open && (
         <div
           style={{ position: "fixed", bottom: buttonBottom + 4, right: 92, zIndex: 9998 }}
           className="pointer-events-none animate-in slide-in-from-right-3 fade-in duration-200"
@@ -677,12 +683,12 @@ export default function SimbaAssistant() {
         onMouseLeave={() => setHovered(false)}
         aria-label={open ? "Close SIMBA Assistant" : "Open SIMBA Assistant"}
         style={{ position: "fixed", bottom: buttonBottom, right: 24, zIndex: 9999 }}
-        className="w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 relative hover:ring-4 hover:ring-red-400/30"
+        className="w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 relative hover:ring-4 hover:ring-orange-400/30"
       >
         {!open && <div className="pulse-ring" />}
         {open ? (
           <>
-            <div className="absolute inset-0 rounded-full bg-red-600" />
+            <div className="absolute inset-0 rounded-full bg-orange-600" />
             <X className="w-6 h-6 text-white relative z-10" />
           </>
         ) : (

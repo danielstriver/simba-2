@@ -67,10 +67,10 @@ export default function StaffLoginPage() {
             </div>
             <div className="text-left">
               <p className="font-black text-xl text-gray-900 dark:text-white">Simba</p>
-              <p className="text-[11px] text-red-600 font-medium uppercase tracking-widest -mt-0.5">SUPERMARKET</p>
+              <p className="text-[11px] text-orange-600 font-medium uppercase tracking-widest -mt-0.5">SUPERMARKET</p>
             </div>
           </div>
-          <div className="inline-flex items-center gap-2 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900 text-red-700 dark:text-red-400 text-xs font-bold px-3 py-1.5 rounded-full mb-3">
+          <div className="inline-flex items-center gap-2 bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900 text-orange-700 dark:text-orange-400 text-xs font-bold px-3 py-1.5 rounded-full mb-3">
             <Store className="w-3.5 h-3.5" /> Staff Portal
           </div>
           <h1 className="text-2xl font-black text-gray-900 dark:text-white">{t.staffLogin}</h1>
@@ -92,7 +92,7 @@ export default function StaffLoginPage() {
                   onChange={(e) => { setEmail(e.target.value); setError(""); }}
                   placeholder="you@simba.rw"
                   required
-                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent dark:text-white"
+                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:text-white"
                 />
               </div>
             </div>
@@ -109,7 +109,7 @@ export default function StaffLoginPage() {
                   onChange={(e) => { setPassword(e.target.value); setError(""); }}
                   placeholder="••••••••"
                   required
-                  className="w-full pl-11 pr-12 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent dark:text-white"
+                  className="w-full pl-11 pr-12 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:text-white"
                 />
                 <button
                   type="button"
@@ -122,7 +122,7 @@ export default function StaffLoginPage() {
             </div>
 
             {error && (
-              <p className="text-xs text-red-600 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-900 rounded-xl px-3 py-2.5">
+              <p className="text-xs text-orange-600 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-900 rounded-xl px-3 py-2.5">
                 {error}
               </p>
             )}
@@ -130,7 +130,7 @@ export default function StaffLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white py-3.5 rounded-xl font-black text-sm transition-colors shadow-lg flex items-center justify-center gap-2"
+              className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white py-3.5 rounded-xl font-black text-sm transition-colors shadow-lg flex items-center justify-center gap-2"
             >
               {loading ? (
                 <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -155,7 +155,7 @@ export default function StaffLoginPage() {
                       <p className="text-xs font-bold text-gray-700 dark:text-gray-300">{acc.role}</p>
                       <p className="text-[11px] text-gray-500 font-mono">{acc.email}</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-red-600 transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-orange-600 transition-colors" />
                   </button>
                 ))}
               </div>
@@ -165,7 +165,7 @@ export default function StaffLoginPage() {
 
         <p className="text-center text-xs text-gray-400 mt-6">
           Not staff?{" "}
-          <a href="/" className="text-red-600 hover:underline font-medium">Return to store</a>
+          <a href="/" className="text-orange-600 hover:underline font-medium">Return to store</a>
         </p>
       </div>
     </div>

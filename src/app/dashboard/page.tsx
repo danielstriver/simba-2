@@ -27,7 +27,7 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
   preparing: "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300",
   ready: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
   picked_up: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-  cancelled: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
+  cancelled: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
 };
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -110,7 +110,7 @@ export default function DashboardPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-            <Store className="w-7 h-7 text-red-600" /> {t.dashboard}
+            <Store className="w-7 h-7 text-orange-600" /> {t.dashboard}
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
             {user.name} · {user.role === "manager" ? t.managerView : t.staffView}
@@ -127,7 +127,7 @@ export default function DashboardPage() {
                 onClick={() => setRole(r)}
                 className={`px-4 py-2 text-sm font-bold transition-colors ${
                   role === r
-                    ? "bg-red-600 text-white"
+                    ? "bg-orange-600 text-white"
                     : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }`}
               >
@@ -141,7 +141,7 @@ export default function DashboardPage() {
             <select
               value={branchId}
               onChange={(e) => setBranchId(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               {BRANCHES.map((b) => (
                 <option key={b.id} value={b.id}>{b.label.replace("Simba Supermarket ", "")}</option>
@@ -156,7 +156,7 @@ export default function DashboardPage() {
               <select
                 value={staffId}
                 onChange={(e) => setStaffId(e.target.value)}
-                className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 {DEMO_STAFF.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -207,8 +207,8 @@ export default function DashboardPage() {
               onClick={() => setStatusFilter(s)}
               className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
                 statusFilter === s
-                  ? "bg-red-600 border-red-600 text-white"
-                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-red-300"
+                  ? "bg-orange-600 border-orange-600 text-white"
+                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-orange-300"
               }`}
             >
               {s === "all" ? "All Orders" : STATUS_LABELS[s]}
@@ -351,7 +351,7 @@ function OrderCard({
                         {stock > 0 ? (
                           <button
                             onClick={() => onOutOfStock(item.productId)}
-                            className="text-[10px] font-bold px-2 py-1 bg-red-50 dark:bg-red-950 text-red-600 rounded-lg hover:bg-red-100 flex items-center gap-1"
+                            className="text-[10px] font-bold px-2 py-1 bg-orange-50 dark:bg-orange-950 text-orange-600 rounded-lg hover:bg-orange-100 flex items-center gap-1"
                           >
                             <AlertTriangle className="w-2.5 h-2.5" /> Out of stock
                           </button>
