@@ -352,7 +352,7 @@ export default function Navbar() {
                   className="rounded-sm object-cover"
                   style={{ width: 22, height: 16 }}
                 />
-                <span className="text-xs">{l.label}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wide">{l.code}</span>
               </button>
             ))}
           </div>

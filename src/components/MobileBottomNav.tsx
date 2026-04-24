@@ -73,8 +73,12 @@ export default function MobileBottomNav() {
           >
             {user ? (
               <>
-                <div className="w-7 h-7 bg-red-100 dark:bg-red-950 rounded-full flex items-center justify-center">
-                  <UserIcon className="w-4 h-4 text-red-600" />
+                <div className="w-7 h-7 rounded-full overflow-hidden bg-red-100 dark:bg-red-950 flex items-center justify-center shrink-0">
+                  {user.photoUrl ? (
+                    <img src={user.photoUrl} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <UserIcon className="w-4 h-4 text-red-600" />
+                  )}
                 </div>
                 <span className="text-[10px] font-semibold text-red-600 leading-none truncate max-w-[56px]">
                   {user.name.split(" ")[0]}

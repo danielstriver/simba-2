@@ -255,7 +255,7 @@ function ProductsContent() {
       )}
 
       {/* ── Category pills ─────────────────────── */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-hide">
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-hide pr-4">
         <button
           onClick={() => setSelectedCat("")}
           className={`shrink-0 text-xs px-3.5 py-1.5 rounded-full font-medium border transition-colors whitespace-nowrap ${
@@ -300,9 +300,18 @@ function ProductsContent() {
       </div>
 
       <div className="flex gap-6">
+        {/* ── Mobile sidebar backdrop ──────────── */}
+        {sidebarOpen && (
+          <div className="sm:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={() => setSidebarOpen(false)} />
+        )}
+
         {/* ── Sidebar ──────────────────────────── */}
-        <aside className={`${sidebarOpen ? "block" : "hidden"} sm:block w-52 shrink-0`}>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 sticky top-24 space-y-5">
+        <aside className={
+          sidebarOpen
+            ? "fixed inset-y-0 left-0 w-72 z-50 overflow-y-auto sm:static sm:w-52 sm:z-auto sm:overflow-visible shrink-0"
+            : "hidden sm:block w-52 shrink-0"
+        }>
+          <div className="bg-white dark:bg-gray-800 rounded-r-2xl sm:rounded-2xl border-r border-gray-200 dark:border-gray-700 sm:border p-4 h-full sm:h-auto sm:sticky sm:top-24 space-y-5">
             <label className="flex items-center gap-2.5 cursor-pointer select-none">
               <input type="checkbox" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} className="w-4 h-4 accent-red-600 rounded" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.inStockOnly}</span>
