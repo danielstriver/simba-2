@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import { ShoppingCart, Sun, Moon, Search, Menu, X, User as UserIcon, LogOut, MapPin, ChevronDown, Check, Package, LayoutDashboard } from "lucide-react";
+import { ShoppingCart, Sun, Moon, Search, Menu, X, User as UserIcon, LogOut, MapPin, ChevronDown, ChevronRight, Check, Package, LayoutDashboard } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { Language } from "@/lib/i18n";
@@ -27,7 +27,10 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
+  const userBtnRef = useRef<HTMLButtonElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -39,6 +42,12 @@ export default function Navbar() {
     function handleClickOutside(e: MouseEvent) {
       if (langRef.current && !langRef.current.contains(e.target as Node)) {
         setLangOpen(false);
+      }
+      if (
+        userMenuRef.current && !userMenuRef.current.contains(e.target as Node) &&
+        userBtnRef.current && !userBtnRef.current.contains(e.target as Node)
+      ) {
+        setShowUserMenu(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -155,27 +164,13 @@ export default function Navbar() {
             {/* User / Login */}
             {mounted && (
               user ? (
-                <div className="flex items-center gap-1">
-                  {isStaff ? (
-                    <Link
-                      href="/dashboard"
-                      className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 text-xs font-bold text-orange-600 hover:bg-orange-100 transition-all"
-                    >
-                      <LayoutDashboard className="w-3.5 h-3.5" /> {t.dashboard}
-                    </Link>
-                  ) : (
-                    <Link
-                      href="/orders"
-                      className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-orange-600 hover:border-orange-200 transition-all"
-                    >
-                      <Package className="w-3.5 h-3.5" /> {t.myOrders}
-                    </Link>
-                  )}
-                  {/* On mobile: tap avatar to open drawer (sign-out lives there). On desktop: sign-out icon visible inline. */}
+                <div className="relative">
+                  {/* Avatar button — same on mobile and desktop */}
                   <button
-                    onClick={() => setMobileOpen(true)}
-                    className="md:hidden flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 active:bg-gray-100 transition-colors"
-                    aria-label="Account"
+                    ref={userBtnRef}
+                    onClick={() => setShowUserMenu((v) => !v)}
+                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700 active:bg-gray-100 transition-all"
+                    aria-label="Account menu"
                   >
                     <div className="w-6 h-6 rounded-full overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0">
                       {user.photoUrl ? (
@@ -184,31 +179,63 @@ export default function Navbar() {
                         <UserIcon className="w-3.5 h-3.5 text-orange-600" />
                       )}
                     </div>
-                  </button>
-                  <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-                    <div className="w-6 h-6 rounded-full overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0">
-                      {user.photoUrl ? (
-                        <img
-                          src={user.photoUrl}
-                          alt={user.name}
-                          className="w-full h-full object-cover"
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
-                        <UserIcon className="w-3.5 h-3.5 text-orange-600" />
-                      )}
-                    </div>
-                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300 truncate max-w-[80px]">
+                    <span className="hidden sm:block text-xs font-bold text-gray-700 dark:text-gray-300 truncate max-w-[72px]">
                       {user.name.split(" ")[0]}
                     </span>
-                    <button
-                      onClick={() => setUser(null)}
-                      className="p-1 rounded-full hover:bg-orange-50 dark:hover:bg-orange-950 text-gray-400 hover:text-orange-600 transition-colors"
-                      title={t.signOut}
+                    <ChevronDown className={`hidden sm:block w-3 h-3 text-gray-400 transition-transform duration-200 ${showUserMenu ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {/* Dropdown popover */}
+                  {showUserMenu && (
+                    <div
+                      ref={userMenuRef}
+                      className="absolute right-0 top-full mt-2 z-[200] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden animate-in slide-in-from-top-3 fade-in duration-200"
+                      style={{ minWidth: 230 }}
                     >
-                      <LogOut className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                      {/* Profile header */}
+                      <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-gray-800">
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0 ring-2 ring-orange-200 dark:ring-orange-900">
+                          {user.photoUrl ? (
+                            <img src={user.photoUrl} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                          ) : (
+                            <UserIcon className="w-5 h-5 text-orange-600" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-black text-gray-900 dark:text-white truncate">{user.name}</p>
+                          <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
+                        </div>
+                      </div>
+                      {/* Dashboard or My Orders */}
+                      {isStaff ? (
+                        <Link
+                          href="/dashboard"
+                          onClick={() => setShowUserMenu(false)}
+                          className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        >
+                          <span className="flex items-center gap-2"><LayoutDashboard className="w-4 h-4 text-orange-600" />{t.dashboard}</span>
+                          <ChevronRight className="w-4 h-4 text-gray-400" />
+                        </Link>
+                      ) : (
+                        <Link
+                          href="/orders"
+                          onClick={() => setShowUserMenu(false)}
+                          className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        >
+                          <span className="flex items-center gap-2"><Package className="w-4 h-4 text-orange-600" />{t.myOrders}</span>
+                          <ChevronRight className="w-4 h-4 text-gray-400" />
+                        </Link>
+                      )}
+                      {/* Sign out */}
+                      <button
+                        onClick={() => { setUser(null); setShowUserMenu(false); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors border-t border-gray-100 dark:border-gray-800"
+                      >
+                        <LogOut className="w-4 h-4 shrink-0" />
+                        {t.signOut}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <button
@@ -302,31 +329,6 @@ export default function Navbar() {
               />
             </div>
           </form>
-          {/* User section — sign out on mobile */}
-          {mounted && user && (
-            <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-full overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0">
-                  {user.photoUrl ? (
-                    <img src={user.photoUrl} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  ) : (
-                    <UserIcon className="w-4 h-4 text-orange-600" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-black text-gray-900 dark:text-white truncate">{user.name}</p>
-                  <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => { setUser(null); setMobileOpen(false); }}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-100 dark:hover:bg-red-950 transition-colors shrink-0 ml-2"
-              >
-                <LogOut className="w-3.5 h-3.5" /> {t.signOut}
-              </button>
-            </div>
-          )}
-
           <div className="flex gap-4 text-sm font-medium">
             <Link href="/" onClick={() => setMobileOpen(false)} className="text-gray-700 dark:text-gray-300">{t.home}</Link>
             <Link href="/products" onClick={() => setMobileOpen(false)} className="text-gray-700 dark:text-gray-300">{t.allProducts}</Link>
