@@ -332,6 +332,7 @@ export default function SimbaAssistant() {
   const [panelRight, setPanelRight] = useState(24);
   const [panelMaxH, setPanelMaxH] = useState("min(580px, calc(100dvh - 120px))");
   const [buttonBottom, setButtonBottom] = useState(24);
+  const [hovered, setHovered] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -652,12 +653,31 @@ export default function SimbaAssistant() {
         </div>
       )}
 
+      {/* ── Hover tooltip ─────────────────────────────────────────────────────── */}
+      {hovered && !open && (
+        <div
+          style={{ position: "fixed", bottom: buttonBottom + 4, right: 92, zIndex: 9998 }}
+          className="pointer-events-none animate-in slide-in-from-right-3 fade-in duration-200"
+        >
+          <div className="bg-white dark:bg-gray-800 shadow-2xl border border-gray-100 dark:border-gray-700 rounded-2xl rounded-br-none px-4 py-3 max-w-[210px]">
+            <p className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+              <span>👋</span> Hey there!
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5 leading-relaxed">
+              Ask me anything — I know all 789 products.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── Toggle Button — bottom-right, lifted above mobile nav on small screens ── */}
       <button
         onClick={() => setOpen((o) => !o)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         aria-label={open ? "Close SIMBA Assistant" : "Open SIMBA Assistant"}
         style={{ position: "fixed", bottom: buttonBottom, right: 24, zIndex: 9999 }}
-        className="w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 relative"
+        className="w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 relative hover:ring-4 hover:ring-red-400/30"
       >
         {!open && <div className="pulse-ring" />}
         {open ? (
