@@ -13,6 +13,11 @@ export const metadata: Metadata = {
   title: "Simba Supermarket — Rwanda's Online Supermarket",
   description: "Shop groceries, cosmetics, drinks & more. Fast delivery in Kigali, Rwanda.",
   keywords: "Rwanda supermarket, Kigali grocery, online shopping Rwanda, Simba supermarket",
+  icons: {
+    icon: "/images/simba-logo.jpeg",
+    shortcut: "/images/simba-logo.jpeg",
+    apple: "/images/simba-logo.jpeg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

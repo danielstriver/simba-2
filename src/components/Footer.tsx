@@ -74,7 +74,13 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500">
           <p>© 2026 Simba Supermarket. {t.footer.rights}.</p>
-          <p>Built with ❤️ in Rwanda</p>
+          <div className="flex items-center gap-3">
+            <Link href="#" className="hover:text-gray-300 transition-colors">{t.footer.terms}</Link>
+            <span className="text-gray-700">·</span>
+            <Link href="#" className="hover:text-gray-300 transition-colors">{t.footer.privacy}</Link>
+            <span className="text-gray-700">·</span>
+            <Link href="#" className="hover:text-gray-300 transition-colors">{t.footer.about}</Link>
+          </div>
         </div>
       </div>
     </footer>

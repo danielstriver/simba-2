@@ -7,9 +7,10 @@ import { useToast } from "@/components/Toast";
 import { useLang } from "@/lib/LanguageContext";
 import { quickSearch } from "@/lib/search";
 import Link from "next/link";
+import Image from "next/image";
 import {
   MessageCircle, X, Mic, MicOff, Send, ShoppingCart,
-  Volume2, VolumeX, Bot, Sparkles, ChevronRight,
+  Volume2, VolumeX, ChevronRight,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -511,8 +512,8 @@ export default function SimbaAssistant() {
         >
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 bg-red-600 text-white shrink-0">
-            <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
-              <Bot className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/30 shrink-0">
+              <Image src="/images/simba-logo.jpeg" alt="Simba" width={36} height={36} className="w-full h-full object-cover" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-black text-sm">SIMBA Assistant</p>
@@ -544,8 +545,8 @@ export default function SimbaAssistant() {
                 <div className={`max-w-[90%] ${msg.role === "user" ? "" : "w-full"}`}>
                   {msg.role === "assistant" && (
                     <div className="flex items-center gap-1.5 mb-1">
-                      <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
-                        <Bot className="w-3 h-3 text-white" />
+                      <div className="w-5 h-5 rounded-full overflow-hidden ring-1 ring-red-200 dark:ring-red-800 shrink-0">
+                        <Image src="/images/simba-logo.jpeg" alt="Simba" width={20} height={20} className="w-full h-full object-cover" />
                       </div>
                       <span className="text-[10px] font-bold text-gray-400">SIMBA</span>
                       {msg.groq && (
@@ -656,12 +657,21 @@ export default function SimbaAssistant() {
         onClick={() => setOpen((o) => !o)}
         aria-label={open ? "Close SIMBA Assistant" : "Open SIMBA Assistant"}
         style={{ position: "fixed", bottom: buttonBottom, right: 24, zIndex: 9999 }}
-        className="w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 relative"
+        className="w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 relative"
       >
         {!open && <div className="pulse-ring" />}
-        {open ? <X className="w-6 h-6" /> : <Sparkles className="w-6 h-6" />}
+        {open ? (
+          <>
+            <div className="absolute inset-0 rounded-full bg-red-600" />
+            <X className="w-6 h-6 text-white relative z-10" />
+          </>
+        ) : (
+          <div className="w-14 h-14 rounded-full overflow-hidden absolute inset-0">
+            <Image src="/images/simba-logo.jpeg" alt="Simba Assistant" width={56} height={56} className="w-full h-full object-cover" />
+          </div>
+        )}
         {totalItems > 0 && !open && (
-          <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center z-10">
             {totalItems > 9 ? "9+" : totalItems}
           </span>
         )}
