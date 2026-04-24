@@ -210,9 +210,10 @@ function buildResponse(
       const results = quickSearch(query, products, 5);
       if (results.length > 0) {
         const total = results.length;
-        const label = total === 1 ? "1 match" : `${total} results`;
         return {
-          text: `Yes! Found **${label}** for **"${query}"**:`,
+          text: total === 1
+            ? `Here's a great match for **"${query}"**:`
+            : `Here are **${total} options** for **"${query}"** you might like:`,
           results,
         };
       }
@@ -334,6 +335,7 @@ export default function SimbaAssistant() {
   const [buttonBottom, setButtonBottom] = useState(24);
   const [hovered, setHovered] = useState(false);
   const [isTouch, setIsTouch] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -374,6 +376,7 @@ export default function SimbaAssistant() {
   useEffect(() => {
     const onResize = () => {
       const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
       setButtonBottom(mobile ? 80 : 24);
       setPanelBottom(mobile ? 148 : 88);
       setPanelRight(mobile ? 16 : 24);
@@ -504,11 +507,15 @@ export default function SimbaAssistant() {
 
   return (
     <>
-      {/* ── Chat Panel (above the button) ────────────────────── */}
+      {/* ── Chat Panel — full-screen on mobile, floating panel on desktop ── */}
       {open && (
         <div
-          className="flex flex-col rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-900"
-          style={{
+          className={
+            isMobile
+              ? "fixed inset-0 z-[9998] flex flex-col bg-white dark:bg-gray-900 animate-in slide-in-from-bottom-8 duration-300 overflow-hidden"
+              : "flex flex-col rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-900"
+          }
+          style={isMobile ? {} : {
             position: "fixed",
             bottom: panelBottom,
             right: panelRight,
@@ -518,7 +525,7 @@ export default function SimbaAssistant() {
           }}
         >
           {/* Header */}
-          <div className="flex items-center gap-3 px-4 py-3 bg-orange-600 text-white shrink-0">
+          <div className={`flex items-center gap-3 px-4 bg-orange-600 text-white shrink-0 ${isMobile ? "pt-12 pb-4" : "py-3"}`}>
             <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/30 shrink-0">
               <Image src="/images/simba-logo.jpeg" alt="Simba" width={36} height={36} className="w-full h-full object-cover" />
             </div>
@@ -676,8 +683,8 @@ export default function SimbaAssistant() {
         </div>
       )}
 
-      {/* ── Toggle Button — bottom-right, lifted above mobile nav on small screens ── */}
-      <button
+      {/* ── Toggle Button — hidden on mobile while full-screen is open ── */}
+      {(!isMobile || !open) && <button
         onClick={() => setOpen((o) => !o)}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -701,7 +708,7 @@ export default function SimbaAssistant() {
             {totalItems > 9 ? "9+" : totalItems}
           </span>
         )}
-      </button>
+      </button>}
     </>
   );
 }

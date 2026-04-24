@@ -322,23 +322,41 @@ export default function CheckoutPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">{t.selectBranch} *</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {branches.map((b) => (
-                    <button
-                      key={b.id}
-                      onClick={() => setForm({ ...form, branch: b.id })}
-                      className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${
-                        form.branch === b.id ? "border-orange-600 bg-orange-50 dark:bg-orange-950" : "border-gray-100 dark:border-gray-700 hover:border-gray-200"
-                      }`}
-                    >
-                      <MapPin className={`w-5 h-5 shrink-0 mt-0.5 ${form.branch === b.id ? "text-orange-600" : "text-gray-400"}`} />
-                      <div>
-                        <p className={`text-sm font-bold ${form.branch === b.id ? "text-orange-700 dark:text-orange-400" : "text-gray-600 dark:text-gray-400"}`}>{b.label}</p>
-                        <p className="text-[10px] text-gray-400 mt-0.5">{b.addr}</p>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 ml-1">{t.selectBranch} *</label>
+                <div className="space-y-3">
+                  {(["Nyarugenge", "Gasabo", "Kicukiro"] as const).map((district) => {
+                    const districtBranches = branches.filter((b) => b.district === district);
+                    const palette = {
+                      Nyarugenge: { dot: "bg-orange-500", label: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/30" },
+                      Gasabo:     { dot: "bg-emerald-500", label: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/30" },
+                      Kicukiro:   { dot: "bg-blue-500", label: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/30" },
+                    }[district];
+                    return (
+                      <div key={district}>
+                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg mb-2 ${palette.bg}`}>
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${palette.dot}`} />
+                          <span className={`text-[10px] font-black uppercase tracking-wider ${palette.label}`}>{district}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {districtBranches.map((b) => (
+                            <button
+                              key={b.id}
+                              type="button"
+                              onClick={() => setForm({ ...form, branch: b.id })}
+                              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 text-sm font-bold transition-all ${
+                                form.branch === b.id
+                                  ? "border-orange-600 bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-400 shadow-sm"
+                                  : "border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-200 dark:hover:border-gray-600"
+                              }`}
+                            >
+                              {form.branch === b.id && <Check className="w-3.5 h-3.5 shrink-0" />}
+                              {b.label.replace("Simba ", "")}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </button>
-                  ))}
+                    );
+                  })}
                 </div>
                 {errors.branch && <p className="text-[10px] text-orange-500 mt-1 ml-1">{errors.branch}</p>}
               </div>

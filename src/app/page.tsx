@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getProducts, Product, CATEGORIES, CATEGORY_META } from "@/lib/products";
 import { useLang } from "@/lib/LanguageContext";
 import { useStore } from "@/lib/store";
-import { BRANCHES, getBranch } from "@/lib/branches";
+import { getBranch, DEFAULT_BRANCH_ID } from "@/lib/branches";
 import ProductCard from "@/components/ProductCard";
 import Image from "next/image";
 import { ArrowRight, Search, Truck, Shield, Clock, ChevronRight, Zap, Phone, MapPin, ChevronDown, CheckCircle } from "lucide-react";
@@ -13,11 +13,10 @@ import { ArrowRight, Search, Truck, Shield, Clock, ChevronRight, Zap, Phone, Map
 export default function HomePage() {
   const { t } = useLang();
   const router = useRouter();
-  const { selectedBranch, setSelectedBranch } = useStore();
+  const { selectedBranch, setSelectedBranch, setShowBranchModal } = useStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [heroSearch, setHeroSearch] = useState("");
-  const [heroBranch, setHeroBranch] = useState(selectedBranch || BRANCHES[0].id);
 
   useEffect(() => {
     getProducts().then((d) => {
@@ -32,7 +31,7 @@ export default function HomePage() {
   }
 
   function handleStartShopping() {
-    setSelectedBranch(heroBranch);
+    if (!selectedBranch) setSelectedBranch(DEFAULT_BRANCH_ID);
     router.push("/products");
   }
 
@@ -98,19 +97,20 @@ export default function HomePage() {
 
               {/* Branch picker + CTA */}
               <div className="flex flex-col sm:flex-row gap-3 mb-6 max-w-lg mx-auto lg:mx-0">
-                <div className="relative flex-1">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-500 pointer-events-none" />
-                  <select
-                    value={heroBranch}
-                    onChange={(e) => setHeroBranch(e.target.value)}
-                    className="w-full pl-11 pr-10 py-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm font-medium appearance-none focus:outline-none focus:border-orange-500 dark:text-white cursor-pointer"
-                  >
-                    {BRANCHES.map((b) => (
-                      <option key={b.id} value={b.id}>{b.label}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowBranchModal(true)}
+                  className="relative flex-1 flex items-center gap-3 pl-4 pr-4 py-3.5 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-orange-400 dark:hover:border-orange-600 transition-all group text-left cursor-pointer shadow-sm hover:shadow-md"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-orange-50 dark:bg-orange-950/50 flex items-center justify-center shrink-0">
+                    <MapPin className="w-4 h-4 text-orange-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider leading-none mb-0.5">Pickup Branch</p>
+                    <p className="text-sm font-black text-gray-900 dark:text-white truncate">{getBranch(selectedBranch).label}</p>
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-orange-600 transition-colors shrink-0" />
+                </button>
                 <button
                   onClick={handleStartShopping}
                   className="bg-orange-600 hover:bg-orange-700 text-white font-black px-8 py-4 rounded-2xl text-sm whitespace-nowrap transition-colors shadow-lg shadow-orange-600/20 flex items-center justify-center gap-2"

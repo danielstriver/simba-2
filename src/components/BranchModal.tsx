@@ -3,89 +3,162 @@ import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { useToast } from "@/components/Toast";
 import { BRANCHES } from "@/lib/branches";
-import { X, Store, MapPin, Check, Info } from "lucide-react";
+import { X, MapPin, Check, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
+
+const DISTRICTS = ["All", "Nyarugenge", "Gasabo", "Kicukiro"] as const;
+type DistrictFilter = typeof DISTRICTS[number];
+
+const DISTRICT_COLORS = {
+  Nyarugenge: {
+    stripe: "bg-orange-500",
+    badge: "bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300",
+    phone: "text-orange-600 dark:text-orange-400",
+  },
+  Gasabo: {
+    stripe: "bg-emerald-500",
+    badge: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300",
+    phone: "text-emerald-600 dark:text-emerald-400",
+  },
+  Kicukiro: {
+    stripe: "bg-blue-500",
+    badge: "bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300",
+    phone: "text-blue-600 dark:text-blue-400",
+  },
+} as const;
 
 export default function BranchModal() {
   const { t } = useLang();
   const { toast } = useToast();
   const { selectedBranch, setSelectedBranch, showBranchModal, setShowBranchModal } = useStore();
   const [mounted, setMounted] = useState(false);
+  const [filter, setFilter] = useState<DistrictFilter>("All");
 
   useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
-
-  const branches = BRANCHES;
 
   if (!mounted || !showBranchModal) return null;
 
+  const filtered = filter === "All" ? BRANCHES : BRANCHES.filter((b) => b.district === filter);
+  const countOf = (d: string) => BRANCHES.filter((b) => b.district === d).length;
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowBranchModal(false)} />
-      
-      <div className="relative bg-white dark:bg-gray-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
-        {/* Header */}
-        <div className="px-8 pt-8 pb-6 text-center">
-          <div className="w-16 h-16 bg-orange-50 dark:bg-orange-950/30 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-orange-100 dark:border-orange-900/50">
-            <Store className="w-8 h-8 text-orange-600" />
-          </div>
-          <h3 className="text-2xl font-black text-gray-900 dark:text-white leading-tight">
-            Select Pickup Branch
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm leading-relaxed max-w-[280px] mx-auto">
-            Please choose a location to check stock availability and prepare your order.
-          </p>
-          <button 
-            onClick={() => setShowBranchModal(false)}
-            className="absolute top-6 right-6 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-400"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4">
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300"
+        onClick={() => setShowBranchModal(false)}
+      />
 
-        {/* Branch List */}
-        <div className="px-4 pb-4 max-h-[50vh] overflow-y-auto space-y-2 scrollbar-thin">
-          {branches.map((b) => (
+      <div className="relative bg-white dark:bg-gray-900 w-full sm:max-w-md rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-400">
+
+        {/* Gradient header */}
+        <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-amber-600 px-5 pt-4 pb-4">
+          {/* Mobile drag pill */}
+          <div className="sm:hidden w-10 h-1 rounded-full bg-white/30 mx-auto mb-3" />
+
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
+              <MapPin className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-black text-white leading-none">{t.selectBranch}</h3>
+              <p className="text-orange-100 text-[11px] mt-0.5">11 locations across Kigali</p>
+            </div>
             <button
-              key={b.id}
-              onClick={() => { 
-                setSelectedBranch(b.id); 
-                setShowBranchModal(false);
-                toast(`Ready at ${b.label}`, "success", "Items are being checked for availability.");
-              }}
-              className={`w-full flex items-start gap-4 p-5 rounded-3xl border-2 text-left transition-all ${
-                selectedBranch === b.id 
-                  ? "border-orange-600 bg-orange-50 dark:bg-orange-950/50" 
-                  : "border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700"
-              }`}
+              onClick={() => setShowBranchModal(false)}
+              className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors shrink-0"
             >
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${selectedBranch === b.id ? "bg-orange-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-400"}`}>
-                <MapPin className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`font-black text-sm ${selectedBranch === b.id ? "text-orange-700 dark:text-orange-400" : "text-gray-900 dark:text-white"}`}>{b.label}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{b.addr}</p>
-                {b.phone && <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5 font-medium">{b.phone}</p>}
-              </div>
-              {selectedBranch === b.id && (
-                <div className="w-6 h-6 bg-orange-600 rounded-full flex items-center justify-center animate-in zoom-in-50 duration-300">
-                  <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
-                </div>
-              )}
+              <X className="w-4 h-4 text-white" />
             </button>
-          ))}
+          </div>
+
+          {/* District filter tabs */}
+          <div className="flex gap-2 mt-3 overflow-x-auto pb-0.5" style={{ scrollbarWidth: "none" }}>
+            {DISTRICTS.map((d) => {
+              const count = d === "All" ? BRANCHES.length : countOf(d);
+              const active = filter === d;
+              return (
+                <button
+                  key={d}
+                  onClick={() => setFilter(d)}
+                  className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    active
+                      ? "bg-white text-orange-700 shadow-sm"
+                      : "bg-white/20 text-white hover:bg-white/30"
+                  }`}
+                >
+                  {d}
+                  <span className={`text-[10px] ${active ? "text-orange-400" : "text-white/60"}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Info Footer */}
-        <div className="p-6 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800">
-          <div className="flex gap-3 items-start">
-            <Info className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
-            <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed italic">
-              <strong>Simulated Inventory:</strong> Not all items are available at every branch. By selecting a location, we verify that your items can be prepared correctly at that specific counter.
-            </p>
-          </div>
+        {/* Branch list */}
+        <div className="max-h-[52vh] overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
+          {filtered.map((b) => {
+            const colors = DISTRICT_COLORS[b.district];
+            const selected = selectedBranch === b.id;
+            return (
+              <button
+                key={b.id}
+                onClick={() => {
+                  setSelectedBranch(b.id);
+                  setShowBranchModal(false);
+                  toast(`Ready at ${b.label}`, "success", "Items are being checked for availability.");
+                }}
+                className={`w-full flex items-stretch text-left transition-colors ${
+                  selected
+                    ? "bg-orange-50 dark:bg-orange-950/20"
+                    : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                }`}
+              >
+                {/* District color stripe */}
+                <div className={`w-1 shrink-0 ${colors.stripe} ${selected ? "opacity-100" : "opacity-25"}`} />
+
+                <div className="flex items-center gap-3 flex-1 px-4 py-3.5">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-sm font-black ${selected ? "text-orange-700 dark:text-orange-400" : "text-gray-900 dark:text-white"}`}>
+                        {b.label}
+                      </span>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${colors.badge}`}>
+                        {b.district.slice(0, 3)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 leading-snug">{b.addr}</p>
+                    {b.phone && (
+                      <div className={`flex items-center gap-1 mt-0.5 ${colors.phone}`}>
+                        <Phone className="w-2.5 h-2.5" />
+                        <span className="text-[11px] font-medium">{b.phone}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Radio */}
+                  <div className={`w-5 h-5 rounded-full shrink-0 border-2 flex items-center justify-center transition-all ${
+                    selected
+                      ? "bg-orange-600 border-orange-600"
+                      : "border-gray-300 dark:border-gray-600"
+                  }`}>
+                    {selected && <Check className="w-3 h-3 text-white stroke-[3px]" />}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800">
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center leading-relaxed">
+            Stock is verified per branch · Inventory may vary by location
+          </p>
         </div>
       </div>
     </div>

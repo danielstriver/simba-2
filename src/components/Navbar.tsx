@@ -2,12 +2,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import { ShoppingCart, Sun, Moon, Search, Menu, X, User as UserIcon, LogOut, Store, MapPin, ChevronDown, Check, Package, LayoutDashboard } from "lucide-react";
+import { ShoppingCart, Sun, Moon, Search, Menu, X, User as UserIcon, LogOut, MapPin, ChevronDown, Check, Package, LayoutDashboard } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { Language } from "@/lib/i18n";
-import { useToast } from "@/components/Toast";
-import { BRANCHES, getBranch, DEFAULT_BRANCH_ID } from "@/lib/branches";
+import { getBranch } from "@/lib/branches";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AuthModal from "./AuthModal";
@@ -22,13 +21,11 @@ export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const { t, lang, setLang } = useLang();
   const totalItems = useStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
-  const { setCartOpen, user, setUser, selectedBranch, setSelectedBranch } = useStore();
-  const { toast } = useToast();
+  const { setCartOpen, user, setUser, selectedBranch, setShowBranchModal } = useStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [mounted, setMounted] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
-  const [showBranches, setShowBranches] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -48,7 +45,6 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const branches = BRANCHES;
   const currentBranch = getBranch(selectedBranch);
   const currentLang = LANG_OPTIONS.find(l => l.code === lang) ?? LANG_OPTIONS[0];
   const isStaff = user?.role === "manager" || user?.role === "staff";
@@ -65,46 +61,6 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
       <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
-
-      {/* Branch Selector Modal */}
-      {showBranches && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowBranches(false)} />
-          <div className="relative bg-white dark:bg-gray-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-              <h3 className="font-black text-xl flex items-center gap-2">
-                <Store className="w-5 h-5 text-orange-600" /> {t.selectBranch}
-              </h3>
-              <button onClick={() => setShowBranches(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"><X className="w-5 h-5" /></button>
-            </div>
-            <div className="p-4 max-h-[60vh] overflow-y-auto space-y-2">
-              {branches.map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => {
-                    setSelectedBranch(b.id);
-                    setShowBranches(false);
-                    toast(`Switched to ${b.label}`, "success", "Stock availability updated.");
-                  }}
-                  className={`w-full flex items-start gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
-                    (selectedBranch || DEFAULT_BRANCH_ID) === b.id
-                      ? "border-orange-600 bg-orange-50 dark:bg-orange-950"
-                      : "border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700"
-                  }`}
-                >
-                  <MapPin className={`w-5 h-5 shrink-0 mt-0.5 ${(selectedBranch || DEFAULT_BRANCH_ID) === b.id ? "text-orange-600" : "text-gray-400"}`} />
-                  <div>
-                    <p className={`font-bold text-sm ${(selectedBranch || DEFAULT_BRANCH_ID) === b.id ? "text-orange-700 dark:text-orange-400" : "text-gray-900 dark:text-white"}`}>{b.label}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{b.addr}</p>
-                    {b.phone && <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5 font-medium">{b.phone}</p>}
-                  </div>
-                  {(selectedBranch || DEFAULT_BRANCH_ID) === b.id && <div className="ml-auto w-5 h-5 bg-orange-600 rounded-full flex items-center justify-center"><Check className="w-3 h-3 text-white" /></div>}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -123,7 +79,7 @@ export default function Navbar() {
             {/* Branch Indicator */}
             {mounted && (
               <button
-                onClick={() => setShowBranches(true)}
+                onClick={() => setShowBranchModal(true)}
                 className="hidden lg:flex flex-col items-start px-3 py-1.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 border border-transparent hover:border-gray-100 dark:hover:border-gray-700 transition-all group text-left"
               >
                 <div className="flex items-center gap-1.5 text-[10px] font-black text-orange-600 uppercase tracking-wider">
@@ -333,6 +289,19 @@ export default function Navbar() {
               <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="text-orange-600 font-bold">{t.dashboard}</Link>
             )}
           </div>
+          <button
+            onClick={() => { setMobileOpen(false); setShowBranchModal(true); }}
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl border-2 border-gray-100 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700 transition-all text-left"
+          >
+            <div className="w-8 h-8 rounded-xl bg-orange-50 dark:bg-orange-950/50 flex items-center justify-center shrink-0">
+              <MapPin className="w-4 h-4 text-orange-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider leading-none mb-0.5">Pickup Branch</p>
+              <p className="text-sm font-black text-gray-900 dark:text-white truncate">{currentBranch.label}</p>
+            </div>
+            <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
+          </button>
           {/* Language switcher — mobile */}
           <div className="flex items-center gap-2">
             {LANG_OPTIONS.map((l) => (
