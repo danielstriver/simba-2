@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { BRANCHES } from "@/lib/branches";
 import { readOrders, patchOrder, Order, OrderStatus, getBranchStats } from "@/lib/orders";
@@ -137,33 +137,11 @@ export default function DashboardPage() {
           </div>
 
           {/* Branch selector */}
-          <div className="relative">
-            <select
-              value={branchId}
-              onChange={(e) => setBranchId(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              {BRANCHES.map((b) => (
-                <option key={b.id} value={b.id}>{b.label.replace("Simba Supermarket ", "")}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-          </div>
+          <BranchSelect value={branchId} onChange={setBranchId} />
 
           {/* Staff selector (staff mode only) */}
           {role === "staff" && (
-            <div className="relative">
-              <select
-                value={staffId}
-                onChange={(e) => setStaffId(e.target.value)}
-                className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                {DEMO_STAFF.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            </div>
+            <StaffSelect value={staffId} onChange={setStaffId} />
           )}
         </div>
       </div>
@@ -266,6 +244,142 @@ export default function DashboardPage() {
               getStock={(productId) => getStock(branchId, productId)}
             />
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Custom dropdown components ────────────────────────────────────────────────
+
+const DISTRICT_STYLE = {
+  Nyarugenge: { dot: "bg-orange-500", header: "bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300", stripe: "bg-orange-500" },
+  Gasabo:     { dot: "bg-emerald-500", header: "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300", stripe: "bg-emerald-500" },
+  Kicukiro:   { dot: "bg-blue-500", header: "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300", stripe: "bg-blue-500" },
+} as const;
+
+const STAFF_COLORS = ["bg-purple-500", "bg-blue-500", "bg-emerald-500", "bg-amber-500"];
+
+function shortBranch(label: string) {
+  return label.replace("Simba Supermarket ", "").replace("Simba ", "");
+}
+
+function staffInitials(name: string) {
+  return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+}
+
+function BranchSelect({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = BRANCHES.find(b => b.id === value);
+
+  useEffect(() => {
+    function onOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-2 pl-3 pr-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 hover:border-orange-300 dark:hover:border-orange-700 transition-all"
+      >
+        {selected && <div className={`w-2 h-2 rounded-full shrink-0 ${DISTRICT_STYLE[selected.district].dot}`} />}
+        <span className="truncate max-w-[140px]">{selected ? shortBranch(selected.label) : "Select branch"}</span>
+        <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 shrink-0 ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-y-auto animate-in slide-in-from-top-2 fade-in duration-200 min-w-[220px] max-h-[320px]">
+          {(["Nyarugenge", "Gasabo", "Kicukiro"] as const).map(district => {
+            const style = DISTRICT_STYLE[district];
+            return (
+              <div key={district}>
+                <div className={`flex items-center gap-2 px-3 py-1.5 ${style.header}`}>
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${style.dot}`} />
+                  <span className="text-[10px] font-black uppercase tracking-wider">{district}</span>
+                </div>
+                {BRANCHES.filter(b => b.district === district).map(b => (
+                  <button
+                    key={b.id}
+                    onClick={() => { onChange(b.id); setOpen(false); }}
+                    className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors ${
+                      value === b.id
+                        ? "bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 font-bold"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 font-medium"
+                    }`}
+                  >
+                    <div className={`w-1 h-4 rounded-full shrink-0 ${value === b.id ? style.stripe : "bg-gray-200 dark:bg-gray-700"}`} />
+                    <span className="flex-1 truncate">{shortBranch(b.label)}</span>
+                    {value === b.id && <Check className="w-3.5 h-3.5 shrink-0 text-orange-600" />}
+                  </button>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StaffSelect({ value, onChange, compact = false }: { value: string; onChange: (id: string) => void; compact?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selectedIdx = DEMO_STAFF.findIndex(s => s.id === value);
+  const selected = DEMO_STAFF[selectedIdx];
+
+  useEffect(() => {
+    function onOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 hover:border-orange-300 dark:hover:border-orange-700 transition-all"
+      >
+        {selected && (
+          <div className={`w-6 h-6 rounded-full ${STAFF_COLORS[selectedIdx % STAFF_COLORS.length]} flex items-center justify-center shrink-0`}>
+            <span className="text-[9px] font-black text-white">{staffInitials(selected.name)}</span>
+          </div>
+        )}
+        <span className={`truncate font-bold ${compact ? "max-w-[80px]" : "max-w-[110px]"}`}>
+          {selected ? (compact ? selected.name.split(" ")[0] : selected.name) : "Select staff"}
+        </span>
+        <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 shrink-0 ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 animate-in slide-in-from-top-2 fade-in duration-200 min-w-[200px]">
+          <div className="p-1.5 space-y-0.5">
+            {DEMO_STAFF.map((s, i) => (
+              <button
+                key={s.id}
+                onClick={() => { onChange(s.id); setOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-left transition-colors ${
+                  value === s.id
+                    ? "bg-orange-50 dark:bg-orange-950/30"
+                    : "hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-full ${STAFF_COLORS[i % STAFF_COLORS.length]} flex items-center justify-center shrink-0`}>
+                  <span className="text-[10px] font-black text-white">{staffInitials(s.name)}</span>
+                </div>
+                <span className={`flex-1 font-bold truncate ${value === s.id ? "text-orange-700 dark:text-orange-400" : "text-gray-900 dark:text-white"}`}>
+                  {s.name}
+                </span>
+                {value === s.id && <Check className="w-3.5 h-3.5 shrink-0 text-orange-600" />}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -408,14 +522,8 @@ function OrderCard({
                     <button onClick={onAccept} className="action-btn bg-blue-600 text-white hover:bg-blue-700">
                       <Check className="w-3.5 h-3.5" /> Accept
                     </button>
-                    <div className="flex gap-2">
-                      <select
-                        value={assignStaff}
-                        onChange={(e) => setAssignStaff(e.target.value)}
-                        className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none"
-                      >
-                        {DEMO_STAFF.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                      </select>
+                    <div className="flex gap-2 items-center">
+                      <StaffSelect value={assignStaff} onChange={setAssignStaff} compact />
                       <button
                         onClick={() => {
                           const s = DEMO_STAFF.find(s => s.id === assignStaff)!;
