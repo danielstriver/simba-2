@@ -574,7 +574,7 @@ export default function SimbaAssistant() {
               <p className="font-black text-sm">SIMBA Assistant</p>
               <p className="text-orange-200 text-[10px]">
                 {allProducts.length > 0
-                  ? `${allProducts.length} products · ${aiAvailable ? "🤖 Claude AI" : "Smart search"}`
+                  ? `${allProducts.length} products · ${aiAvailable ? "🤖 AI-powered" : "Smart search"}`
                   : "Loading..."}
               </p>
             </div>
@@ -606,7 +606,7 @@ export default function SimbaAssistant() {
                       <span className="text-[10px] font-bold text-gray-400">SIMBA</span>
                       {msg.groq && (
                         <span className="text-[9px] font-bold bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded-full">
-                          Claude AI
+                          AI
                         </span>
                       )}
                     </div>
