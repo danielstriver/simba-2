@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { BRANCHES } from "@/lib/branches";
 import { readOrders, patchOrder, Order, OrderStatus, getBranchStats } from "@/lib/orders";
@@ -9,7 +9,7 @@ import { useStaffUser } from "@/lib/staffAuth";
 import { formatPrice } from "@/lib/products";
 import {
   Store, ChevronDown, Check, Clock, Package, User,
-  AlertTriangle, RotateCcw, Loader2, Star,
+  AlertTriangle, RotateCcw, Loader2, Star, Boxes,
 } from "lucide-react";
 
 const DEMO_STAFF = [
@@ -68,6 +68,7 @@ export default function DashboardPage() {
   }, [staffUser, router]);
   const [staffId, setStaffId] = useState(DEMO_STAFF[0].id);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [activeTab, setActiveTab] = useState<"orders" | "inventory">("orders");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [refresh, setRefresh] = useState(0);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -83,6 +84,20 @@ export default function DashboardPage() {
   }, [reload, refresh]);
 
   const stats = getBranchStats(branchId);
+
+  const inventoryItems = useMemo(() => {
+    const seen = new Map<number, { productId: number; productName: string; image: string }>();
+    readOrders()
+      .filter((o) => o.branch === branchId)
+      .forEach((o) =>
+        o.items.forEach((item) => {
+          if (!seen.has(item.productId)) {
+            seen.set(item.productId, { productId: item.productId, productName: item.productName, image: item.image });
+          }
+        })
+      );
+    return Array.from(seen.values());
+  }, [branchId, refresh]);
 
   const filtered =
     statusFilter === "all"
@@ -163,8 +178,32 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Tab navigation */}
+      <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit">
+        <button
+          onClick={() => setActiveTab("orders")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
+            activeTab === "orders"
+              ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+          }`}
+        >
+          <Package className="w-4 h-4" /> Orders
+        </button>
+        <button
+          onClick={() => setActiveTab("inventory")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
+            activeTab === "inventory"
+              ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+          }`}
+        >
+          <Boxes className="w-4 h-4" /> Inventory
+        </button>
+      </div>
+
       {/* Rating (if reviews exist) */}
-      {role === "manager" && stats.reviewCount > 0 && (
+      {activeTab === "orders" && role === "manager" && stats.reviewCount > 0 && (
         <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/40 rounded-2xl p-4 mb-6 flex items-center gap-3">
           <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
           <span className="font-bold text-yellow-800 dark:text-yellow-300">
@@ -176,75 +215,221 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Status filter tabs (manager only) */}
-      {role === "manager" && (
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
-          {(["all", "pending", "accepted", "preparing", "ready", "picked_up"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
-                statusFilter === s
-                  ? "bg-orange-600 border-orange-600 text-white"
-                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-orange-300"
-              }`}
-            >
-              {s === "all" ? "All Orders" : STATUS_LABELS[s]}
-            </button>
-          ))}
-        </div>
+      {/* ── Orders tab ── */}
+      {activeTab === "orders" && (
+        <>
+          {/* Status filter tabs (manager only) */}
+          {role === "manager" && (
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+              {(["all", "pending", "accepted", "preparing", "ready", "picked_up"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                    statusFilter === s
+                      ? "bg-orange-600 border-orange-600 text-white"
+                      : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-orange-300"
+                  }`}
+                >
+                  {s === "all" ? "All Orders" : STATUS_LABELS[s]}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Staff view header */}
+          {role === "staff" && (
+            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 rounded-2xl p-4 mb-6">
+              <p className="font-bold text-blue-800 dark:text-blue-300 text-sm">
+                Showing orders assigned to: <span className="text-blue-600">{DEMO_STAFF.find(s => s.id === staffId)?.name}</span>
+              </p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                {visibleOrders.length} active order{visibleOrders.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+          )}
+
+          {/* Orders list */}
+          {visibleOrders.length === 0 ? (
+            <div className="text-center py-16">
+              <Package className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+              <p className="font-bold text-gray-500 dark:text-gray-400">
+                {role === "staff" ? "No orders assigned to you yet" : "No orders found"}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {visibleOrders.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  role={role}
+                  branchId={branchId}
+                  expanded={expandedOrder === order.id}
+                  onToggle={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                  loading={actionLoading === order.id}
+                  onAccept={() => doAction(order.id, () => patchOrder(order.id, { status: "accepted" }))}
+                  onAssign={(staffMemberId, name) =>
+                    doAction(order.id, () =>
+                      patchOrder(order.id, { status: "accepted", assignedStaffId: staffMemberId, assignedStaffName: name })
+                    )
+                  }
+                  onPreparing={() => doAction(order.id, () => patchOrder(order.id, { status: "preparing" }))}
+                  onReady={() => doAction(order.id, () => patchOrder(order.id, { status: "ready" }))}
+                  onPickedUp={() => doAction(order.id, () => patchOrder(order.id, { status: "picked_up" }))}
+                  onOutOfStock={(productId) =>
+                    doAction(order.id, () => markOutOfStock(branchId, productId))
+                  }
+                  onRestoreStock={(productId) =>
+                    doAction(order.id, () => restoreStock(branchId, productId))
+                  }
+                  getStock={(productId) => getStock(branchId, productId)}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
-      {/* Staff view header */}
-      {role === "staff" && (
-        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 rounded-2xl p-4 mb-6">
-          <p className="font-bold text-blue-800 dark:text-blue-300 text-sm">
-            Showing orders assigned to: <span className="text-blue-600">{DEMO_STAFF.find(s => s.id === staffId)?.name}</span>
-          </p>
-          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-            {visibleOrders.length} active order{visibleOrders.length !== 1 ? "s" : ""}
-          </p>
-        </div>
+      {/* ── Inventory tab ── */}
+      {activeTab === "inventory" && (
+        <InventoryPanel
+          branchId={branchId}
+          items={inventoryItems}
+          onMarkOutOfStock={(productId) => { markOutOfStock(branchId, productId); setRefresh((n) => n + 1); }}
+          onRestoreStock={(productId) => { restoreStock(branchId, productId); setRefresh((n) => n + 1); }}
+          getStock={(productId) => getStock(branchId, productId)}
+        />
       )}
+    </div>
+  );
+}
 
-      {/* Orders list */}
-      {visibleOrders.length === 0 ? (
+// ── Inventory panel ──────────────────────────────────────────────────────────
+
+interface InventoryItem {
+  productId: number;
+  productName: string;
+  image: string;
+}
+
+function InventoryPanel({
+  branchId,
+  items,
+  onMarkOutOfStock,
+  onRestoreStock,
+  getStock: getStockFn,
+}: {
+  branchId: string;
+  items: InventoryItem[];
+  onMarkOutOfStock: (productId: number) => void;
+  onRestoreStock: (productId: number) => void;
+  getStock: (productId: number) => number;
+}) {
+  const [filter, setFilter] = useState<"all" | "in_stock" | "out_of_stock">("all");
+
+  const annotated = items
+    .map((item) => ({ ...item, stock: getStockFn(item.productId) }))
+    .sort((a, b) => a.stock - b.stock);
+
+  const inStockCount = annotated.filter((i) => i.stock > 0).length;
+  const outOfStockCount = annotated.filter((i) => i.stock === 0).length;
+
+  const filtered =
+    filter === "all" ? annotated
+    : filter === "out_of_stock" ? annotated.filter((i) => i.stock === 0)
+    : annotated.filter((i) => i.stock > 0);
+
+  return (
+    <div>
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {[
+          { label: "Tracked Products", value: annotated.length, color: "text-gray-900 dark:text-white" },
+          { label: "In Stock", value: inStockCount, color: "text-green-600" },
+          { label: "Out of Stock", value: outOfStockCount, color: "text-orange-600" },
+        ].map(({ label, value, color }) => (
+          <div key={label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 text-center">
+            <p className={`text-3xl font-black ${color}`}>{value}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Filter pills */}
+      <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
+        {(["all", "in_stock", "out_of_stock"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+              filter === f
+                ? "bg-orange-600 border-orange-600 text-white"
+                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-orange-300"
+            }`}
+          >
+            {f === "all" ? "All Products" : f === "in_stock" ? "In Stock" : "Out of Stock"}
+          </button>
+        ))}
+      </div>
+
+      {/* Product list */}
+      {filtered.length === 0 ? (
         <div className="text-center py-16">
-          <Package className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+          <Boxes className="w-12 h-12 text-gray-200 mx-auto mb-3" />
           <p className="font-bold text-gray-500 dark:text-gray-400">
-            {role === "staff" ? "No orders assigned to you yet" : "No orders found"}
+            {items.length === 0
+              ? "No products tracked yet — stock levels update when orders are placed."
+              : "No products match this filter."}
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {visibleOrders.map((order) => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              role={role}
-              branchId={branchId}
-              expanded={expandedOrder === order.id}
-              onToggle={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-              loading={actionLoading === order.id}
-              onAccept={() => doAction(order.id, () => patchOrder(order.id, { status: "accepted" }))}
-              onAssign={(staffMemberId, name) =>
-                doAction(order.id, () =>
-                  patchOrder(order.id, { status: "accepted", assignedStaffId: staffMemberId, assignedStaffName: name })
-                )
-              }
-              onPreparing={() => doAction(order.id, () => patchOrder(order.id, { status: "preparing" }))}
-              onReady={() => doAction(order.id, () => patchOrder(order.id, { status: "ready" }))}
-              onPickedUp={() => doAction(order.id, () => patchOrder(order.id, { status: "picked_up" }))}
-              onOutOfStock={(productId) =>
-                doAction(order.id, () => markOutOfStock(branchId, productId))
-              }
-              onRestoreStock={(productId) =>
-                doAction(order.id, () => restoreStock(branchId, productId))
-              }
-              getStock={(productId) => getStock(branchId, productId)}
-            />
+        <div className="space-y-2">
+          {filtered.map((item) => (
+            <div
+              key={item.productId}
+              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 flex items-center gap-4"
+            >
+              <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 shrink-0">
+                <img
+                  src={item.image}
+                  alt={item.productName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{item.productName}</p>
+                <p className={`text-xs font-medium ${item.stock === 0 ? "text-orange-600" : "text-green-600"}`}>
+                  {item.stock === 0 ? "Out of Stock" : `${item.stock} units in stock`}
+                </p>
+              </div>
+              <div className="shrink-0">
+                {item.stock > 0 ? (
+                  <button
+                    onClick={() => onMarkOutOfStock(item.productId)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-orange-50 dark:bg-orange-950 text-orange-600 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900 transition-colors"
+                  >
+                    <AlertTriangle className="w-3 h-3" /> Mark Out of Stock
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => onRestoreStock(item.productId)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-green-50 dark:bg-green-950 text-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
+                  >
+                    <RotateCcw className="w-3 h-3" /> Restore Stock
+                  </button>
+                )}
+              </div>
+            </div>
           ))}
         </div>
+      )}
+
+      {items.length === 0 && (
+        <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-4">
+          Place a demo order to see products tracked here.
+        </p>
       )}
     </div>
   );
