@@ -54,8 +54,23 @@ function extractQuery(raw: string): string {
 function detectIntent(text: string): { intent: string; query: string } {
   const t = text.toLowerCase().trim();
 
-  if (/^(hi|hello|hey|muraho|bonjour|salut|good morning|good afternoon|howdy|yo\b|sup\b)/.test(t))
+  if (/^(hi|hello|hey|muraho|bonjour|salut|good morning|good afternoon|good evening|howdy|yo\b|sup\b|how are you|how'?s it going|how are things|how do you do|how'?s everything|what'?s up|wassup|wazzup)/.test(t))
     return { intent: "greeting", query: "" };
+
+  // "thanks" family — safe as prefix; nobody searches "thanks for shampoo"
+  if (/^(thanks|thank you|thx\b|ty\b|cheers|merci|appreciate it|much appreciated|that('s| is) (great|helpful|perfect|awesome|useful|wonderful|brilliant)|that helped|very helpful|noted\b)/.test(t))
+    return { intent: "thanks", query: "" };
+
+  // Short acknowledgments — exact-match only to avoid "great wine", "cool shampoo"
+  if (/^(awesome|great|perfect|cool|nice|ok|okay|got it|sounds good|alright|sure|love it|brilliant|wonderful|superb)$/.test(t))
+    return { intent: "thanks", query: "" };
+
+  // Farewells
+  if (/^(bye|goodbye|see you|ciao|au revoir|good night|goodnight|take care|later\b)/.test(t))
+    return { intent: "farewell", query: "" };
+
+  if (/\b(who are you|what are you|tell me about yourself|your name|what'?s your name|introduce yourself)\b/.test(t))
+    return { intent: "identity", query: "" };
 
   if (/\b(help|what can you|what do you do|commands|options|how do you work)\b/.test(t))
     return { intent: "help", query: "" };
@@ -121,6 +136,24 @@ function buildResponse(
     case "greeting":
       return {
         text: "Hey there! 👋 I'm **SIMBA**, your shopping assistant. I can find products, check prices, or browse any category for you.\n\nWhat are you looking for today?",
+        results: [],
+      };
+
+    case "thanks":
+      return {
+        text: "Happy to help! 😊 Let me know if you need anything else — I can find products, check prices, or browse categories for you.",
+        results: [],
+      };
+
+    case "farewell":
+      return {
+        text: "Take care! 👋 Come back anytime you need help finding something at Simba Supermarket.",
+        results: [],
+      };
+
+    case "identity":
+      return {
+        text: "I'm **SIMBA**, Simba Supermarket's shopping assistant! 🦁\n\nI know all 789 products in the store and can help you:\n• Find specific items\n• Check prices\n• Browse categories\n\nWhat would you like to shop for today?",
         results: [],
       };
 

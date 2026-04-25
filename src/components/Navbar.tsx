@@ -161,9 +161,10 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* User / Login */}
+            {/* User / Login — hidden on mobile; MobileBottomNav owns auth on mobile */}
             {mounted && (
-              user ? (
+              <div className="hidden md:block">
+              {user ? (
                 <div className="relative">
                   {/* Avatar button — same on mobile and desktop */}
                   <button
@@ -245,7 +246,8 @@ export default function Navbar() {
                 >
                   <UserIcon className="w-5 h-5" />
                 </button>
-              )
+              )}
+              </div>
             )}
 
             {/* Theme toggle */}
