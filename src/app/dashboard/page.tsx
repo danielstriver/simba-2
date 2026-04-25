@@ -8,7 +8,7 @@ import { useLang } from "@/lib/LanguageContext";
 import { useStaffUser } from "@/lib/staffAuth";
 import { formatPrice } from "@/lib/products";
 import {
-  Store, ChevronDown, Check, Clock, Package, User, LogOut,
+  Store, ChevronDown, Check, Clock, Package, User,
   AlertTriangle, RotateCcw, Loader2, Star,
 } from "lucide-react";
 
@@ -52,7 +52,7 @@ function timeAgo(iso: string): string {
 export default function DashboardPage() {
   const { t } = useLang();
   const router = useRouter();
-  const { staffUser, signOut } = useStaffUser();
+  const { staffUser } = useStaffUser();
   const [role, setRole] = useState<Role>("manager");
   const [branchId, setBranchId] = useState(BRANCHES[0].id);
 
@@ -119,14 +119,6 @@ export default function DashboardPage() {
 
         {/* Controls */}
         <div className="flex flex-wrap gap-3">
-          {/* Sign out */}
-          <button
-            onClick={() => { signOut(); router.replace("/staff/login"); }}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900 rounded-xl hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
-          >
-            <LogOut className="w-4 h-4" /> Sign Out
-          </button>
-
           {/* Role selector */}
           <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
             {(["manager", "staff"] as Role[]).map((r) => (

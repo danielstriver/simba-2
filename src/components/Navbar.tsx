@@ -8,7 +8,8 @@ import { useLang } from "@/lib/LanguageContext";
 import { Language } from "@/lib/i18n";
 import { getBranch } from "@/lib/branches";
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useStaffUser } from "@/lib/staffAuth";
 import AuthModal from "./AuthModal";
 
 const LANG_OPTIONS: { code: Language; flagSrc: string; label: string }[] = [
@@ -22,6 +23,13 @@ export default function Navbar() {
   const { t, lang, setLang } = useLang();
   const totalItems = useStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
   const { setCartOpen, user, setUser, selectedBranch, setShowBranchModal } = useStore();
+  const { staffUser, signOut: staffSignOut } = useStaffUser();
+  const pathname = usePathname();
+  const isStaffRoute = !!pathname?.startsWith("/dashboard") || !!pathname?.startsWith("/staff");
+  const activeUser = isStaffRoute ? staffUser : user;
+  const handleSignOut = isStaffRoute
+    ? () => { staffSignOut(); router.replace("/staff/login"); }
+    : () => setUser(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -56,7 +64,7 @@ export default function Navbar() {
 
   const currentBranch = getBranch(selectedBranch);
   const currentLang = LANG_OPTIONS.find(l => l.code === lang) ?? LANG_OPTIONS[0];
-  const isStaff = user?.role === "manager" || user?.role === "staff";
+  const isStaff = activeUser?.role === "manager" || activeUser?.role === "staff";
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -164,9 +172,9 @@ export default function Navbar() {
             {/* User / Login — hidden on mobile; MobileBottomNav owns auth on mobile */}
             {mounted && (
               <div className="hidden md:block">
-              {user ? (
+              {activeUser ? (
                 <div className="relative">
-                  {/* Avatar button — same on mobile and desktop */}
+                  {/* Avatar button */}
                   <button
                     ref={userBtnRef}
                     onClick={() => setShowUserMenu((v) => !v)}
@@ -174,14 +182,14 @@ export default function Navbar() {
                     aria-label="Account menu"
                   >
                     <div className="w-6 h-6 rounded-full overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0">
-                      {user.photoUrl ? (
-                        <img src={user.photoUrl} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      {activeUser.photoUrl ? (
+                        <img src={activeUser.photoUrl} alt={activeUser.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
                         <UserIcon className="w-3.5 h-3.5 text-orange-600" />
                       )}
                     </div>
                     <span className="hidden sm:block text-xs font-bold text-gray-700 dark:text-gray-300 truncate max-w-[72px]">
-                      {user.name.split(" ")[0]}
+                      {activeUser.name.split(" ")[0]}
                     </span>
                     <ChevronDown className={`hidden sm:block w-3 h-3 text-gray-400 transition-transform duration-200 ${showUserMenu ? "rotate-180" : ""}`} />
                   </button>
@@ -196,15 +204,15 @@ export default function Navbar() {
                       {/* Profile header */}
                       <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-gray-800">
                         <div className="w-10 h-10 rounded-full overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0 ring-2 ring-orange-200 dark:ring-orange-900">
-                          {user.photoUrl ? (
-                            <img src={user.photoUrl} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                          {activeUser.photoUrl ? (
+                            <img src={activeUser.photoUrl} alt={activeUser.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                           ) : (
                             <UserIcon className="w-5 h-5 text-orange-600" />
                           )}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-black text-gray-900 dark:text-white truncate">{user.name}</p>
-                          <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
+                          <p className="text-sm font-black text-gray-900 dark:text-white truncate">{activeUser.name}</p>
+                          <p className="text-[11px] text-gray-400 truncate">{activeUser.email}</p>
                         </div>
                       </div>
                       {/* Dashboard or My Orders */}
@@ -229,7 +237,7 @@ export default function Navbar() {
                       )}
                       {/* Sign out */}
                       <button
-                        onClick={() => { setUser(null); setShowUserMenu(false); }}
+                        onClick={() => { handleSignOut(); setShowUserMenu(false); }}
                         className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors border-t border-gray-100 dark:border-gray-800"
                       >
                         <LogOut className="w-4 h-4 shrink-0" />
