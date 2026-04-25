@@ -30,14 +30,18 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
   cancelled: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
 };
 
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: "Pending",
-  accepted: "Accepted",
-  preparing: "Preparing",
-  ready: "Ready for Pickup",
-  picked_up: "Picked Up",
-  cancelled: "Cancelled",
-};
+import type { Translations } from "@/lib/i18n";
+
+function getStatusLabels(t: Translations): Record<OrderStatus, string> {
+  return {
+    pending: t.statusPending,
+    accepted: t.statusAccepted,
+    preparing: t.statusPreparing,
+    ready: t.statusReady,
+    picked_up: t.statusPickedUp,
+    cancelled: t.statusCancelled,
+  };
+}
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -165,10 +169,10 @@ export default function DashboardPage() {
       {role === "manager" && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: "Total Orders", value: stats.total, color: "text-gray-900 dark:text-white" },
-            { label: "Pending", value: stats.pending, color: "text-amber-600" },
-            { label: "Preparing", value: stats.preparing, color: "text-orange-600" },
-            { label: "Ready", value: stats.ready, color: "text-green-600" },
+            { label: t.totalOrders, value: stats.total, color: "text-gray-900 dark:text-white" },
+            { label: t.statusPending, value: stats.pending, color: "text-amber-600" },
+            { label: t.statusPreparing, value: stats.preparing, color: "text-orange-600" },
+            { label: t.statusReady, value: stats.ready, color: "text-green-600" },
           ].map(({ label, value, color }) => (
             <div key={label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 text-center">
               <p className={`text-3xl font-black ${color}`}>{value}</p>
@@ -231,7 +235,7 @@ export default function DashboardPage() {
                       : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-orange-300"
                   }`}
                 >
-                  {s === "all" ? "All Orders" : STATUS_LABELS[s]}
+                  {s === "all" ? t.allOrders : getStatusLabels(t)[s]}
                 </button>
               ))}
             </div>
@@ -241,10 +245,10 @@ export default function DashboardPage() {
           {role === "staff" && (
             <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 rounded-2xl p-4 mb-6">
               <p className="font-bold text-blue-800 dark:text-blue-300 text-sm">
-                Showing orders assigned to: <span className="text-blue-600">{DEMO_STAFF.find(s => s.id === staffId)?.name}</span>
+                {t.showingOrdersFor}: <span className="text-blue-600">{DEMO_STAFF.find(s => s.id === staffId)?.name}</span>
               </p>
               <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                {visibleOrders.length} active order{visibleOrders.length !== 1 ? "s" : ""}
+                {visibleOrders.length} {visibleOrders.length !== 1 ? t.items : t.item}
               </p>
             </div>
           )}
@@ -254,7 +258,7 @@ export default function DashboardPage() {
             <div className="text-center py-16">
               <Package className="w-12 h-12 text-gray-200 mx-auto mb-3" />
               <p className="font-bold text-gray-500 dark:text-gray-400">
-                {role === "staff" ? "No orders assigned to you yet" : "No orders found"}
+                {role === "staff" ? t.noOrdersAssigned : t.noOrdersFound}
               </p>
             </div>
           ) : (
@@ -328,6 +332,7 @@ function InventoryPanel({
 }) {
   const [filter, setFilter] = useState<"all" | "in_stock" | "out_of_stock">("all");
 
+  const { t } = useLang();
   const annotated = items
     .map((item) => ({ ...item, stock: getStockFn(item.productId) }))
     .sort((a, b) => a.stock - b.stock);
@@ -345,9 +350,9 @@ function InventoryPanel({
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         {[
-          { label: "Tracked Products", value: annotated.length, color: "text-gray-900 dark:text-white" },
-          { label: "In Stock", value: inStockCount, color: "text-green-600" },
-          { label: "Out of Stock", value: outOfStockCount, color: "text-orange-600" },
+          { label: t.trackedProducts, value: annotated.length, color: "text-gray-900 dark:text-white" },
+          { label: t.inStockLabel, value: inStockCount, color: "text-green-600" },
+          { label: t.outOfStock, value: outOfStockCount, color: "text-orange-600" },
         ].map(({ label, value, color }) => (
           <div key={label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 text-center">
             <p className={`text-3xl font-black ${color}`}>{value}</p>
@@ -368,7 +373,7 @@ function InventoryPanel({
                 : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-orange-300"
             }`}
           >
-            {f === "all" ? "All Products" : f === "in_stock" ? "In Stock" : "Out of Stock"}
+            {f === "all" ? t.allProducts : f === "in_stock" ? t.inStockLabel : t.outOfStock}
           </button>
         ))}
       </div>
@@ -410,14 +415,14 @@ function InventoryPanel({
                     onClick={() => onMarkOutOfStock(item.productId)}
                     className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-orange-50 dark:bg-orange-950 text-orange-600 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900 transition-colors"
                   >
-                    <AlertTriangle className="w-3 h-3" /> Mark Out of Stock
+                    <AlertTriangle className="w-3 h-3" /> {t.outOfStockMark}
                   </button>
                 ) : (
                   <button
                     onClick={() => onRestoreStock(item.productId)}
                     className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-green-50 dark:bg-green-950 text-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
                   >
-                    <RotateCcw className="w-3 h-3" /> Restore Stock
+                    <RotateCcw className="w-3 h-3" /> {t.restoreStock}
                   </button>
                 )}
               </div>
@@ -593,20 +598,22 @@ function OrderCard({
   onAccept, onAssign, onPreparing, onReady, onPickedUp,
   onOutOfStock, onRestoreStock, getStock,
 }: OrderCardProps) {
+  const { t } = useLang();
+  const statusLabels = getStatusLabels(t);
   const [assignStaff, setAssignStaff] = useState(DEMO_STAFF[0].id);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
       {/* Summary row */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+        className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded-t-2xl"
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-black text-sm text-gray-900 dark:text-white font-mono">{order.id}</span>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_COLORS[order.status]}`}>
-              {STATUS_LABELS[order.status]}
+              {statusLabels[order.status]}
             </span>
           </div>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
@@ -633,7 +640,7 @@ function OrderCard({
         <div className="border-t border-gray-100 dark:border-gray-700 p-4 space-y-4">
           {/* Items */}
           <div>
-            <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Items</p>
+            <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{t.items}</p>
             <div className="space-y-2">
               {order.items.map((item) => {
                 const stock = getStock(item.productId);
@@ -642,7 +649,7 @@ function OrderCard({
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{item.productName}</p>
                       <p className="text-xs text-gray-500">
-                        Qty: {item.quantity} × {formatPrice(item.price)} · Stock: {stock > 0 ? stock : "Out of stock"}
+                        Qty: {item.quantity} × {formatPrice(item.price)} · {t.inStockLabel}: {stock > 0 ? stock : t.outOfStock}
                       </p>
                     </div>
                     {role === "staff" && (
@@ -652,14 +659,14 @@ function OrderCard({
                             onClick={() => onOutOfStock(item.productId)}
                             className="text-[10px] font-bold px-2 py-1 bg-orange-50 dark:bg-orange-950 text-orange-600 rounded-lg hover:bg-orange-100 flex items-center gap-1"
                           >
-                            <AlertTriangle className="w-2.5 h-2.5" /> Out of stock
+                            <AlertTriangle className="w-2.5 h-2.5" /> {t.outOfStockMark}
                           </button>
                         ) : (
                           <button
                             onClick={() => onRestoreStock(item.productId)}
                             className="text-[10px] font-bold px-2 py-1 bg-green-50 dark:bg-green-950 text-green-600 rounded-lg hover:bg-green-100 flex items-center gap-1"
                           >
-                            <RotateCcw className="w-2.5 h-2.5" /> Restore
+                            <RotateCcw className="w-2.5 h-2.5" /> {t.restore}
                           </button>
                         )}
                       </div>
@@ -672,12 +679,12 @@ function OrderCard({
 
           {/* Customer info */}
           <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-xs space-y-1">
-            <p><span className="text-gray-500">Phone:</span> <span className="font-bold text-gray-900 dark:text-white">{order.userPhone}</span></p>
-            <p><span className="text-gray-500">Pickup:</span> <span className="font-bold text-gray-900 dark:text-white">{order.pickupDate} at {order.pickupTime}</span></p>
-            <p><span className="text-gray-500">Payment:</span> <span className="font-bold text-gray-900 dark:text-white capitalize">{order.paymentMethod}</span></p>
-            <p><span className="text-gray-500">Deposit paid:</span> <span className="font-bold text-green-600">{formatPrice(order.depositPaid)}</span></p>
+            <p><span className="text-gray-500">{t.phone}:</span> <span className="font-bold text-gray-900 dark:text-white">{order.userPhone}</span></p>
+            <p><span className="text-gray-500">{t.pickupAt}:</span> <span className="font-bold text-gray-900 dark:text-white">{order.pickupDate} at {order.pickupTime}</span></p>
+            <p><span className="text-gray-500">{t.paymentMethod}:</span> <span className="font-bold text-gray-900 dark:text-white capitalize">{order.paymentMethod}</span></p>
+            <p><span className="text-gray-500">{t.deposit}:</span> <span className="font-bold text-green-600">{formatPrice(order.depositPaid)}</span></p>
             {order.assignedStaffName && (
-              <p><span className="text-gray-500">Assigned to:</span> <span className="font-bold text-blue-600">{order.assignedStaffName}</span></p>
+              <p><span className="text-gray-500">{t.assignedTo}:</span> <span className="font-bold text-blue-600">{order.assignedStaffName}</span></p>
             )}
           </div>
 
@@ -698,14 +705,14 @@ function OrderCard({
           <div className="flex flex-wrap gap-2">
             {loading ? (
               <span className="flex items-center gap-2 text-sm text-gray-500">
-                <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+                <Loader2 className="w-4 h-4 animate-spin" /> {t.processing}
               </span>
             ) : (
               <>
                 {role === "manager" && order.status === "pending" && (
                   <>
                     <button onClick={onAccept} className="action-btn bg-blue-600 text-white hover:bg-blue-700">
-                      <Check className="w-3.5 h-3.5" /> Accept
+                      <Check className="w-3.5 h-3.5" /> {t.accept}
                     </button>
                     <div className="flex gap-2 items-center">
                       <StaffSelect value={assignStaff} onChange={setAssignStaff} compact />
@@ -716,24 +723,24 @@ function OrderCard({
                         }}
                         className="action-btn bg-purple-600 text-white hover:bg-purple-700"
                       >
-                        Assign
+                        {t.assignToStaff}
                       </button>
                     </div>
                   </>
                 )}
                 {role === "manager" && order.status === "accepted" && (
                   <button onClick={onPreparing} className="action-btn bg-orange-600 text-white hover:bg-orange-700">
-                    Start Preparing
+                    {t.markPreparing}
                   </button>
                 )}
                 {role === "staff" && order.status === "preparing" && (
                   <button onClick={onReady} className="action-btn bg-green-600 text-white hover:bg-green-700">
-                    <Check className="w-3.5 h-3.5" /> Mark Ready for Pickup
+                    <Check className="w-3.5 h-3.5" /> {t.markReady}
                   </button>
                 )}
                 {role === "manager" && order.status === "ready" && (
                   <button onClick={onPickedUp} className="action-btn bg-gray-600 text-white hover:bg-gray-700">
-                    <Check className="w-3.5 h-3.5" /> Confirm Picked Up
+                    <Check className="w-3.5 h-3.5" /> {t.markPickedUp}
                   </button>
                 )}
               </>

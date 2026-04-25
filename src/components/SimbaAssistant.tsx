@@ -365,7 +365,7 @@ export default function SimbaAssistant() {
     return false;
   });
   const [thinking, setThinking] = useState(false);
-  const [groqAvailable, setGroqAvailable] = useState<boolean | null>(null);
+  const [aiAvailable, setAiAvailable] = useState<boolean | null>(null);
   const [panelBottom, setPanelBottom] = useState(88);
   const [panelRight, setPanelRight] = useState(24);
   const [panelMaxH, setPanelMaxH] = useState("min(580px, calc(100dvh - 120px))");
@@ -379,18 +379,17 @@ export default function SimbaAssistant() {
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const msgId = useRef(1);
 
-  // Load products and probe Groq availability
+  // Load products and probe Claude availability
   useEffect(() => {
     getProducts().then((d) => {
       setAllProducts(d.products);
-      // Probe whether Groq API key is configured
-      fetch("/api/groq", {
+      fetch("/api/claude", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: "ping", catalog: "" }),
       }).then((r) => {
-        setGroqAvailable(r.status !== 503);
-      }).catch(() => setGroqAvailable(false));
+        setAiAvailable(r.status !== 503);
+      }).catch(() => setAiAvailable(false));
     });
   }, []);
 
@@ -440,7 +439,7 @@ export default function SimbaAssistant() {
     .map((p) => `${p.id}|${p.name}|${p.category}|${p.price} RWF/${p.unit}`)
     .join("\n");
 
-  // Send message — try Groq first, fall back to keyword search
+  // Send message — try Claude first, fall back to local NLP
   const send = useCallback(async (text: string, fromVoice = false) => {
     const trimmed = text.trim();
     if (!trimmed || allProducts.length === 0) return;
@@ -452,15 +451,20 @@ export default function SimbaAssistant() {
 
     let responseText = "";
     let results: Product[] = [];
-    let groqUsed = false;
+    let aiUsed = false;
 
-    // Try Groq if available
-    if (groqAvailable !== false && catalog) {
+    // Try Claude if available — pass last 6 messages as conversation history
+    if (aiAvailable !== false && catalog) {
       try {
-        const resp = await fetch("/api/groq", {
+        const history = messages
+          .filter((m) => m.id > 0)
+          .slice(-6)
+          .map((m) => ({ role: m.role as "user" | "assistant", content: m.text }));
+
+        const resp = await fetch("/api/claude", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: trimmed, catalog }),
+          body: JSON.stringify({ message: trimmed, catalog, history }),
         });
         if (resp.ok) {
           const data = (await resp.json()) as { text: string; productIds: number[] };
@@ -468,18 +472,18 @@ export default function SimbaAssistant() {
           results = (data.productIds || [])
             .map((id) => allProducts.find((p) => p.id === id))
             .filter(Boolean) as Product[];
-          groqUsed = true;
-          if (groqAvailable === null) setGroqAvailable(true);
+          aiUsed = true;
+          if (aiAvailable === null) setAiAvailable(true);
         } else if (resp.status === 503) {
-          setGroqAvailable(false);
+          setAiAvailable(false);
         }
       } catch {
-        setGroqAvailable(false);
+        setAiAvailable(false);
       }
     }
 
-    // Fallback to rule-based keyword search
-    if (!groqUsed) {
+    // Fallback to local rule-based NLP
+    if (!aiUsed) {
       await new Promise((r) => setTimeout(r, 400));
       const { intent, query } = detectIntent(trimmed);
       const { text: t2, results: r2 } = buildResponse(intent, query, allProducts, totalItems, totalPrice);
@@ -492,13 +496,13 @@ export default function SimbaAssistant() {
       role: "assistant",
       text: responseText,
       products: results,
-      groq: groqUsed,
+      groq: aiUsed,
     };
     setMessages((prev) => [...prev, botMsg]);
     setThinking(false);
     if (fromVoice) speak(responseText);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allProducts, totalItems, totalPrice, speak, groqAvailable, catalog]);
+  }, [allProducts, totalItems, totalPrice, speak, aiAvailable, catalog, messages]);
 
   // Voice input
   const toggleVoice = useCallback(() => {
@@ -570,7 +574,7 @@ export default function SimbaAssistant() {
               <p className="font-black text-sm">SIMBA Assistant</p>
               <p className="text-orange-200 text-[10px]">
                 {allProducts.length > 0
-                  ? `${allProducts.length} products · ${groqAvailable ? "🤖 Groq AI" : "Smart search"}`
+                  ? `${allProducts.length} products · ${aiAvailable ? "🤖 Claude AI" : "Smart search"}`
                   : "Loading..."}
               </p>
             </div>
@@ -602,7 +606,7 @@ export default function SimbaAssistant() {
                       <span className="text-[10px] font-bold text-gray-400">SIMBA</span>
                       {msg.groq && (
                         <span className="text-[9px] font-bold bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded-full">
-                          Groq AI
+                          Claude AI
                         </span>
                       )}
                     </div>

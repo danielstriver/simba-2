@@ -21,14 +21,16 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
   cancelled: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
 };
 
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: "Pending",
-  accepted: "Accepted",
-  preparing: "Preparing",
-  ready: "Ready for Pickup",
-  picked_up: "Picked Up",
-  cancelled: "Cancelled",
-};
+function getStatusLabels(t: Translations): Record<OrderStatus, string> {
+  return {
+    pending: t.statusPending,
+    accepted: t.statusAccepted,
+    preparing: t.statusPreparing,
+    ready: t.statusReady,
+    picked_up: t.statusPickedUp,
+    cancelled: t.statusCancelled,
+  };
+}
 
 export default function OrdersPage() {
   const { t } = useLang();
@@ -94,7 +96,6 @@ export default function OrdersPage() {
             <OrderRow
               key={order.id}
               order={order}
-              t={t}
               expanded={expanded === order.id}
               onToggle={() => setExpanded(expanded === order.id ? null : order.id)}
               onReviewed={() => setRefresh((n) => n + 1)}
@@ -107,14 +108,15 @@ export default function OrdersPage() {
 }
 
 function OrderRow({
-  order, t, expanded, onToggle, onReviewed,
+  order, expanded, onToggle, onReviewed,
 }: {
   order: Order;
-  t: Translations;
   expanded: boolean;
   onToggle: () => void;
   onReviewed: () => void;
 }) {
+  const { t } = useLang();
+  const statusLabels = getStatusLabels(t);
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState("");
@@ -147,7 +149,7 @@ function OrderRow({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-black text-sm text-gray-900 dark:text-white font-mono">{order.id}</span>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_COLORS[order.status]}`}>
-              {STATUS_LABELS[order.status]}
+              {statusLabels[order.status]}
             </span>
             {order.review && (
               <span className="flex items-center gap-0.5">
@@ -205,15 +207,15 @@ function OrderRow({
           {/* Summary */}
           <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-xs space-y-1.5">
             <div className="flex justify-between">
-              <span className="text-gray-500">Subtotal</span>
+              <span className="text-gray-500">{t.subtotal}</span>
               <span className="font-bold text-gray-900 dark:text-white">{formatPrice(order.subtotal)}</span>
             </div>
             <div className="flex justify-between text-green-600">
-              <span className="flex items-center gap-1"><Check className="w-3 h-3" /> Deposit paid</span>
+              <span className="flex items-center gap-1"><Check className="w-3 h-3" /> {t.deposit}</span>
               <span className="font-bold">{formatPrice(order.depositPaid)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Pickup at</span>
+              <span className="text-gray-500">{t.pickupAt}</span>
               <span className="font-bold text-gray-900 dark:text-white">{order.branchLabel}</span>
             </div>
           </div>
@@ -259,7 +261,7 @@ function OrderRow({
                 disabled={!rating || submitting}
                 className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-200 dark:disabled:bg-gray-700 text-white disabled:text-gray-400 font-black text-sm px-5 py-2.5 rounded-xl transition-colors"
               >
-                {submitting ? "Submitting..." : t.submitReview}
+                {submitting ? t.submitting : t.submitReview}
               </button>
             </div>
           )}
