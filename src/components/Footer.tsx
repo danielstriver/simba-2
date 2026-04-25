@@ -1,11 +1,15 @@
 "use client";
 import { useLang } from "@/lib/LanguageContext";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Phone, Mail } from "lucide-react";
 
 export default function Footer() {
   const { t } = useLang();
+  const pathname = usePathname();
+
+  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/staff")) return null;
 
   return (
     <footer className="bg-gray-900 dark:bg-gray-950 text-gray-300 mt-16">

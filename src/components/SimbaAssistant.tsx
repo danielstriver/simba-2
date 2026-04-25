@@ -6,6 +6,7 @@ import { useStore } from "@/lib/store";
 import { useToast } from "@/components/Toast";
 import { useLang } from "@/lib/LanguageContext";
 import { quickSearch } from "@/lib/search";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -336,7 +337,10 @@ function MessageText({ text }: { text: string }) {
 
 // ─── Main Assistant Component ─────────────────────────────────────────────────
 export default function SimbaAssistant() {
+  const pathname = usePathname();
   const { t } = useLang();
+
+  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/staff")) return null;
   const items = useStore((s) => s.items);
   const totalItems = useStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
   const totalPrice = useStore((s) => s.items.reduce((sum, i) => sum + i.product.price * i.quantity, 0));

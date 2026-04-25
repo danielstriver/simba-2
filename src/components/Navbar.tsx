@@ -93,8 +93,8 @@ export default function Navbar() {
               </div>
             </Link>
 
-            {/* Branch Indicator */}
-            {mounted && (
+            {/* Branch Indicator — hidden on staff routes */}
+            {mounted && !isStaffRoute && (
               <button
                 onClick={() => setShowBranchModal(true)}
                 className="hidden lg:flex flex-col items-start px-3 py-1.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 border border-transparent hover:border-gray-100 dark:hover:border-gray-700 transition-all group text-left"
@@ -110,21 +110,23 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Desktop Search */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-lg mx-4">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t.searchPlaceholder}
-                className="w-full pl-10 pr-12 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              />
-              <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-600 text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-orange-700 transition-colors">
-                Go
-              </button>
-            </div>
-          </form>
+          {/* Desktop Search — hidden on staff routes */}
+          {!isStaffRoute && (
+            <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-lg mx-4">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={t.searchPlaceholder}
+                  className="w-full pl-10 pr-12 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-600 text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-orange-700 transition-colors">
+                  Go
+                </button>
+              </div>
+            </form>
+          )}
 
           {/* Actions */}
           <div className="flex items-center gap-1">
@@ -273,34 +275,38 @@ export default function Navbar() {
               </button>
             )}
 
-            {/* Cart button */}
-            <button
-              onClick={() => setCartOpen(true)}
-              className="relative flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-3 py-2.5 rounded-full text-sm font-black transition-colors shadow-sm"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              <span className="hidden md:inline">{t.cart}</span>
-              {totalItems > 0 && (
-                <span className="bg-white text-orange-600 text-xs font-black rounded-full w-4 h-4 flex items-center justify-center">
-                  {totalItems > 9 ? "9+" : totalItems}
-                </span>
-              )}
-            </button>
+            {/* Cart button — hidden on staff routes */}
+            {!isStaffRoute && (
+              <button
+                onClick={() => setCartOpen(true)}
+                className="relative flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-3 py-2.5 rounded-full text-sm font-black transition-colors shadow-sm"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                <span className="hidden md:inline">{t.cart}</span>
+                {totalItems > 0 && (
+                  <span className="bg-white text-orange-600 text-xs font-black rounded-full w-4 h-4 flex items-center justify-center">
+                    {totalItems > 9 ? "9+" : totalItems}
+                  </span>
+                )}
+              </button>
+            )}
 
-            {/* Mobile menu */}
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-expanded={mobileOpen}
-              aria-label="Toggle menu"
-              className="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+            {/* Mobile menu — hidden on staff routes */}
+            {!isStaffRoute && (
+              <button
+                onClick={() => setMobileOpen(!mobileOpen)}
+                aria-expanded={mobileOpen}
+                aria-label="Toggle menu"
+                className="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Desktop nav links */}
-        <nav className="hidden md:flex justify-center items-center gap-2 pb-2 border-t border-gray-100 dark:border-gray-800 pt-2">
+        {/* Desktop nav links — hidden on staff routes */}
+        {!isStaffRoute && <nav className="hidden md:flex justify-center items-center gap-2 pb-2 border-t border-gray-100 dark:border-gray-800 pt-2">
           <Link href="/" className="px-3 py-1.5 rounded-full text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-orange-50 dark:hover:bg-orange-950 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
             {t.home}
           </Link>
@@ -322,7 +328,7 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
-        </nav>
+        </nav>}
       </div>
 
       {/* Mobile drawer */}
