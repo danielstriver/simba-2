@@ -39,25 +39,28 @@ export default function BranchModal() {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    if (!showBranchModal) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [showBranchModal]);
+
   if (!mounted || !showBranchModal) return null;
 
   const filtered = filter === "All" ? BRANCHES : BRANCHES.filter((b) => b.district === filter);
   const countOf = (d: string) => BRANCHES.filter((b) => b.district === d).length;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300"
         onClick={() => setShowBranchModal(false)}
       />
 
-      <div className="relative bg-white dark:bg-gray-900 w-full sm:max-w-md rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-400">
+      <div className="relative bg-white dark:bg-gray-900 w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300">
 
         {/* Gradient header */}
         <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-amber-600 px-5 pt-4 pb-4">
-          {/* Mobile drag pill */}
-          <div className="sm:hidden w-10 h-1 rounded-full bg-white/30 mx-auto mb-3" />
-
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
               <MapPin className="w-5 h-5 text-white" />

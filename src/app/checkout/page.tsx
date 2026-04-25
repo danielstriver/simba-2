@@ -300,6 +300,8 @@ export default function CheckoutPage() {
                   <div className="relative">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
+                      type="text"
+                      autoComplete="name"
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                       className={`w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border ${errors.name ? "border-orange-500" : "border-gray-200 dark:border-gray-700"} rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm`}
@@ -312,6 +314,9 @@ export default function CheckoutPage() {
                   <div className="relative">
                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
+                      type="tel"
+                      autoComplete="tel"
+                      inputMode="tel"
                       value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
                       className={`w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border ${errors.phone ? "border-orange-500" : "border-gray-200 dark:border-gray-700"} rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm`}
@@ -448,6 +453,9 @@ export default function CheckoutPage() {
                   <div>
                     <label className="block text-xs font-bold text-yellow-800 dark:text-yellow-300 mb-1.5 ml-1 uppercase">MoMo Phone Number</label>
                     <input
+                      type="tel"
+                      autoComplete="tel"
+                      inputMode="tel"
                       value={momoPhone}
                       onChange={(e) => setMomoPhone(e.target.value)}
                       placeholder="078 XXX XXXX"
@@ -475,6 +483,9 @@ export default function CheckoutPage() {
                   <div>
                     <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 mb-1.5 ml-1 uppercase">Card Number</label>
                     <input
+                      type="text"
+                      autoComplete="cc-number"
+                      inputMode="numeric"
                       value={cardNum}
                       onChange={(e) => setCardNum(e.target.value)}
                       placeholder="0000 0000 0000 0000"
@@ -485,6 +496,9 @@ export default function CheckoutPage() {
                     <div>
                       <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 mb-1.5 ml-1 uppercase">Expiry</label>
                       <input
+                        type="text"
+                        autoComplete="cc-exp"
+                        inputMode="numeric"
                         value={cardExp}
                         onChange={(e) => setCardExp(e.target.value)}
                         placeholder="MM/YY"
@@ -494,6 +508,9 @@ export default function CheckoutPage() {
                     <div>
                       <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 mb-1.5 ml-1 uppercase">CVV</label>
                       <input
+                        type="text"
+                        autoComplete="cc-csc"
+                        inputMode="numeric"
                         value={cardCvv}
                         onChange={(e) => setCardCvv(e.target.value)}
                         placeholder="123"

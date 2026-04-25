@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { login } from "@/lib/auth";
-import { useStore } from "@/lib/store";
+import { useStaffUser } from "@/lib/staffAuth";
 import { useLang } from "@/lib/LanguageContext";
 import { Store, Mail, Lock, LogIn, Eye, EyeOff, ChevronRight } from "lucide-react";
 
@@ -16,7 +16,7 @@ const DEMO_ACCOUNTS = [
 export default function StaffLoginPage() {
   const { t } = useLang();
   const router = useRouter();
-  const { user, setUser } = useStore();
+  const { staffUser, signIn } = useStaffUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -24,10 +24,10 @@ export default function StaffLoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user?.role === "manager" || user?.role === "staff") {
+    if (staffUser?.role === "manager" || staffUser?.role === "staff") {
       router.replace("/dashboard");
     }
-  }, [user, router]);
+  }, [staffUser, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,7 +46,7 @@ export default function StaffLoginPage() {
       setLoading(false);
       return;
     }
-    setUser({ id: res.data.id, name: res.data.name, phone: res.data.phone, email: res.data.email, role: res.data.role, branchId: res.data.branchId });
+    signIn({ id: res.data.id, name: res.data.name, phone: res.data.phone, email: res.data.email, role: res.data.role, branchId: res.data.branchId });
     router.replace("/dashboard");
   }
 
