@@ -8,7 +8,8 @@ import { useStore } from "@/lib/store";
 import { getBranch, DEFAULT_BRANCH_ID } from "@/lib/branches";
 import ProductCard from "@/components/ProductCard";
 import Image from "next/image";
-import { ArrowRight, Search, Truck, Shield, Clock, ChevronRight, Zap, Phone, MapPin, ChevronDown, CheckCircle } from "lucide-react";
+import { ArrowRight, Search, Truck, Shield, Clock, ChevronRight, Zap, MapPin, ChevronDown, CheckCircle } from "lucide-react";
+import MtnBadge from "@/components/MtnBadge";
 
 export default function HomePage() {
   const { t } = useLang();
@@ -75,8 +76,8 @@ export default function HomePage() {
                     <p className="text-[10px] text-gray-500">{t.trustSameDay}</p>
                   </div>
                 </div>
-                <div className="absolute bottom-3 right-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow">
-                  <p className="text-[10px] font-bold text-green-600">✓ MTN MoMo</p>
+                <div className="absolute bottom-3 right-3">
+                  <MtnBadge size="md" />
                 </div>
               </div>
             </div>
@@ -125,10 +126,7 @@ export default function HomePage() {
                   <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
                   {t.trustAuthentic}
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <Phone className="w-4 h-4 text-yellow-500 shrink-0" />
-                  {t.trustMoMo}
-                </span>
+                <MtnBadge size="sm" />
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-blue-500 shrink-0" />
                   {t.trustSameDay}
@@ -154,15 +152,7 @@ export default function HomePage() {
                     <p className="text-[11px] text-gray-400">Ready for pickup</p>
                   </div>
                 </div>
-                <div className="absolute -top-4 -right-4 bg-white dark:bg-gray-900 rounded-2xl shadow-xl px-4 py-3 border border-gray-100 dark:border-gray-800">
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-500 text-lg">✓</span>
-                    <div>
-                      <p className="text-xs font-black text-gray-900 dark:text-white">MTN MoMo</p>
-                      <p className="text-[11px] text-gray-400">{t.trustMoMo}</p>
-                    </div>
-                  </div>
-                </div>
+                <MtnBadge size="lg" className="absolute -top-4 -right-4" />
               </div>
             </div>
           </div>
@@ -198,7 +188,6 @@ export default function HomePage() {
           <div className="flex items-center justify-center flex-wrap gap-x-8 gap-y-2 text-sm">
             {[
               { icon: <Truck className="w-4 h-4 text-green-600" />, text: t.trustFreePickup },
-              { icon: <Phone className="w-4 h-4 text-yellow-600" />, text: t.trustMoMo },
               { icon: <Shield className="w-4 h-4 text-blue-600" />, text: t.trustAuthentic },
               { icon: <Clock className="w-4 h-4 text-purple-600" />, text: t.trustSameDay },
               { icon: <Zap className="w-4 h-4 text-orange-600" />, text: t.trustProducts },
@@ -208,6 +197,8 @@ export default function HomePage() {
                 <span>{b.text}</span>
               </div>
             ))}
+            {/* MTN MoMo — rendered as branded badge, not plain text */}
+            <MtnBadge size="sm" />
           </div>
         </div>
       </section>
