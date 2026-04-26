@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { orderPlacedEmail, orderReadyEmail, passwordResetEmail } from "@/lib/emails";
+import { orderPlacedEmail, orderReadyEmail, passwordResetEmail, passwordChangedEmail } from "@/lib/emails";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = process.env.NOTIFY_FROM_EMAIL ?? "SIMBA Supermarket <onboarding@resend.dev>";
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { type, to, data } = body as {
-    type: "order_placed" | "order_ready" | "password_reset";
+    type: "order_placed" | "order_ready" | "password_reset" | "password_changed";
     to: string;
     data: Record<string, unknown>;
   };
@@ -33,6 +33,9 @@ export async function POST(req: NextRequest) {
   } else if (type === "password_reset") {
     subject = `Your SIMBA reset code: ${data.code}`;
     html = passwordResetEmail(data as unknown as Parameters<typeof passwordResetEmail>[0]);
+  } else if (type === "password_changed") {
+    subject = "Your SIMBA password has been updated";
+    html = passwordChangedEmail(data as unknown as Parameters<typeof passwordChangedEmail>[0]);
   } else {
     return NextResponse.json({ ok: false, error: "Unknown notification type" }, { status: 400 });
   }

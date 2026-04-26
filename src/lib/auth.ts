@@ -106,7 +106,10 @@ export function confirmReset(email: string, code: string, newPassword: string): 
 
 export function getBranchManagerEmail(branchId: string): string | null {
   const users = readUsers();
-  return users.find((u) => u.role === "manager" && u.branchId === branchId)?.email ?? null;
+  // Try branch-specific manager first, fall back to any manager in the system
+  const branchManager = users.find((u) => u.role === "manager" && u.branchId === branchId);
+  if (branchManager) return branchManager.email;
+  return users.find((u) => u.role === "manager")?.email ?? null;
 }
 
 export function getNoShowCount(userId: string): number {

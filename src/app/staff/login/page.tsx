@@ -61,17 +61,18 @@ export default function StaffLoginPage() {
       <div className="w-full max-w-md">
         {/* Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 mb-4">
+          <div className="inline-flex items-center gap-3 mb-5">
             <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg bg-white border border-gray-100 shrink-0">
               <Image src="/images/simba-logo.jpeg" alt="Simba Supermarket" width={56} height={56} className="w-full h-full object-cover" />
             </div>
             <div className="text-left">
-              <p className="font-black text-xl text-gray-900 dark:text-white">Simba</p>
-              <p className="text-[11px] text-orange-600 font-medium uppercase tracking-widest -mt-0.5">SUPERMARKET</p>
+              <p className="font-black text-xl text-gray-900 dark:text-white leading-tight">Simba</p>
+              <p className="text-[11px] text-orange-600 font-medium uppercase tracking-widest">SUPERMARKET</p>
             </div>
-          </div>
-          <div className="inline-flex items-center gap-2 bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900 text-orange-700 dark:text-orange-400 text-xs font-bold px-3 py-1.5 rounded-full mb-3">
-            <Store className="w-3.5 h-3.5" /> Staff Portal
+            <div className="flex items-center gap-1.5 bg-orange-600 text-white text-xs font-black px-3 py-2 rounded-xl shadow-md ml-1">
+              <Store className="w-3.5 h-3.5 shrink-0" />
+              <span className="whitespace-nowrap">Staff Portal</span>
+            </div>
           </div>
           <h1 className="text-2xl font-black text-gray-900 dark:text-white">{t.staffLogin}</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{t.staffLoginSubtitle}</p>

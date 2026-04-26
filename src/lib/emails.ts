@@ -138,6 +138,35 @@ export function orderReadyEmail(data: OrderReadyData): string {
   </body></html>`;
 }
 
+interface PasswordChangedData {
+  email: string;
+}
+
+export function passwordChangedEmail(data: PasswordChangedData): string {
+  return `<!DOCTYPE html><html><body style="${BASE}">
+    <div style="background:#16a34a;padding:28px 24px;border-radius:14px 14px 0 0;text-align:center;">
+      <div style="font-size:32px;margin-bottom:6px;">🔒</div>
+      <h1 style="color:white;margin:0;font-size:22px;font-weight:900;letter-spacing:-0.5px;">Password Updated</h1>
+      <p style="color:#bbf7d0;margin:4px 0 0;font-size:13px;">SIMBA Supermarket</p>
+    </div>
+    <div style="background:white;border:1px solid #e5e7eb;border-top:none;padding:32px 24px;border-radius:0 0 14px 14px;text-align:center;">
+      <p style="font-size:15px;color:#374151;margin-top:0;">
+        Your SIMBA account password has been successfully updated.
+      </p>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:16px 20px;border-radius:10px;margin:20px 0;text-align:left;">
+        <p style="margin:0 0 4px;font-size:13px;color:#166534;font-weight:900;">&#10003; Password changed</p>
+        <p style="margin:0;font-size:12px;color:#4b7c5e;">Account: ${data.email}</p>
+      </div>
+      <p style="font-size:13px;color:#6b7280;">
+        If you did not make this change, please contact us at your nearest SIMBA branch immediately.
+      </p>
+    </div>
+    <p style="text-align:center;color:#9ca3af;font-size:11px;margin-top:16px;">
+      SIMBA Supermarket · Kigali, Rwanda
+    </p>
+  </body></html>`;
+}
+
 export function passwordResetEmail(data: PasswordResetData): string {
   return `<!DOCTYPE html><html><body style="${BASE}">
     <div style="background:#ea580c;padding:28px 24px;border-radius:14px 14px 0 0;text-align:center;">

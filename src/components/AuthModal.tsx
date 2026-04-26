@@ -160,7 +160,12 @@ export default function AuthModal({
     } else if (mode === "reset") {
       const res = confirmReset(form.email, form.code, form.newPassword);
       if (!res.ok) { setError(res.error); setLoading(false); return; }
-      setInfo("Password reset! You can now sign in.");
+      fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "password_changed", to: form.email, data: { email: form.email } }),
+      }).catch(() => {});
+      setInfo("Password updated! You can now sign in with your new password.");
       switchMode("signin");
     }
 
