@@ -142,7 +142,20 @@ export default function AuthModal({
     } else if (mode === "forgot") {
       const res = requestReset(form.email);
       if (!res.ok) { setError(res.error); setLoading(false); return; }
-      setInfo(`${t.demoCodeNote} ${res.data}`);
+      // Send code by email; show it in UI as fallback if email service is unavailable
+      fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "password_reset", to: form.email, data: { code: res.data } }),
+      }).then((r) => {
+        if (r.ok) {
+          setInfo(t.emailResetSent);
+        } else {
+          setInfo(`${t.demoCodeNote} ${res.data}`);
+        }
+      }).catch(() => {
+        setInfo(`${t.demoCodeNote} ${res.data}`);
+      });
       switchMode("reset");
     } else if (mode === "reset") {
       const res = confirmReset(form.email, form.code, form.newPassword);

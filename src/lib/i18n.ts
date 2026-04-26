@@ -177,6 +177,11 @@ export const translations = {
     restore: "Restore",
     assignedTo: "Assigned to",
     poweredByClaude: "Powered by Claude AI",
+    checkYourEmail: "Check your email for your reset code",
+    emailResetSent: "A 6-digit reset code has been sent to your email. It expires in 10 minutes.",
+    orderConfirmationSent: "Order confirmation sent",
+    notifyOrderPlaced: "Branch manager will be notified",
+    notifyOrderReady: "Customer will be notified by email",
   },
   fr: {
     siteName: "Simba Supermarché",
@@ -354,6 +359,11 @@ export const translations = {
     restore: "Restaurer",
     assignedTo: "Assigné à",
     poweredByClaude: "Propulsé par Claude AI",
+    checkYourEmail: "Vérifiez votre email pour le code de réinitialisation",
+    emailResetSent: "Un code à 6 chiffres a été envoyé à votre email. Il expire dans 10 minutes.",
+    orderConfirmationSent: "Confirmation envoyée",
+    notifyOrderPlaced: "Le responsable de succursale sera notifié",
+    notifyOrderReady: "Le client sera notifié par email",
   },
   rw: {
     siteName: "Simba Supermarket",
@@ -531,6 +541,11 @@ export const translations = {
     restore: "Subiza",
     assignedTo: "Wagabanyirijwe",
     poweredByClaude: "Ikoreshwa na Claude AI",
+    checkYourEmail: "Reba imeyili yawe kugira ngo ubone kode",
+    emailResetSent: "Kode y'imibare 6 yoherejwe kuri imeyili yawe. Irangira mu minota 10.",
+    orderConfirmationSent: "Kwemeza itumba byoherejwe",
+    notifyOrderPlaced: "Umuyobozi w'ishami azamenyeshwa",
+    notifyOrderReady: "Umukiriya azamenyeshwa kuri imeyili",
   },
 };
 

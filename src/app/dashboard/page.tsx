@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { BRANCHES } from "@/lib/branches";
 import { readOrders, patchOrder, Order, OrderStatus, getBranchStats } from "@/lib/orders";
-import { markOutOfStock, restoreStock, getStock } from "@/lib/inventory";
+import { markOutOfStock, restoreStock, getStock, getBranchInventoryEntries } from "@/lib/inventory";
 import { useLang } from "@/lib/LanguageContext";
 import { useStaffUser } from "@/lib/staffAuth";
 import { formatPrice } from "@/lib/products";
@@ -53,6 +53,22 @@ function timeAgo(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+async function sendNotification(
+  type: string,
+  to: string,
+  data: Record<string, unknown>
+): Promise<void> {
+  try {
+    await fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, to, data }),
+    });
+  } catch {
+    // fire-and-forget — don't block UI on email failure
+  }
+}
+
 export default function DashboardPage() {
   const { t } = useLang();
   const router = useRouter();
@@ -70,6 +86,7 @@ export default function DashboardPage() {
       setBranchId(staffUser.branchId);
     }
   }, [staffUser, router]);
+
   const [staffId, setStaffId] = useState(DEMO_STAFF[0].id);
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<"orders" | "inventory">("orders");
@@ -89,7 +106,9 @@ export default function DashboardPage() {
 
   const stats = getBranchStats(branchId);
 
+  // Re-derive inventory items when the tab opens or branch/refresh changes
   const inventoryItems = useMemo(() => {
+    // Collect products from orders
     const seen = new Map<number, { productId: number; productName: string; image: string }>();
     readOrders()
       .filter((o) => o.branch === branchId)
@@ -100,8 +119,21 @@ export default function DashboardPage() {
           }
         })
       );
+
+    // Also surface products that have an explicit inventory entry (e.g., deducted at checkout)
+    // We can only show them if we have their name from an order
+    const invEntries = getBranchInventoryEntries(branchId);
+    for (const pid of Object.keys(invEntries)) {
+      const id = Number(pid);
+      if (!seen.has(id)) {
+        // No name available from orders — skip (we can't display a nameless product)
+      }
+    }
+
     return Array.from(seen.values());
-  }, [branchId, refresh]);
+    // activeTab included so the panel refreshes when the user switches to it
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branchId, refresh, activeTab]);
 
   const filtered =
     statusFilter === "all"
@@ -121,12 +153,26 @@ export default function DashboardPage() {
     setActionLoading(null);
   }
 
+  async function doReady(order: Order) {
+    await doAction(order.id, () => patchOrder(order.id, { status: "ready" }));
+    // Notify customer
+    if (order.userEmail) {
+      sendNotification("order_ready", order.userEmail, {
+        orderId: order.id,
+        branchLabel: order.branchLabel,
+        pickupDate: order.pickupDate,
+        pickupTime: order.pickupTime,
+        items: order.items.map((i) => ({ productName: i.productName, quantity: i.quantity })),
+      });
+    }
+  }
+
   if (!staffUser || (staffUser.role !== "manager" && staffUser.role !== "staff")) return null;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
             <Store className="w-7 h-7 text-orange-600" /> {t.dashboard}
@@ -137,14 +183,14 @@ export default function DashboardPage() {
         </div>
 
         {/* Controls */}
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           {/* Role selector */}
           <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
             {(["manager", "staff"] as Role[]).map((r) => (
               <button
                 key={r}
                 onClick={() => setRole(r)}
-                className={`px-4 py-2 text-sm font-bold transition-colors ${
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold transition-colors ${
                   role === r
                     ? "bg-orange-600 text-white"
                     : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -167,7 +213,7 @@ export default function DashboardPage() {
 
       {/* Stats bar (manager only) */}
       {role === "manager" && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
           {[
             { label: t.totalOrders, value: stats.total, color: "text-gray-900 dark:text-white" },
             { label: t.statusPending, value: stats.pending, color: "text-amber-600" },
@@ -192,7 +238,7 @@ export default function DashboardPage() {
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
           }`}
         >
-          <Package className="w-4 h-4" /> Orders
+          <Package className="w-4 h-4" /> {t.ordersTab}
         </button>
         <button
           onClick={() => setActiveTab("inventory")}
@@ -202,7 +248,7 @@ export default function DashboardPage() {
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
           }`}
         >
-          <Boxes className="w-4 h-4" /> Inventory
+          <Boxes className="w-4 h-4" /> {t.inventoryTab}
         </button>
       </div>
 
@@ -279,7 +325,7 @@ export default function DashboardPage() {
                     )
                   }
                   onPreparing={() => doAction(order.id, () => patchOrder(order.id, { status: "preparing" }))}
-                  onReady={() => doAction(order.id, () => patchOrder(order.id, { status: "ready" }))}
+                  onReady={() => doReady(order)}
                   onPickedUp={() => doAction(order.id, () => patchOrder(order.id, { status: "picked_up" }))}
                   onOutOfStock={(productId) =>
                     doAction(order.id, () => markOutOfStock(branchId, productId))
@@ -331,8 +377,8 @@ function InventoryPanel({
   getStock: (productId: number) => number;
 }) {
   const [filter, setFilter] = useState<"all" | "in_stock" | "out_of_stock">("all");
-
   const { t } = useLang();
+
   const annotated = items
     .map((item) => ({ ...item, stock: getStockFn(item.productId) }))
     .sort((a, b) => a.stock - b.stock);
@@ -348,15 +394,15 @@ function InventoryPanel({
   return (
     <div>
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
         {[
           { label: t.trackedProducts, value: annotated.length, color: "text-gray-900 dark:text-white" },
           { label: t.inStockLabel, value: inStockCount, color: "text-green-600" },
           { label: t.outOfStock, value: outOfStockCount, color: "text-orange-600" },
         ].map(({ label, value, color }) => (
-          <div key={label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 text-center">
-            <p className={`text-3xl font-black ${color}`}>{value}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">{label}</p>
+          <div key={label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-3 sm:p-4 text-center">
+            <p className={`text-2xl sm:text-3xl font-black ${color}`}>{value}</p>
+            <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium leading-tight">{label}</p>
           </div>
         ))}
       </div>
@@ -384,16 +430,21 @@ function InventoryPanel({
           <Boxes className="w-12 h-12 text-gray-200 mx-auto mb-3" />
           <p className="font-bold text-gray-500 dark:text-gray-400">
             {items.length === 0
-              ? "No products tracked yet — stock levels update when orders are placed."
+              ? "No products tracked yet — stock updates when orders are placed."
               : "No products match this filter."}
           </p>
+          {items.length === 0 && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+              Stock is deducted automatically when customers place orders.
+            </p>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
           {filtered.map((item) => (
             <div
               key={item.productId}
-              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 flex items-center gap-4"
+              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 flex items-center gap-3 sm:gap-4"
             >
               <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 shrink-0">
                 <img
@@ -406,35 +457,33 @@ function InventoryPanel({
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{item.productName}</p>
                 <p className={`text-xs font-medium ${item.stock === 0 ? "text-orange-600" : "text-green-600"}`}>
-                  {item.stock === 0 ? "Out of Stock" : `${item.stock} units in stock`}
+                  {item.stock === 0 ? t.outOfStock : `${item.stock} units in stock`}
                 </p>
               </div>
               <div className="shrink-0">
                 {item.stock > 0 ? (
                   <button
                     onClick={() => onMarkOutOfStock(item.productId)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-orange-50 dark:bg-orange-950 text-orange-600 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900 transition-colors"
+                    className="inline-flex items-center gap-1 sm:gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 bg-orange-50 dark:bg-orange-950 text-orange-600 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900 transition-colors"
                   >
-                    <AlertTriangle className="w-3 h-3" /> {t.outOfStockMark}
+                    <AlertTriangle className="w-3 h-3" />
+                    <span className="hidden sm:inline">{t.outOfStockMark}</span>
+                    <span className="sm:hidden">Out</span>
                   </button>
                 ) : (
                   <button
                     onClick={() => onRestoreStock(item.productId)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-green-50 dark:bg-green-950 text-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
+                    className="inline-flex items-center gap-1 sm:gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 bg-green-50 dark:bg-green-950 text-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
                   >
-                    <RotateCcw className="w-3 h-3" /> {t.restoreStock}
+                    <RotateCcw className="w-3 h-3" />
+                    <span className="hidden sm:inline">{t.restoreStock}</span>
+                    <span className="sm:hidden">{t.restore}</span>
                   </button>
                 )}
               </div>
             </div>
           ))}
         </div>
-      )}
-
-      {items.length === 0 && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-4">
-          Place a demo order to see products tracked here.
-        </p>
       )}
     </div>
   );
@@ -478,7 +527,7 @@ function BranchSelect({ value, onChange }: { value: string; onChange: (id: strin
         className="flex items-center gap-2 pl-3 pr-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 hover:border-orange-300 dark:hover:border-orange-700 transition-all"
       >
         {selected && <div className={`w-2 h-2 rounded-full shrink-0 ${DISTRICT_STYLE[selected.district].dot}`} />}
-        <span className="truncate max-w-[140px]">{selected ? shortBranch(selected.label) : "Select branch"}</span>
+        <span className="truncate max-w-[120px] sm:max-w-[140px]">{selected ? shortBranch(selected.label) : "Select branch"}</span>
         <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 shrink-0 ${open ? "rotate-180" : ""}`} />
       </button>
 
@@ -516,7 +565,17 @@ function BranchSelect({ value, onChange }: { value: string; onChange: (id: strin
   );
 }
 
-function StaffSelect({ value, onChange, compact = false }: { value: string; onChange: (id: string) => void; compact?: boolean }) {
+function StaffSelect({
+  value,
+  onChange,
+  compact = false,
+  menuLeft = false,
+}: {
+  value: string;
+  onChange: (id: string) => void;
+  compact?: boolean;
+  menuLeft?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const selectedIdx = DEMO_STAFF.findIndex(s => s.id === value);
@@ -534,21 +593,21 @@ function StaffSelect({ value, onChange, compact = false }: { value: string; onCh
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 hover:border-orange-300 dark:hover:border-orange-700 transition-all"
+        className={`flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 hover:border-orange-300 dark:hover:border-orange-700 transition-all ${compact ? "w-full" : ""}`}
       >
         {selected && (
           <div className={`w-6 h-6 rounded-full ${STAFF_COLORS[selectedIdx % STAFF_COLORS.length]} flex items-center justify-center shrink-0`}>
             <span className="text-[9px] font-black text-white">{staffInitials(selected.name)}</span>
           </div>
         )}
-        <span className={`truncate font-bold ${compact ? "max-w-[80px]" : "max-w-[110px]"}`}>
+        <span className={`truncate font-bold flex-1 ${compact ? "" : "max-w-[110px]"}`}>
           {selected ? (compact ? selected.name.split(" ")[0] : selected.name) : "Select staff"}
         </span>
         <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 shrink-0 ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 animate-in slide-in-from-top-2 fade-in duration-200 min-w-[200px]">
+        <div className={`absolute ${menuLeft ? "left-0" : "right-0"} top-full mt-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 animate-in slide-in-from-top-2 fade-in duration-200 min-w-[200px]`}>
           <div className="p-1.5 space-y-0.5">
             {DEMO_STAFF.map((s, i) => (
               <button
@@ -607,7 +666,7 @@ function OrderCard({
       {/* Summary row */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded-t-2xl"
+        className="w-full flex items-center gap-3 sm:gap-4 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded-t-2xl"
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -616,7 +675,7 @@ function OrderCard({
               {statusLabels[order.status]}
             </span>
           </div>
-          <div className="flex items-center gap-3 mt-1 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-3 mt-1 flex-wrap">
             <span className="text-xs text-gray-500 flex items-center gap-1">
               <User className="w-3 h-3" /> {order.userName}
             </span>
@@ -632,7 +691,7 @@ function OrderCard({
           <p className="font-black text-gray-900 dark:text-white text-sm">{formatPrice(order.subtotal)}</p>
           <p className="text-[10px] text-gray-400">Pickup: {order.pickupTime}</p>
         </div>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform shrink-0 ${expanded ? "rotate-180" : ""}`} />
       </button>
 
       {/* Expanded details */}
@@ -714,14 +773,17 @@ function OrderCard({
                     <button onClick={onAccept} className="action-btn bg-blue-600 text-white hover:bg-blue-700">
                       <Check className="w-3.5 h-3.5" /> {t.accept}
                     </button>
-                    <div className="flex gap-2 items-center">
-                      <StaffSelect value={assignStaff} onChange={setAssignStaff} compact />
+                    {/* Assign row — full-width on mobile so the dropdown doesn't overflow */}
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <div className="flex-1 sm:flex-none sm:w-auto">
+                        <StaffSelect value={assignStaff} onChange={setAssignStaff} compact menuLeft />
+                      </div>
                       <button
                         onClick={() => {
                           const s = DEMO_STAFF.find(s => s.id === assignStaff)!;
                           onAssign(s.id, s.name);
                         }}
-                        className="action-btn bg-purple-600 text-white hover:bg-purple-700"
+                        className="action-btn bg-purple-600 text-white hover:bg-purple-700 shrink-0"
                       >
                         {t.assignToStaff}
                       </button>

@@ -8,7 +8,7 @@ import AuthModal from "@/components/AuthModal";
 import { BRANCHES, getBranch, DEFAULT_BRANCH_ID } from "@/lib/branches";
 import { createOrder } from "@/lib/orders";
 import { deductStock } from "@/lib/inventory";
-import { getDepositAmount } from "@/lib/auth";
+import { getDepositAmount, getBranchManagerEmail } from "@/lib/auth";
 import {
   Check, Phone, User, CreditCard, Banknote,
   ChevronRight, ShoppingBag, Loader2,
@@ -253,6 +253,29 @@ export default function CheckoutPage() {
 
     // Deduct branch stock
     deductStock(form.branch, items.map((i) => ({ productId: i.product.id, quantity: i.quantity })));
+
+    // Notify branch manager (fire-and-forget)
+    const managerEmail = getBranchManagerEmail(form.branch);
+    if (managerEmail) {
+      fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "order_placed",
+          to: managerEmail,
+          data: {
+            orderId: order.id,
+            userName: order.userName,
+            userPhone: order.userPhone,
+            branchLabel: currentBranch.label,
+            pickupDate: order.pickupDate,
+            pickupTime: order.pickupTime,
+            items: order.items.map((i) => ({ productName: i.productName, quantity: i.quantity, price: i.price })),
+            subtotal: order.subtotal,
+          },
+        }),
+      }).catch(() => {});
+    }
 
     setOrderId(order.id);
     setStep("success");

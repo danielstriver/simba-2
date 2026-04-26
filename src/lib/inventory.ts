@@ -42,6 +42,10 @@ export function markOutOfStock(branchId: string, productId: number): void {
   writeInv(inv);
 }
 
+export function getBranchInventoryEntries(branchId: string): Record<string, number> {
+  return readInv()[branchId] ?? {};
+}
+
 export function restoreStock(branchId: string, productId: number, amount = DEFAULT_STOCK): void {
   const inv = readInv();
   if (!inv[branchId]) inv[branchId] = {};

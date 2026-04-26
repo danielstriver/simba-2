@@ -104,6 +104,11 @@ export function confirmReset(email: string, code: string, newPassword: string): 
   }
 }
 
+export function getBranchManagerEmail(branchId: string): string | null {
+  const users = readUsers();
+  return users.find((u) => u.role === "manager" && u.branchId === branchId)?.email ?? null;
+}
+
 export function getNoShowCount(userId: string): number {
   return readUsers().find(u => u.id === userId)?.noShowCount ?? 0;
 }
