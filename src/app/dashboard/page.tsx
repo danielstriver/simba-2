@@ -9,7 +9,7 @@ import { useStaffUser } from "@/lib/staffAuth";
 import { formatPrice } from "@/lib/products";
 import {
   Store, ChevronDown, Check, Clock, Package, User,
-  AlertTriangle, RotateCcw, Loader2, Star, Boxes,
+  AlertTriangle, RotateCcw, Loader2, Star, Boxes, LogOut,
 } from "lucide-react";
 
 const DEMO_STAFF = [
@@ -72,7 +72,7 @@ async function sendNotification(
 export default function DashboardPage() {
   const { t } = useLang();
   const router = useRouter();
-  const { staffUser } = useStaffUser();
+  const { staffUser, signOut } = useStaffUser();
   const [role, setRole] = useState<Role>("manager");
   const [branchId, setBranchId] = useState(BRANCHES[0].id);
 
@@ -208,6 +208,14 @@ export default function DashboardPage() {
           {role === "staff" && (
             <StaffSelect value={staffId} onChange={setStaffId} />
           )}
+
+          {/* Sign out */}
+          <button
+            onClick={() => { signOut(); router.replace("/staff/login"); }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:border-orange-300 dark:hover:border-orange-700 transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Sign Out
+          </button>
         </div>
       </div>
 

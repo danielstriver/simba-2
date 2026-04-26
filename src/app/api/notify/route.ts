@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Missing type or to" }, { status: 400 });
   }
 
-  const { type, to, data } = body as {
+  const { type, to: clientTo, data } = body as {
     type: "order_placed" | "order_ready" | "password_reset" | "password_changed";
     to: string;
     data: Record<string, unknown>;
@@ -23,6 +23,11 @@ export async function POST(req: NextRequest) {
 
   let subject = "";
   let html = "";
+  // For order_placed: always use the server-side MANAGER_EMAIL env var if set,
+  // so delivery is never dependent on the client's localStorage state.
+  let to = type === "order_placed"
+    ? (process.env.MANAGER_EMAIL ?? clientTo)
+    : clientTo;
 
   if (type === "order_placed") {
     subject = `New Order ${data.orderId} — ${data.branchLabel}`;
