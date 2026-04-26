@@ -172,7 +172,8 @@ export default function Navbar() {
             </div>
 
             {/* User / Login — hidden on mobile; MobileBottomNav owns auth on mobile */}
-            {mounted && (
+            {/* On staff routes, never show the customer login button */}
+            {mounted && (!isStaffRoute || activeUser) && (
               <div className="hidden md:block">
               {activeUser ? (
                 <div className="relative">
