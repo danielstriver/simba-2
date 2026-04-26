@@ -73,15 +73,21 @@ export function orderPlacedEmail(data: OrderPlacedData): string {
         ${rows}
       </table>
 
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:2px solid #f3f4f6;">
-        <span style="font-size:14px;font-weight:900;color:#374151;">Order Total</span>
-        <span style="font-size:20px;font-weight:900;color:#ea580c;">${data.subtotal.toLocaleString()} RWF</span>
-      </div>
+      <table style="width:100%;border-collapse:collapse;border-top:2px solid #f3f4f6;margin-bottom:8px;">
+        <tr>
+          <td style="padding:14px 0 10px;font-size:14px;font-weight:900;color:#374151;">Order Total</td>
+          <td style="padding:14px 0 10px;font-size:22px;font-weight:900;color:#ea580c;text-align:right;white-space:nowrap;">${data.subtotal.toLocaleString()} RWF</td>
+        </tr>
+      </table>
 
-      <div style="background:#fff7ed;border:1px solid #fed7aa;padding:14px 16px;border-radius:10px;margin-top:8px;">
-        <p style="margin:0;font-size:13px;color:#9a3412;">
+      <div style="background:#fff7ed;border:1px solid #fed7aa;padding:16px;border-radius:10px;margin-top:4px;">
+        <p style="margin:0 0 12px;font-size:13px;color:#9a3412;">
           <strong>Action required:</strong> Log in to the SIMBA staff dashboard to accept and prepare this order.
         </p>
+        <a href="https://simba2-daniel.vercel.app/staff/login"
+           style="display:inline-block;background:#ea580c;color:white;text-decoration:none;font-weight:900;font-size:13px;padding:10px 20px;border-radius:8px;">
+          Open Staff Dashboard &rarr;
+        </a>
       </div>
     </div>
     <p style="text-align:center;color:#9ca3af;font-size:11px;margin-top:16px;">
@@ -103,7 +109,7 @@ export function orderReadyEmail(data: OrderReadyData): string {
     </div>
     <div style="background:white;border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 14px 14px;">
       <p style="font-size:15px;color:#374151;margin-top:0;">
-        Great news! Your SIMBA Supermarket order has been packed and is waiting for you at the pickup counter.
+        Great news! Your SIMBA Supermarket order has been packed and is ready for you to collect in store.
       </p>
 
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:16px;border-radius:10px;margin:20px 0;">
@@ -122,7 +128,7 @@ export function orderReadyEmail(data: OrderReadyData): string {
 
       <div style="background:#fffbeb;border:1px solid #fde68a;padding:14px 16px;border-radius:10px;">
         <p style="margin:0;font-size:13px;color:#92400e;">
-          💡 Please show your order ID <strong>${data.orderId}</strong> at the Online Pickup counter. Your order will be held for 24 hours.
+          💡 Head to <strong>${data.branchLabel}</strong> and show our staff your order ID <strong>${data.orderId}</strong>. Your order will be held for 24 hours.
         </p>
       </div>
     </div>
