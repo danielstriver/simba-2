@@ -709,7 +709,7 @@ function StaffSelect({
       </button>
 
       {open && (
-        <div className={`absolute ${menuLeft ? "left-0" : "right-0"} top-full mt-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 animate-in slide-in-from-top-2 fade-in duration-200 min-w-[200px]`}>
+        <div className={`absolute ${menuLeft ? "left-0" : "left-0 sm:left-auto sm:right-0"} top-full mt-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 animate-in slide-in-from-top-2 fade-in duration-200 min-w-[200px]`}>
           <div className="p-1.5 space-y-0.5">
             {DEMO_STAFF.map((s, i) => (
               <button
