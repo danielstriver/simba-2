@@ -83,7 +83,7 @@ export default function StaffLoginPage() {
 
         {/* Logo */}
         <div className="relative">
-          <div className="flex items-center gap-3 mb-12">
+          <div className="flex items-center gap-3 mb-10">
             <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white shadow-lg shrink-0">
               <Image src="/images/simba-logo.jpeg" alt="Simba" width={48} height={48} className="w-full h-full object-cover" />
             </div>
@@ -149,7 +149,7 @@ export default function StaffLoginPage() {
 
             <div className="px-6 pt-6 pb-5 sm:px-8 sm:pt-8 sm:pb-6">
               {/* Title */}
-              <div className="mb-6">
+              <div className="mb-6 text-center">
                 <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
                   {selectedRole
                     ? (isManager ? "Branch Manager Login" : "Staff Member Login")
