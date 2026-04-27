@@ -83,7 +83,7 @@ export default function StaffLoginPage() {
 
         {/* Logo */}
         <div className="relative">
-          <div className="flex items-center gap-3 mb-10">
+          <div className="flex items-center justify-end gap-3 mb-10">
             <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white shadow-lg shrink-0">
               <Image src="/images/simba-logo.jpeg" alt="Simba" width={48} height={48} className="w-full h-full object-cover" />
             </div>
@@ -132,8 +132,8 @@ export default function StaffLoginPage() {
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-sm">
 
-          {/* Logo above card */}
-          <div className="flex items-center gap-3 mb-8">
+          {/* Mobile logo (hidden on desktop) */}
+          <div className="flex items-center gap-3 mb-8 lg:hidden">
             <div className="w-10 h-10 rounded-xl overflow-hidden bg-white shrink-0">
               <Image src="/images/simba-logo.jpeg" alt="Simba" width={40} height={40} className="w-full h-full object-cover" />
             </div>
