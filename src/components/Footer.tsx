@@ -5,6 +5,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Phone, Mail } from "lucide-react";
 
+// English values used for URL query params — display labels come from i18n
+const SHOP_CATEGORY_VALUES = [
+  "Cosmetics & Personal Care",
+  "Alcoholic Drinks",
+  "Food Products",
+  "Cleaning & Sanitary",
+  "Baby Products",
+];
+
 export default function Footer() {
   const { t } = useLang();
   const pathname = usePathname();
@@ -47,12 +56,12 @@ export default function Footer() {
 
           {/* Shop */}
           <div>
-            <h4 className="font-bold text-white mb-3">Shop</h4>
+            <h4 className="font-bold text-white mb-3">{t.footer.shop}</h4>
             <ul className="space-y-2 text-sm">
-              {["Cosmetics & Personal Care", "Alcoholic Drinks", "Food Products", "Cleaning & Sanitary", "Baby Products"].map((cat) => (
+              {SHOP_CATEGORY_VALUES.map((cat, i) => (
                 <li key={cat}>
                   <Link href={`/products?category=${encodeURIComponent(cat)}`} className="hover:text-orange-400 transition-colors">
-                    {cat}
+                    {t.footer.shopCategories[i]}
                   </Link>
                 </li>
               ))}
@@ -61,7 +70,7 @@ export default function Footer() {
 
           {/* Info */}
           <div>
-            <h4 className="font-bold text-white mb-3">Info</h4>
+            <h4 className="font-bold text-white mb-3">{t.footer.info}</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="#" className="hover:text-orange-400 transition-colors">{t.footer.about}</Link></li>
               <li><Link href="#" className="hover:text-orange-400 transition-colors">{t.footer.contact}</Link></li>
