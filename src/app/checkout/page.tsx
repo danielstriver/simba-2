@@ -152,16 +152,23 @@ export default function CheckoutPage() {
             <span className="font-bold text-gray-900 dark:text-white">{form.date} at {form.time}</span>
           </div>
 
-          <div className="border-t border-gray-200 dark:border-gray-600 pt-3 mt-3 space-y-2">
+          <div className="border-t border-gray-200 dark:border-gray-600 pt-3 mt-3 space-y-3">
             <div className="flex justify-between text-sm text-green-600 dark:text-green-400 font-bold">
               <span className="flex items-center gap-1.5">
                 <Check className="w-3.5 h-3.5" /> {t.packagingFeePaid}
               </span>
               <span>{formatPrice(PACKAGING_FEE)}</span>
             </div>
-            <div className="flex justify-between text-sm font-black text-gray-900 dark:text-white">
-              <span>{t.remainingAtCounter}</span>
-              <span className="text-orange-600">{formatPrice(subtotal)}</span>
+            <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 rounded-xl p-3">
+              <p className="text-[10px] font-bold text-orange-500 dark:text-orange-400 uppercase tracking-wider mb-1">{t.remainingAtCounter}</p>
+              <div className="flex items-end justify-between gap-2">
+                <p className="text-[11px] text-orange-700 dark:text-orange-300 leading-tight">
+                  Bring this amount to {currentBranch.label} on {form.date}.
+                </p>
+                <p className="text-2xl font-black text-orange-600 dark:text-orange-400 whitespace-nowrap leading-none">
+                  {formatPrice(subtotal)}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -617,8 +624,9 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-xs font-black text-amber-700 dark:text-amber-400">
                   <span>{t.payNow}</span><span>{formatPrice(PACKAGING_FEE)}</span>
                 </div>
-                <div className="flex justify-between text-xs text-gray-500 font-medium">
-                  <span>{t.payAtCounter}</span><span>{formatPrice(subtotal)}</span>
+                <div className="flex justify-between items-center bg-orange-50 dark:bg-orange-950/30 rounded-lg px-2 py-1.5">
+                  <span className="text-xs font-bold text-orange-700 dark:text-orange-400">{t.payAtCounter}</span>
+                  <span className="text-sm font-black text-orange-600 dark:text-orange-400">{formatPrice(subtotal)}</span>
                 </div>
               </div>
             </div>
