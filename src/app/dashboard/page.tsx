@@ -172,17 +172,27 @@ export default function DashboardPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
-            <Store className="w-7 h-7 text-orange-600" /> {t.dashboard}
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-            {staffUser.name} · {staffUser.role === "manager" ? t.managerView : t.staffView}
-          </p>
+      <div className="mb-8">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+              <Store className="w-7 h-7 text-orange-600" /> {t.dashboard}
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+              {staffUser.name} · {staffUser.role === "manager" ? t.managerView : t.staffView}
+            </p>
+          </div>
+
+          {/* Sign out — pinned top-right */}
+          <button
+            onClick={() => { signOut(); router.replace("/staff/login"); }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors shrink-0"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Sign Out
+          </button>
         </div>
 
-        {/* Controls */}
+        {/* Controls row */}
         <div className="flex flex-wrap gap-2 sm:gap-3">
           {/* Role selector */}
           <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -208,14 +218,6 @@ export default function DashboardPage() {
           {role === "staff" && (
             <StaffSelect value={staffId} onChange={setStaffId} />
           )}
-
-          {/* Sign out */}
-          <button
-            onClick={() => { signOut(); router.replace("/staff/login"); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:border-orange-300 dark:hover:border-orange-700 transition-colors"
-          >
-            <LogOut className="w-3.5 h-3.5" /> Sign Out
-          </button>
         </div>
       </div>
 
@@ -746,6 +748,7 @@ function OrderCard({
 
           {/* Customer info */}
           <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-xs space-y-1">
+            <p><span className="text-gray-500">Customer:</span> <span className="font-bold text-gray-900 dark:text-white">{order.userName}</span></p>
             <p><span className="text-gray-500">{t.phone}:</span> <span className="font-bold text-gray-900 dark:text-white">{order.userPhone}</span></p>
             <p><span className="text-gray-500">{t.pickupAt}:</span> <span className="font-bold text-gray-900 dark:text-white">{order.pickupDate} at {order.pickupTime}</span></p>
             <p><span className="text-gray-500">{t.paymentMethod}:</span> <span className="font-bold text-gray-900 dark:text-white capitalize">{order.paymentMethod}</span></p>

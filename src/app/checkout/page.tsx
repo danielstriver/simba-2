@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { formatPrice } from "@/lib/products";
@@ -11,7 +11,7 @@ import { deductStock } from "@/lib/inventory";
 import { getDepositAmount, getBranchManagerEmail } from "@/lib/auth";
 import {
   Check, Phone, User, CreditCard, Banknote,
-  ChevronRight, ShoppingBag, Loader2,
+  ChevronRight, ChevronDown, ShoppingBag, Loader2,
   Clock, Calendar, Store, ArrowRight, MapPin, Package, AlertCircle, ExternalLink,
 } from "lucide-react";
 
@@ -71,6 +71,10 @@ export default function CheckoutPage() {
       notes: "",
     };
   });
+
+  const nameRef = useRef<HTMLDivElement>(null);
+  const phoneRef = useRef<HTMLDivElement>(null);
+  const branchRef = useRef<HTMLDivElement>(null);
 
   const PACKAGING_FEE = user ? getDepositAmount(user.id) : 500;
   const currentBranch = getBranch(form.branch);
@@ -188,17 +192,15 @@ export default function CheckoutPage() {
   }
 
   // ── Form validation ──────────────────────────────────────────────────────────
-  function validateDetails() {
+  function handleNext() {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Name is required";
     if (!form.phone.trim()) e.phone = "Phone is required";
     if (!form.branch) e.branch = "Please select a branch";
     setErrors(e);
-    return Object.keys(e).length === 0;
-  }
-
-  function handleNext() {
-    if (validateDetails()) setStep("payment");
+    if (Object.keys(e).length === 0) { setStep("payment"); return; }
+    const firstRef = e.name ? nameRef : e.phone ? phoneRef : branchRef;
+    setTimeout(() => firstRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
   }
 
   async function handlePlaceOrder() {
@@ -318,7 +320,7 @@ export default function CheckoutPage() {
               </h2>
 
               <div className="grid sm:grid-cols-2 gap-4">
-                <div>
+                <div ref={nameRef}>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">{t.fullName} *</label>
                   <div className="relative">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -332,7 +334,7 @@ export default function CheckoutPage() {
                   </div>
                   {errors.name && <p className="text-[10px] text-orange-500 mt-1 ml-1">{errors.name}</p>}
                 </div>
-                <div>
+                <div ref={phoneRef}>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">{t.phone} *</label>
                   <div className="relative">
                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -349,7 +351,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <div>
+              <div ref={branchRef}>
                 <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 ml-1">{t.selectBranch} *</label>
                 <div className="space-y-3">
                   {(["Nyarugenge", "Gasabo", "Kicukiro"] as const).map((district) => {
@@ -405,13 +407,22 @@ export default function CheckoutPage() {
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">{t.pickupTime} *</label>
                   <div className="relative">
-                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="time"
+                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
+                    <select
                       value={form.time}
                       onChange={(e) => setForm({ ...form, time: e.target.value })}
-                      className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                    />
+                      className="w-full pl-11 pr-8 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm appearance-none cursor-pointer dark:text-white"
+                    >
+                      {Array.from({ length: 17 }, (_, h) => h + 6).flatMap((h) =>
+                        [0, 15, 30, 45].filter((m) => !(h === 22 && m > 0)).map((m) => {
+                          const value = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+                          const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+                          const label = `${h12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+                          return <option key={value} value={value}>{label}</option>;
+                        })
+                      )}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   </div>
                 </div>
               </div>
