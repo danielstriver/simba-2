@@ -83,16 +83,6 @@ export default function StaffLoginPage() {
 
         {/* Logo */}
         <div className="relative">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white shadow-lg shrink-0">
-              <Image src="/images/simba-logo.jpeg" alt="Simba" width={48} height={48} className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <p className="font-black text-xl text-white leading-tight">Simba</p>
-              <p className="text-[10px] text-orange-400 font-bold uppercase tracking-widest">SUPERMARKET</p>
-            </div>
-          </div>
-
           <h2 className="text-3xl xl:text-4xl font-black text-white leading-tight mb-4">
             Staff<br />
             <span className="text-orange-400">Operations</span><br />
