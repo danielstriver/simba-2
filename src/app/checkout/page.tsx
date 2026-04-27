@@ -420,12 +420,10 @@ export default function CheckoutPage() {
                       onChange={(e) => setForm({ ...form, time: e.target.value })}
                       className="w-full pl-11 pr-8 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm appearance-none cursor-pointer dark:text-white"
                     >
-                      {Array.from({ length: 17 }, (_, h) => h + 6).flatMap((h) =>
-                        [0, 15, 30, 45].filter((m) => !(h === 22 && m > 0)).map((m) => {
+                      {Array.from({ length: 24 }, (_, h) => h).flatMap((h) =>
+                        [0, 15, 30, 45].map((m) => {
                           const value = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-                          const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
-                          const label = `${h12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
-                          return <option key={value} value={value}>{label}</option>;
+                          return <option key={value} value={value}>{value}</option>;
                         })
                       )}
                     </select>
