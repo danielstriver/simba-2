@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { BRANCHES } from "@/lib/branches";
 import { readOrders, patchOrder, Order, OrderStatus, getBranchStats } from "@/lib/orders";
 import { markOutOfStock, restoreStock, getStock, getBranchInventoryEntries } from "@/lib/inventory";
@@ -9,7 +10,7 @@ import { useStaffUser } from "@/lib/staffAuth";
 import { formatPrice } from "@/lib/products";
 import {
   Store, ChevronDown, Check, Clock, Package, User,
-  AlertTriangle, RotateCcw, Loader2, Star, Boxes, LogOut,
+  AlertTriangle, RotateCcw, Loader2, Star, Boxes, LogOut, LogIn,
 } from "lucide-react";
 
 const DEMO_STAFF = [
@@ -18,6 +19,81 @@ const DEMO_STAFF = [
   { id: "staff-3", name: "Carol Mukandayisenga" },
   { id: "staff-4", name: "David Habimana" },
 ];
+
+const DEMO_MANAGER_USER = {
+  id: "demo-manager",
+  name: "Demo Manager",
+  email: "manager@simba.rw",
+  phone: "+250 788 000 000",
+  role: "manager" as const,
+  branchId: "centenary",
+};
+
+function seedDemoOrders(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const KEY = "simba-orders";
+    if (JSON.parse(localStorage.getItem(KEY) || "[]").length > 0) return;
+    const now = new Date();
+    const fmt = (d: Date) => d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    const iso = (d: Date) => d.toISOString();
+    const ago = (ms: number) => new Date(now.getTime() - ms);
+    const demo: Order[] = [
+      {
+        id: "ORD-DEMO01", userId: "demo-1", userName: "Alice Uwimana",
+        userPhone: "+250 788 111 222", userEmail: "alice@demo.rw",
+        items: [
+          { productId: 101, productName: "Basso Extra Virgin Olive Oil 250ml", price: 4500, quantity: 2, image: "", unit: "bottle" },
+          { productId: 102, productName: "Simba Mbili Curry Powder 100g", price: 950, quantity: 3, image: "", unit: "pack" },
+        ],
+        branch: "centenary", branchLabel: "Simba Centenary",
+        pickupDate: fmt(now), pickupTime: "14:00",
+        paymentMethod: "momo", subtotal: 11850, depositPaid: 500,
+        status: "pending", createdAt: iso(ago(1800000)), updatedAt: iso(ago(1800000)),
+      },
+      {
+        id: "ORD-DEMO02", userId: "demo-2", userName: "Bob Nkurunziza",
+        userPhone: "+250 788 333 444", userEmail: "bob@demo.rw",
+        items: [
+          { productId: 103, productName: "American Light Meat Tuna 185g", price: 2200, quantity: 4, image: "", unit: "can" },
+          { productId: 104, productName: "Gold Band Margarine 500g", price: 2100, quantity: 2, image: "", unit: "tub" },
+        ],
+        branch: "centenary", branchLabel: "Simba Centenary",
+        pickupDate: fmt(now), pickupTime: "15:30",
+        paymentMethod: "cash", subtotal: 13000, depositPaid: 500,
+        status: "accepted", assignedStaffId: "staff-1", assignedStaffName: "Alice Uwimana",
+        createdAt: iso(ago(3600000)), updatedAt: iso(ago(1200000)),
+      },
+      {
+        id: "ORD-DEMO03", userId: "demo-3", userName: "Carol Mukandayisenga",
+        userPhone: "+250 788 555 666", userEmail: "carol@demo.rw",
+        items: [
+          { productId: 105, productName: "Ayin Toilet Paper 500 Sheets", price: 3800, quantity: 3, image: "", unit: "pack" },
+          { productId: 106, productName: "Belle France Whisky 700ml", price: 12000, quantity: 1, image: "", unit: "bottle" },
+        ],
+        branch: "centenary", branchLabel: "Simba Centenary",
+        pickupDate: fmt(new Date(now.getTime() + 3600000)), pickupTime: "11:00",
+        paymentMethod: "momo", subtotal: 23400, depositPaid: 1000,
+        status: "preparing", assignedStaffId: "staff-2", assignedStaffName: "Bob Nkurunziza",
+        createdAt: iso(ago(7200000)), updatedAt: iso(ago(3600000)),
+      },
+      {
+        id: "ORD-DEMO04", userId: "demo-4", userName: "David Habimana",
+        userPhone: "+250 788 777 888", userEmail: "david@demo.rw",
+        items: [
+          { productId: 107, productName: "Amarula 1lt", price: 15000, quantity: 1, image: "", unit: "bottle" },
+          { productId: 108, productName: "Azam HBF Wheat Flour 2kg", price: 1800, quantity: 3, image: "", unit: "bag" },
+        ],
+        branch: "centenary", branchLabel: "Simba Centenary",
+        pickupDate: fmt(new Date(now.getTime() + 7200000)), pickupTime: "16:00",
+        paymentMethod: "momo", subtotal: 20400, depositPaid: 1000,
+        status: "ready", assignedStaffId: "staff-3", assignedStaffName: "Carol Mukandayisenga",
+        createdAt: iso(ago(14400000)), updatedAt: iso(ago(1800000)),
+      },
+    ];
+    localStorage.setItem(KEY, JSON.stringify(demo));
+  } catch { /* ignore */ }
+}
 
 type Role = "manager" | "staff";
 
@@ -73,19 +149,22 @@ export default function DashboardPage() {
   const { t } = useLang();
   const router = useRouter();
   const { staffUser, signOut } = useStaffUser();
+  const isDemoMode = !staffUser || (staffUser.role !== "manager" && staffUser.role !== "staff");
+  const effectiveUser = isDemoMode ? DEMO_MANAGER_USER : staffUser!;
   const [role, setRole] = useState<Role>("manager");
   const [branchId, setBranchId] = useState(BRANCHES[0].id);
 
   useEffect(() => {
-    if (staffUser === null || (staffUser.role !== "manager" && staffUser.role !== "staff")) {
-      router.replace("/staff/login");
-    } else if (staffUser.role === "staff") {
+    if (isDemoMode) {
+      seedDemoOrders();
+    } else if (staffUser!.role === "staff") {
       setRole("staff");
-      if (staffUser.branchId) setBranchId(staffUser.branchId);
-    } else if (staffUser.role === "manager" && staffUser.branchId) {
-      setBranchId(staffUser.branchId);
+      if (staffUser!.branchId) setBranchId(staffUser!.branchId);
+    } else if (staffUser!.branchId) {
+      setBranchId(staffUser!.branchId);
     }
-  }, [staffUser, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDemoMode]);
 
   const [staffId, setStaffId] = useState(DEMO_STAFF[0].id);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -96,9 +175,10 @@ export default function DashboardPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const reload = useCallback(() => {
+    if (isDemoMode) seedDemoOrders();
     const all = readOrders().filter((o) => o.branch === branchId);
     setOrders(all.sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
-  }, [branchId]);
+  }, [branchId, isDemoMode]);
 
   useEffect(() => {
     reload();
@@ -167,8 +247,6 @@ export default function DashboardPage() {
     }
   }
 
-  if (!staffUser || (staffUser.role !== "manager" && staffUser.role !== "staff")) return null;
-
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Header */}
@@ -178,18 +256,32 @@ export default function DashboardPage() {
             <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
               <Store className="w-7 h-7 text-orange-600" /> {t.dashboard}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-              {staffUser.name} · {staffUser.role === "manager" ? t.managerView : t.staffView}
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 flex items-center gap-2 flex-wrap">
+              {effectiveUser.name} · {effectiveUser.role === "manager" ? t.managerView : t.staffView}
+              {isDemoMode && (
+                <span className="inline-block text-[10px] font-black bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full uppercase tracking-wide">
+                  Demo
+                </span>
+              )}
             </p>
           </div>
 
-          {/* Sign out — pinned top-right */}
-          <button
-            onClick={() => { signOut(); router.replace("/staff/login"); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors shrink-0"
-          >
-            <LogOut className="w-3.5 h-3.5" /> Sign Out
-          </button>
+          {/* Sign out / Login */}
+          {isDemoMode ? (
+            <Link
+              href="/staff/login"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900/50 text-xs font-bold text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors shrink-0"
+            >
+              <LogIn className="w-3.5 h-3.5" /> {t.staffLogin}
+            </Link>
+          ) : (
+            <button
+              onClick={() => { signOut(); router.replace("/staff/login"); }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors shrink-0"
+            >
+              <LogOut className="w-3.5 h-3.5" /> Sign Out
+            </button>
+          )}
         </div>
 
         {/* Controls row */}
