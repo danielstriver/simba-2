@@ -9,8 +9,9 @@ import { useStaffUser } from "@/lib/staffAuth";
 import { formatPrice } from "@/lib/products";
 import {
   Store, ChevronDown, Check, Clock, Package, User,
-  AlertTriangle, RotateCcw, Loader2, Star, Boxes, LogOut,
+  AlertTriangle, RotateCcw, Loader2, Star, Boxes, LogOut, ShoppingBag,
 } from "lucide-react";
+import { ProductsPanel } from "./ProductsPanel";
 
 const DEMO_STAFF = [
   { id: "staff-1", name: "Alice Uwimana" },
@@ -89,7 +90,7 @@ export default function DashboardPage() {
 
   const [staffId, setStaffId] = useState(DEMO_STAFF[0].id);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<"orders" | "inventory">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "inventory" | "products">("orders");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [refresh, setRefresh] = useState(0);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -239,27 +240,26 @@ export default function DashboardPage() {
       )}
 
       {/* Tab navigation */}
-      <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit">
-        <button
-          onClick={() => setActiveTab("orders")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
-            activeTab === "orders"
-              ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-          }`}
-        >
-          <Package className="w-4 h-4" /> {t.ordersTab}
-        </button>
-        <button
-          onClick={() => setActiveTab("inventory")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
-            activeTab === "inventory"
-              ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-          }`}
-        >
-          <Boxes className="w-4 h-4" /> {t.inventoryTab}
-        </button>
+      <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit overflow-x-auto">
+        {(
+          [
+            { id: "orders", icon: <Package className="w-4 h-4" />, label: t.ordersTab },
+            { id: "inventory", icon: <Boxes className="w-4 h-4" />, label: t.inventoryTab },
+            { id: "products", icon: <ShoppingBag className="w-4 h-4" />, label: t.productsTab },
+          ] as const
+        ).map(({ id, icon, label }) => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${
+              activeTab === id
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            }`}
+          >
+            {icon} {label}
+          </button>
+        ))}
       </div>
 
       {/* Rating (if reviews exist) */}
@@ -361,6 +361,9 @@ export default function DashboardPage() {
           getStock={(productId) => getStock(branchId, productId)}
         />
       )}
+
+      {/* ── Products tab ── */}
+      {activeTab === "products" && <ProductsPanel />}
     </div>
   );
 }

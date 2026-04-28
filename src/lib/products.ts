@@ -7,6 +7,7 @@ export interface Product {
   inStock: boolean;
   image: string;
   unit: string;
+  description?: string;
 }
 
 export interface StoreInfo {
@@ -147,6 +148,10 @@ export function formatPrice(price: number): string {
 
 let cachedData: ProductsData | null = null;
 
+export function clearProductCache(): void {
+  cachedData = null;
+}
+
 export async function getProducts(): Promise<ProductsData> {
   if (cachedData) return cachedData;
   const res = await fetch("/simba_products.json");
@@ -154,11 +159,33 @@ export async function getProducts(): Promise<ProductsData> {
   const raw: ProductsData = await res.json();
 
   // Apply category overrides and name cleanup
-  const products: Product[] = raw.products.map((p) => ({
+  let products: Product[] = raw.products.map((p) => ({
     ...p,
     name: cleanName(p.name),
     category: SUBCATEGORY_CATEGORY[p.subcategoryId] ?? p.category,
   }));
+
+  // Merge staff-managed overrides and custom products from localStorage (client-only)
+  if (typeof window !== "undefined") {
+    const overridesRaw = localStorage.getItem("simba-product-overrides");
+    if (overridesRaw) {
+      try {
+        const overrides: Record<number, Partial<Product>> = JSON.parse(overridesRaw);
+        products = products.map((p) => {
+          const o = overrides[p.id];
+          return o ? { ...p, ...o, id: p.id } : p;
+        });
+      } catch { /* ignore corrupt data */ }
+    }
+
+    const customRaw = localStorage.getItem("simba-custom-products");
+    if (customRaw) {
+      try {
+        const custom: Product[] = JSON.parse(customRaw);
+        products = [...products, ...custom];
+      } catch { /* ignore corrupt data */ }
+    }
+  }
 
   cachedData = { store: raw.store, products };
   return cachedData;
