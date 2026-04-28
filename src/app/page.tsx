@@ -28,7 +28,8 @@ export default function HomePage() {
 
   function handleHeroSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (heroSearch.trim()) router.push(`/products?q=${encodeURIComponent(heroSearch.trim())}`);
+    const q = heroSearch.trim();
+    router.push(q ? `/products?q=${encodeURIComponent(q)}` : "/products");
   }
 
   function handleStartShopping() {

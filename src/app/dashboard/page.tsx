@@ -180,7 +180,7 @@ export default function DashboardPage() {
   const reload = useCallback(() => {
     if (isDemoMode) seedDemoOrders();
     const all = readOrders().filter((o) => o.branch === branchId);
-    setOrders(all.sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+    setOrders(all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
   }, [branchId, isDemoMode]);
 
   useEffect(() => {

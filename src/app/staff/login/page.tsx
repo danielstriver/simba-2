@@ -6,10 +6,11 @@ import { login } from "@/lib/auth";
 import { useStaffUser } from "@/lib/staffAuth";
 import { useLang } from "@/lib/LanguageContext";
 import { Store, Shield, Users, Mail, Lock, LogIn, Eye, EyeOff, ChevronRight, Package, Clock, BarChart3, CheckCircle2 } from "lucide-react";
+import { BRANCHES } from "@/lib/branches";
 
 type LoginRole = "manager" | "staff" | null;
 
-const MANAGER_DEMO = { name: "Daniel NIYOMUGENGA", email: "danielhustler.hacker@gmail.com", password: "Simba2025!" };
+const MANAGER_DEMO = { name: "Daniel NIYOMUGENGA", email: "manager@simba.rw", password: "Simba2025!" };
 const STAFF_DEMOS = [
   { name: "Alice Uwimana", email: "alice@simba.rw", password: "Staff2025!" },
   { name: "Bob Nkurunziza", email: "bob@simba.rw", password: "Staff2025!" },
@@ -113,7 +114,7 @@ export default function StaffLoginPage() {
         <div className="relative">
           <div className="flex items-center gap-2 text-xs text-gray-600">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-            <span>11 branches · Kigali, Rwanda</span>
+            <span>{BRANCHES.length} branches · Kigali, Rwanda</span>
           </div>
         </div>
       </div>

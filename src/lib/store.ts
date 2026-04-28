@@ -40,8 +40,6 @@ interface CartStore {
   setCartOpen: (open: boolean) => void;
   setSelectedBranch: (branch: string | null) => void;
   setShowBranchModal: (show: boolean) => void;
-  totalItems: () => number;
-  totalPrice: () => number;
 }
 
 export const useStore = create<CartStore>()(
@@ -88,9 +86,6 @@ export const useStore = create<CartStore>()(
       setCartOpen: (open) => set({ cartOpen: open }),
       setSelectedBranch: (branch) => set({ selectedBranch: branch }),
       setShowBranchModal: (show) => set({ showBranchModal: show }),
-      totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
-      totalPrice: () =>
-        get().items.reduce((sum, i) => sum + i.product.price * i.quantity, 0),
     }),
     {
       name: "simba-store",

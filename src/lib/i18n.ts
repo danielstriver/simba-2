@@ -1,6 +1,6 @@
 export type Language = "en" | "fr" | "rw";
 
-export const translations = {
+export const translations = ({
   en: {
     siteName: "Simba Supermarket",
     tagline: "Rwanda's Most Popular Online Supermarket",
@@ -619,6 +619,13 @@ export const translations = {
     searchProductsPlaceholder: "Shakisha ibicuruzwa...",
     productsInCategory: "ibicuruzwa",
   },
-};
+// satisfies ensures all Language keys are present; key-completeness across locales
+// is enforced by the _assert* checks below
+}) satisfies Record<Language, object>;
 
 export type Translations = typeof translations.en;
+
+// Compile-time assertion: fr and rw must contain every key present in en
+const _assertFr: typeof translations.fr extends Translations ? true : never = true;
+const _assertRw: typeof translations.rw extends Translations ? true : never = true;
+void _assertFr; void _assertRw;
