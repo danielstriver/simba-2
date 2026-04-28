@@ -121,10 +121,10 @@ function getStatusLabels(t: Translations): Record<OrderStatus, string> {
   };
 }
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, t: Translations): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
+  if (mins < 1) return t.timeJustNow;
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
@@ -282,7 +282,7 @@ export default function DashboardPage() {
               onClick={() => { signOut(); router.replace("/staff/login"); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors shrink-0"
             >
-              <LogOut className="w-3.5 h-3.5" /> Sign Out
+              <LogOut className="w-3.5 h-3.5" /> {t.signOut}
             </button>
           )}
         </div>
@@ -379,7 +379,7 @@ export default function DashboardPage() {
                 <button
                   key={s}
                   onClick={() => setStatusFilter(s)}
-                  className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                  className={`shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-colors ${
                     statusFilter === s
                       ? "bg-orange-600 border-orange-600 text-white"
                       : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-orange-300"
@@ -521,7 +521,7 @@ function InventoryPanel({
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+            className={`shrink-0 px-4 py-2 rounded-full text-xs font-bold border transition-colors ${
               filter === f
                 ? "bg-orange-600 border-orange-600 text-white"
                 : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-orange-300"
@@ -617,8 +617,13 @@ function staffInitials(name: string) {
 
 function BranchSelect({ value, onChange }: { value: string; onChange: (id: string) => void }) {
   const [open, setOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const { t } = useLang();
   const selected = BRANCHES.find(b => b.id === value);
+
+  const districts = ["Nyarugenge", "Gasabo", "Kicukiro"] as const;
+  const flatOptions = BRANCHES;
 
   useEffect(() => {
     function onOutside(e: MouseEvent) {
@@ -628,20 +633,63 @@ function BranchSelect({ value, onChange }: { value: string; onChange: (id: strin
     return () => document.removeEventListener("mousedown", onOutside);
   }, []);
 
+  useEffect(() => {
+    if (!open) setHighlightedIndex(0);
+  }, [open]);
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (!open) {
+      if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+        e.preventDefault();
+        setOpen(true);
+      }
+      return;
+    }
+    switch (e.key) {
+      case "Escape":
+        e.preventDefault();
+        setOpen(false);
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex(i => (i + 1) % flatOptions.length);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex(i => (i - 1 + flatOptions.length) % flatOptions.length);
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (flatOptions[highlightedIndex]) {
+          onChange(flatOptions[highlightedIndex].id);
+          setOpen(false);
+        }
+        break;
+    }
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(v => !v)}
+        onKeyDown={handleKeyDown}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-label={t.selectBranch}
         className="flex items-center gap-2 pl-3 pr-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 hover:border-orange-300 dark:hover:border-orange-700 transition-all"
       >
         {selected && <div className={`w-2 h-2 rounded-full shrink-0 ${DISTRICT_STYLE[selected.district].dot}`} />}
-        <span className="truncate max-w-[120px] sm:max-w-[140px]">{selected ? shortBranch(selected.label) : "Select branch"}</span>
+        <span className="truncate max-w-[120px] sm:max-w-[140px]">{selected ? shortBranch(selected.label) : t.selectBranch}</span>
         <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 shrink-0 ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-y-auto animate-in slide-in-from-top-2 fade-in duration-200 min-w-[220px] max-h-[320px]">
-          {(["Nyarugenge", "Gasabo", "Kicukiro"] as const).map(district => {
+        <div 
+          role="listbox" 
+          aria-label={t.selectBranch}
+          className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-y-auto animate-in slide-in-from-top-2 fade-in duration-200 min-w-[220px] max-h-[320px]"
+        >
+          {districts.map(district => {
             const style = DISTRICT_STYLE[district];
             return (
               <div key={district}>
@@ -649,21 +697,26 @@ function BranchSelect({ value, onChange }: { value: string; onChange: (id: strin
                   <div className={`w-2 h-2 rounded-full shrink-0 ${style.dot}`} />
                   <span className="text-[10px] font-black uppercase tracking-wider">{district}</span>
                 </div>
-                {BRANCHES.filter(b => b.district === district).map(b => (
-                  <button
-                    key={b.id}
-                    onClick={() => { onChange(b.id); setOpen(false); }}
-                    className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors ${
-                      value === b.id
-                        ? "bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 font-bold"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 font-medium"
-                    }`}
-                  >
-                    <div className={`w-1 h-4 rounded-full shrink-0 ${value === b.id ? style.stripe : "bg-gray-200 dark:bg-gray-700"}`} />
-                    <span className="flex-1 truncate">{shortBranch(b.label)}</span>
-                    {value === b.id && <Check className="w-3.5 h-3.5 shrink-0 text-orange-600" />}
-                  </button>
-                ))}
+                {BRANCHES.filter(b => b.district === district).map((b, idx) => {
+                  const flatIdx = flatOptions.findIndex(o => o.id === b.id);
+                  return (
+                    <button
+                      key={b.id}
+                      role="option"
+                      aria-selected={value === b.id}
+                      onClick={() => { onChange(b.id); setOpen(false); }}
+                      className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors ${
+                        value === b.id
+                          ? "bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 font-bold"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 font-medium"
+                      } ${highlightedIndex === flatIdx ? "ring-2 ring-orange-500 ring-inset" : ""}`}
+                    >
+                      <div className={`w-1 h-4 rounded-full shrink-0 ${value === b.id ? style.stripe : "bg-gray-200 dark:bg-gray-700"}`} />
+                      <span className="flex-1 truncate">{shortBranch(b.label)}</span>
+                      {value === b.id && <Check className="w-3.5 h-3.5 shrink-0 text-orange-600" />}
+                    </button>
+                  );
+                })}
               </div>
             );
           })}
@@ -685,7 +738,9 @@ function StaffSelect({
   menuLeft?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const { t } = useLang();
   const selectedIdx = DEMO_STAFF.findIndex(s => s.id === value);
   const selected = DEMO_STAFF[selectedIdx];
 
@@ -697,10 +752,49 @@ function StaffSelect({
     return () => document.removeEventListener("mousedown", onOutside);
   }, []);
 
+  useEffect(() => {
+    if (!open) setHighlightedIndex(0);
+  }, [open]);
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (!open) {
+      if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+        e.preventDefault();
+        setOpen(true);
+      }
+      return;
+    }
+    switch (e.key) {
+      case "Escape":
+        e.preventDefault();
+        setOpen(false);
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex(i => (i + 1) % DEMO_STAFF.length);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex(i => (i - 1 + DEMO_STAFF.length) % DEMO_STAFF.length);
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (DEMO_STAFF[highlightedIndex]) {
+          onChange(DEMO_STAFF[highlightedIndex].id);
+          setOpen(false);
+        }
+        break;
+    }
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(v => !v)}
+        onKeyDown={handleKeyDown}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-label={t.selectStaff}
         className={`flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 hover:border-orange-300 dark:hover:border-orange-700 transition-all ${compact ? "w-full" : ""}`}
       >
         {selected && (
@@ -709,23 +803,29 @@ function StaffSelect({
           </div>
         )}
         <span className={`truncate font-bold flex-1 ${compact ? "" : "max-w-[110px]"}`}>
-          {selected ? (compact ? selected.name.split(" ")[0] : selected.name) : "Select staff"}
+          {selected ? (compact ? selected.name.split(" ")[0] : selected.name) : t.selectStaff}
         </span>
         <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 shrink-0 ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
-        <div className={`absolute ${menuLeft ? "left-0" : "left-0 sm:left-auto sm:right-0"} top-full mt-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 animate-in slide-in-from-top-2 fade-in duration-200 min-w-[200px]`}>
+        <div 
+          role="listbox" 
+          aria-label={t.selectStaff}
+          className={`absolute ${menuLeft ? "left-0" : "left-0 sm:left-auto sm:right-0"} top-full mt-2 z-50 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 animate-in slide-in-from-top-2 fade-in duration-200 min-w-[200px]`}
+        >
           <div className="p-1.5 space-y-0.5">
             {DEMO_STAFF.map((s, i) => (
               <button
+                role="option"
+                aria-selected={value === s.id}
                 key={s.id}
                 onClick={() => { onChange(s.id); setOpen(false); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-left transition-colors ${
                   value === s.id
                     ? "bg-orange-50 dark:bg-orange-950/30"
                     : "hover:bg-gray-50 dark:hover:bg-gray-800/60"
-                }`}
+                } ${highlightedIndex === i ? "ring-2 ring-orange-500 ring-inset" : ""}`}
               >
                 <div className={`w-8 h-8 rounded-full ${STAFF_COLORS[i % STAFF_COLORS.length]} flex items-center justify-center shrink-0`}>
                   <span className="text-[10px] font-black text-white">{staffInitials(s.name)}</span>
@@ -768,12 +868,15 @@ function OrderCard({
   const { t } = useLang();
   const statusLabels = getStatusLabels(t);
   const [assignStaff, setAssignStaff] = useState(DEMO_STAFF[0].id);
+  const detailsId = `order-details-${order.id}`;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
       {/* Summary row */}
       <button
         onClick={onToggle}
+        aria-expanded={expanded}
+        aria-controls={detailsId}
         className="w-full flex items-center gap-3 sm:gap-4 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded-t-2xl"
       >
         <div className="flex-1 min-w-0">
@@ -791,7 +894,7 @@ function OrderCard({
               <Package className="w-3 h-3" /> {order.items.length} item{order.items.length !== 1 ? "s" : ""}
             </span>
             <span className="text-xs text-gray-500 flex items-center gap-1">
-              <Clock className="w-3 h-3" /> {timeAgo(order.createdAt)}
+              <Clock className="w-3 h-3" /> {timeAgo(order.createdAt, t)}
             </span>
           </div>
         </div>
@@ -804,7 +907,7 @@ function OrderCard({
 
       {/* Expanded details */}
       {expanded && (
-        <div className="border-t border-gray-100 dark:border-gray-700 p-4 space-y-4">
+        <div id={detailsId} className="border-t border-gray-100 dark:border-gray-700 p-4 space-y-4">
           {/* Items */}
           <div>
             <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{t.items}</p>

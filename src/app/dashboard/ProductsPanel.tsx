@@ -54,6 +54,7 @@ export function ProductsPanel() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [searchDebounced, setSearchDebounced] = useState("");
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
   const [modalMode, setModalMode] = useState<"add" | "edit" | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -62,6 +63,11 @@ export function ProductsPanel() {
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [rev, setRev] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchDebounced(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,14 +87,14 @@ export function ProductsPanel() {
   );
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = searchDebounced.trim().toLowerCase();
     if (!q) return allProducts;
     return allProducts.filter(
       (p) =>
         p.name.toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q)
     );
-  }, [allProducts, search]);
+  }, [allProducts, searchDebounced]);
 
   const byCategory = useMemo(() => {
     const map = new Map<string, Product[]>();
@@ -482,6 +488,7 @@ function ProductModal({
           </h2>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -631,6 +638,7 @@ function Field({
   type?: string;
   min?: string;
 }) {
+  const errorId = `${label.toLowerCase().replace(/\s+/g, "-")}-error`;
   return (
     <div>
       <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
@@ -642,13 +650,15 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        aria-invalid={!!error}
+        aria-describedby={error ? errorId : undefined}
         className={`w-full px-3 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white placeholder-gray-400 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500 transition ${
           error
             ? "border-red-400 dark:border-red-600"
             : "border-gray-200 dark:border-gray-700"
         }`}
       />
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p id={errorId} role="alert" className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   );
 }
