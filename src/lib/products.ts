@@ -23,28 +23,9 @@ export interface ProductsData {
 }
 
 // ─── Subcategory → correct category overrides ─────────────────────────────────
-// The source data has some subcategories miscategorised (e.g. olive oil, flour,
-// toilet paper filed under "Alcoholic Drinks"). We remap them here.
-const SUBCATEGORY_CATEGORY: Record<number, string> = {
-  // Real alcoholic drink subcategories — keep as-is (27, 234-238)
-
-  // Oils, flours, spices, syrups, butter, vinegar, canned → Food Products
-  65: "Food Products",
-  67: "Food Products",
-  72: "Food Products",
-  76: "Food Products",
-  259: "Food Products",
-  372: "Food Products",
-  671: "Food Products",
-  672: "Food Products",
-
-  // Toilet paper, kitchen towels → Cleaning & Sanitary
-  246: "Cleaning & Sanitary",
-  247: "Cleaning & Sanitary",
-
-  // Petroleum jelly / Vaseline → Cosmetics & Personal Care
-  379: "Cosmetics & Personal Care",
-};
+// Source data was corrected in April 2026 (163 products had wrong "Alcoholic Drinks" category).
+// Map kept as a safety net for any future data issues.
+const SUBCATEGORY_CATEGORY: Record<number, string> = {};
 
 export const CATEGORIES = [
   "Cosmetics & Personal Care",
