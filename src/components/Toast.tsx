@@ -15,7 +15,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const toast = useCallback((message: string, type: ToastType = "success", sub?: string) => {
     const id = ++counter.current;
     setToasts((prev) => [...prev, { id, message, type, sub }]);
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3000);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 5000);
   }, []);
 
   const remove = (id: number) => setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -27,7 +27,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-white text-sm font-medium pointer-events-auto animate-in slide-in-from-bottom-4 duration-300 max-w-xs ${
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-white text-sm font-medium pointer-events-auto animate-in slide-in-from-bottom-4 duration-300 max-w-sm w-[calc(100vw-2rem)] ${
               t.type === "cart"
                 ? "bg-gray-900 dark:bg-gray-100 dark:text-gray-900"
                 : t.type === "error"
@@ -43,10 +43,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <CheckCircle className="w-4 h-4 shrink-0" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="leading-snug truncate">{t.message}</p>
-              {t.sub && <p className="text-xs opacity-70 truncate">{t.sub}</p>}
+              <p className="leading-snug break-words">{t.message}</p>
+              {t.sub && <p className="text-xs opacity-70 break-words">{t.sub}</p>}
             </div>
-            <button onClick={() => remove(t.id)} aria-label="Dismiss notification" className="shrink-0 opacity-60 hover:opacity-100">
+            <button
+              onClick={() => remove(t.id)}
+              aria-label="Dismiss notification"
+              className="shrink-0 p-0.5 rounded-full bg-white/20 hover:bg-white/40 transition-colors"
+            >
               <X className="w-3.5 h-3.5" />
             </button>
           </div>

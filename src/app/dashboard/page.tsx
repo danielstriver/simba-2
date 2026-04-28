@@ -13,6 +13,7 @@ import {
   AlertTriangle, RotateCcw, Loader2, Star, Boxes, LogOut, LogIn, ShoppingBag,
 } from "lucide-react";
 import { ProductsPanel } from "./ProductsPanel";
+import { useToast } from "@/components/Toast";
 
 const DEMO_STAFF = [
   { id: "staff-1", name: "Alice Uwimana" },
@@ -149,6 +150,7 @@ async function sendNotification(
 export default function DashboardPage() {
   const { t } = useLang();
   const router = useRouter();
+  const { toast } = useToast();
   const { staffUser, signOut } = useStaffUser();
   const isDemoMode = !staffUser || (staffUser.role !== "manager" && staffUser.role !== "staff");
   const effectiveUser = isDemoMode ? DEMO_MANAGER_USER : staffUser!;
@@ -226,17 +228,17 @@ export default function DashboardPage() {
       ? orders.filter((o) => o.status !== "picked_up" && o.status !== "cancelled")
       : filtered;
 
-  async function doAction(orderId: string, fn: () => void) {
+  async function doAction(orderId: string, fn: () => void, message?: string) {
     setActionLoading(orderId);
     await new Promise((r) => setTimeout(r, 400));
     fn();
     setRefresh((n) => n + 1);
     setActionLoading(null);
+    if (message) toast(message);
   }
 
   async function doReady(order: Order) {
-    await doAction(order.id, () => patchOrder(order.id, { status: "ready" }));
-    // Notify customer
+    await doAction(order.id, () => patchOrder(order.id, { status: "ready" }), "Order ready for pickup — customer notified");
     if (order.userEmail) {
       sendNotification("order_ready", order.userEmail, {
         orderId: order.id,
@@ -420,20 +422,21 @@ export default function DashboardPage() {
                   expanded={expandedOrder === order.id}
                   onToggle={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
                   loading={actionLoading === order.id}
-                  onAccept={() => doAction(order.id, () => patchOrder(order.id, { status: "accepted" }))}
+                  onAccept={() => doAction(order.id, () => patchOrder(order.id, { status: "accepted" }), "Order accepted")}
                   onAssign={(staffMemberId, name) =>
                     doAction(order.id, () =>
-                      patchOrder(order.id, { status: "accepted", assignedStaffId: staffMemberId, assignedStaffName: name })
+                      patchOrder(order.id, { status: "accepted", assignedStaffId: staffMemberId, assignedStaffName: name }),
+                      `Order assigned to ${name}`
                     )
                   }
-                  onPreparing={() => doAction(order.id, () => patchOrder(order.id, { status: "preparing" }))}
+                  onPreparing={() => doAction(order.id, () => patchOrder(order.id, { status: "preparing" }), "Order is being prepared")}
                   onReady={() => doReady(order)}
-                  onPickedUp={() => doAction(order.id, () => patchOrder(order.id, { status: "picked_up" }))}
+                  onPickedUp={() => doAction(order.id, () => patchOrder(order.id, { status: "picked_up" }), "Order marked as collected")}
                   onOutOfStock={(productId) =>
-                    doAction(order.id, () => markOutOfStock(branchId, productId))
+                    doAction(order.id, () => markOutOfStock(branchId, productId), "Product marked out of stock")
                   }
                   onRestoreStock={(productId) =>
-                    doAction(order.id, () => restoreStock(branchId, productId))
+                    doAction(order.id, () => restoreStock(branchId, productId), "Stock restored")
                   }
                   getStock={(productId) => getStock(branchId, productId)}
                 />
@@ -448,8 +451,8 @@ export default function DashboardPage() {
         <InventoryPanel
           branchId={branchId}
           items={inventoryItems}
-          onMarkOutOfStock={(productId) => { markOutOfStock(branchId, productId); setRefresh((n) => n + 1); }}
-          onRestoreStock={(productId) => { restoreStock(branchId, productId); setRefresh((n) => n + 1); }}
+          onMarkOutOfStock={(productId) => { markOutOfStock(branchId, productId); setRefresh((n) => n + 1); toast("Product marked out of stock"); }}
+          onRestoreStock={(productId) => { restoreStock(branchId, productId); setRefresh((n) => n + 1); toast("Stock restored"); }}
           getStock={(productId) => getStock(branchId, productId)}
         />
       )}

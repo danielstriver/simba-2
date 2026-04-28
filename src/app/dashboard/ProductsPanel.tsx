@@ -16,6 +16,7 @@ import {
 } from "@/lib/productCatalog";
 import { getProductImage } from "@/lib/imageMap";
 import { useLang } from "@/lib/LanguageContext";
+import { useToast } from "@/components/Toast";
 import {
   Plus,
   Search,
@@ -49,6 +50,7 @@ const EMPTY_FORM: ProductFormData = {
 
 export function ProductsPanel() {
   const { t } = useLang();
+  const { toast } = useToast();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -155,12 +157,14 @@ export function ProductsPanel() {
 
     if (modalMode === "add") {
       addCustomProduct(payload);
+      toast(`"${payload.name}" added to catalogue`);
     } else if (modalMode === "edit" && editingProduct) {
       if (customIds.has(editingProduct.id)) {
         updateCustomProduct(editingProduct.id, payload);
       } else {
         setProductOverride(editingProduct.id, payload);
       }
+      toast(`"${payload.name}" updated successfully`);
     }
 
     setSaving(false);
@@ -169,9 +173,11 @@ export function ProductsPanel() {
   }
 
   function handleDelete(id: number) {
+    const name = allProducts.find((p) => p.id === id)?.name;
     deleteCustomProduct(id);
     setDeleteConfirm(null);
     setRev((n) => n + 1);
+    toast(name ? `"${name}" removed from catalogue` : "Product removed", "success");
   }
 
   const customCount = customIds.size;
@@ -188,8 +194,8 @@ export function ProductsPanel() {
     <div>
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
-        <StatCard label={t.totalOrders.replace("Orders", "Products")} value={allProducts.length} color="text-gray-900 dark:text-white" />
-        <StatCard label={t.productsTab} value={CATEGORIES.length} color="text-orange-600" />
+        <StatCard label={t.allProducts} value={allProducts.length} color="text-gray-900 dark:text-white" />
+        <StatCard label={t.categories} value={CATEGORIES.length} color="text-orange-600" />
         <StatCard label={t.customAdded} value={customCount} color="text-purple-600" />
       </div>
 
