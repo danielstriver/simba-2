@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
-  getProducts,
+  getAllProducts,
   Product,
   CATEGORIES,
   CATEGORY_META,
@@ -73,15 +73,11 @@ export function ProductsPanel() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Load ALL products including hidden ones for the manager view
+  // getAllProducts() returns the full catalog including hidden items — managers can see and unhide them.
   useEffect(() => {
     let cancelled = false;
-    // Temporarily bypass hidden filter: load raw then re-add hidden products for manager display
-    getProducts().then((data) => {
+    getAllProducts().then((data) => {
       if (!cancelled) {
-        // getProducts() already filters hidden products for customers.
-        // For the manager panel we want to show hidden products too.
-        // So we re-read hidden IDs and add them back from overrides/custom lists.
         setAllProducts(data.products);
         setLoading(false);
       }
@@ -103,9 +99,6 @@ export function ProductsPanel() {
 
   const filtered = useMemo(() => {
     const q = searchDebounced.trim().toLowerCase();
-    // For manager: we need to show hidden products too.
-    // allProducts comes from getProducts() which already filters hidden ones.
-    // We keep allProducts as-is since reloading with rev re-reads cache after clearProductCache.
     if (!q) return allProducts;
     return allProducts.filter(
       (p) =>

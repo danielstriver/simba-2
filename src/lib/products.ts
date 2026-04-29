@@ -133,20 +133,19 @@ export function clearProductCache(): void {
   cachedData = null;
 }
 
-export async function getProducts(): Promise<ProductsData> {
+// getAllProducts: full catalog including hidden items — for manager dashboard only.
+export async function getAllProducts(): Promise<ProductsData> {
   if (cachedData) return cachedData;
   const res = await fetch("/simba_products.json");
   if (!res.ok) throw new Error(`Failed to load products: ${res.status}`);
   const raw: ProductsData = await res.json();
 
-  // Apply category overrides and name cleanup
   let products: Product[] = raw.products.map((p) => ({
     ...p,
     name: cleanName(p.name),
     category: SUBCATEGORY_CATEGORY[p.subcategoryId] ?? p.category,
   }));
 
-  // Merge staff-managed overrides and custom products from localStorage (client-only)
   if (typeof window !== "undefined") {
     const overridesRaw = localStorage.getItem("simba-product-overrides");
     if (overridesRaw) {
@@ -166,17 +165,21 @@ export async function getProducts(): Promise<ProductsData> {
         products = [...products, ...custom];
       } catch { /* ignore corrupt data */ }
     }
-
-    // Filter products hidden by manager (spoiled / discontinued)
-    const hiddenRaw = localStorage.getItem("simba-hidden-products");
-    if (hiddenRaw) {
-      try {
-        const hiddenIds = new Set<number>(JSON.parse(hiddenRaw) as number[]);
-        if (hiddenIds.size > 0) products = products.filter((p) => !hiddenIds.has(p.id));
-      } catch { /* ignore corrupt data */ }
-    }
   }
 
   cachedData = { store: raw.store, products };
   return cachedData;
+}
+
+// getProducts: customer-facing view — hidden products are filtered out.
+export async function getProducts(): Promise<ProductsData> {
+  const all = await getAllProducts();
+  if (typeof window === "undefined") return all;
+  const hiddenRaw = localStorage.getItem("simba-hidden-products");
+  if (!hiddenRaw) return all;
+  try {
+    const hiddenIds = new Set<number>(JSON.parse(hiddenRaw) as number[]);
+    if (hiddenIds.size === 0) return all;
+    return { ...all, products: all.products.filter((p) => !hiddenIds.has(p.id)) };
+  } catch { return all; }
 }
