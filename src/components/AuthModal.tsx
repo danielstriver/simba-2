@@ -5,6 +5,7 @@ import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/LanguageContext";
 import { register, login, requestReset, confirmReset, loginOrCreateGoogleUser } from "@/lib/auth";
 import { signInWithGoogle, isGoogleAuthConfigured } from "@/lib/firebase";
+import { useToast } from "@/components/Toast";
 import {
   X, User as UserIcon, Mail, Lock, Phone,
   ArrowRight, LogIn, UserPlus, KeyRound, Eye, EyeOff,
@@ -35,6 +36,7 @@ export default function AuthModal({
 }: AuthModalProps) {
   const { t } = useLang();
   const setUser = useStore((s) => s.setUser);
+  const { toast } = useToast();
 
   const [mode, setMode] = useState<Mode>("signin");
   const [form, setForm] = useState({
@@ -119,20 +121,25 @@ export default function AuthModal({
         }).catch(() => {});
       }
 
+      toast(
+        isNewUser ? `Welcome to SIMBA, ${res.data.name.split(" ")[0]}! 🎉` : `Welcome back, ${res.data.name.split(" ")[0]}!`,
+        "success",
+        isNewUser ? "Account created · Check your email for a welcome message" : undefined
+      );
       onSuccess?.();
       onClose();
     } catch (err: unknown) {
       const code = (err as { code?: string }).code;
       if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
-        // User dismissed — no error needed
+        setError("Sign-in was cancelled or the pop-up closed before completing. Please try again and complete the Google sign-in in the pop-up window.");
       } else if (code === "auth/popup-blocked") {
-        setError("Pop-up was blocked by your browser. Please allow pop-ups for this site and try again.");
+        setError("Pop-up was blocked by your browser. Click the pop-up icon in the address bar to allow it, then try again.");
       } else if (code === "auth/unauthorized-domain") {
-        setError("This domain is not authorised for Google Sign-In. Add it to your Firebase project's Authorized Domains (Authentication → Settings).");
+        setError("This domain isn't authorised for Google Sign-In. In Firebase Console → Authentication → Settings → Authorized domains, add 'localhost'.");
       } else if (code === "auth/operation-not-allowed") {
-        setError("Google Sign-In is not enabled. Enable it in Firebase Authentication → Sign-in providers.");
+        setError("Google Sign-In is not enabled in this Firebase project. Enable it under Authentication → Sign-in providers.");
       } else {
-        setError(`Google Sign-In failed${code ? ` (${code})` : ""}. Please try again or use email instead.`);
+        setError(`Google Sign-In failed${code ? ` (${code})` : ""}. Please try again or use email/password instead.`);
       }
     } finally {
       setGoogleLoading(false);
@@ -153,7 +160,15 @@ export default function AuthModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "welcome", to: form.email, data: { name: res.data.name, email: form.email } }),
-      }).catch(() => {});
+      }).then((r) => {
+        if (r.ok) {
+          toast(`Welcome to SIMBA, ${res.data.name.split(" ")[0]}! 🎉`, "success", "Account created · Welcome email sent to " + form.email);
+        } else {
+          toast(`Welcome to SIMBA, ${res.data.name.split(" ")[0]}! 🎉`, "success", "Account created successfully");
+        }
+      }).catch(() => {
+        toast(`Welcome to SIMBA, ${res.data.name.split(" ")[0]}! 🎉`, "success", "Account created successfully");
+      });
       onSuccess?.();
       onClose();
     } else if (mode === "signin") {

@@ -1076,7 +1076,7 @@ function OrderCard({
                     {t.markPreparing}
                   </button>
                 )}
-                {role === "staff" && order.status === "preparing" && (
+                {(role === "manager" || role === "staff") && order.status === "preparing" && (
                   <button onClick={onReady} className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-lg transition-colors bg-green-600 text-white hover:bg-green-700">
                     <Check className="w-3.5 h-3.5" /> {t.markReady}
                   </button>

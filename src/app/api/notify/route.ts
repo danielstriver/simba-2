@@ -58,10 +58,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await resend.emails.send({ from: FROM, to, subject, html });
+    const result = await resend.emails.send({ from: FROM, to, subject, html });
+    console.log(`[notify] ✓ ${type} → ${to} (id: ${(result as { id?: string }).id ?? "?"})`);
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[notify] email send error:", err);
-    return NextResponse.json({ ok: false, error: String(err) }, { status: 500 });
+    const msg = String(err);
+    console.error(`[notify] ✗ ${type} → ${to}:`, msg);
+    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }
