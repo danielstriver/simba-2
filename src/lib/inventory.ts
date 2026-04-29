@@ -46,6 +46,13 @@ export function getBranchInventoryEntries(branchId: string): Record<string, numb
   return readInv()[branchId] ?? {};
 }
 
+export function setStock(branchId: string, productId: number, quantity: number): void {
+  const inv = readInv();
+  if (!inv[branchId]) inv[branchId] = {};
+  inv[branchId][String(productId)] = Math.max(0, Math.round(quantity));
+  writeInv(inv);
+}
+
 export function restoreStock(branchId: string, productId: number, amount = DEFAULT_STOCK): void {
   const inv = readInv();
   if (!inv[branchId]) inv[branchId] = {};

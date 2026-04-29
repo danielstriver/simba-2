@@ -1,16 +1,16 @@
 "use client";
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BRANCHES } from "@/lib/branches";
 import { readOrders, patchOrder, Order, OrderStatus, getBranchStats } from "@/lib/orders";
-import { markOutOfStock, restoreStock, getStock, getBranchInventoryEntries } from "@/lib/inventory";
+import { markOutOfStock, restoreStock, getStock, setStock, getBranchInventoryEntries } from "@/lib/inventory";
 import { useLang } from "@/lib/LanguageContext";
 import { useStaffUser } from "@/lib/staffAuth";
 import { formatPrice } from "@/lib/products";
 import {
   Store, ChevronDown, Check, Clock, Package, User,
-  AlertTriangle, RotateCcw, Loader2, Star, Boxes, LogOut, LogIn, ShoppingBag,
+  AlertTriangle, RotateCcw, Loader2, Star, Boxes, LogOut, LogIn, ShoppingBag, XCircle,
 } from "lucide-react";
 import { ProductsPanel } from "./ProductsPanel";
 import { useToast } from "@/components/Toast";
@@ -225,7 +225,7 @@ export default function DashboardPage() {
 
   const visibleOrders =
     role === "staff"
-      ? orders.filter((o) => o.status !== "picked_up" && o.status !== "cancelled")
+      ? orders.filter((o) => o.assignedStaffId === staffId && o.status !== "picked_up" && o.status !== "cancelled")
       : filtered;
 
   async function doAction(orderId: string, fn: () => void, message?: string) {
@@ -235,6 +235,10 @@ export default function DashboardPage() {
     setRefresh((n) => n + 1);
     setActionLoading(null);
     if (message) toast(message);
+  }
+
+  async function doCancel(orderId: string) {
+    await doAction(orderId, () => patchOrder(orderId, { status: "cancelled" }), "Order cancelled");
   }
 
   async function doReady(order: Order) {
@@ -289,22 +293,24 @@ export default function DashboardPage() {
 
         {/* Controls row */}
         <div className="flex flex-wrap gap-2 sm:gap-3">
-          {/* Role selector */}
-          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-            {(["manager", "staff"] as Role[]).map((r) => (
-              <button
-                key={r}
-                onClick={() => setRole(r)}
-                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold transition-colors ${
-                  role === r
-                    ? "bg-orange-600 text-white"
-                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                }`}
-              >
-                {r === "manager" ? t.managerView : t.staffView}
-              </button>
-            ))}
-          </div>
+          {/* Role selector — hidden for authenticated staff (they can't switch to manager) */}
+          {(isDemoMode || effectiveUser.role === "manager") && (
+            <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+              {(["manager", "staff"] as Role[]).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setRole(r)}
+                  className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold transition-colors ${
+                    role === r
+                      ? "bg-orange-600 text-white"
+                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  {r === "manager" ? t.managerView : t.staffView}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Branch selector */}
           <BranchSelect value={branchId} onChange={setBranchId} />
@@ -339,8 +345,8 @@ export default function DashboardPage() {
           [
             { id: "orders", icon: <Package className="w-4 h-4" />, label: t.ordersTab },
             { id: "inventory", icon: <Boxes className="w-4 h-4" />, label: t.inventoryTab },
-            { id: "products", icon: <ShoppingBag className="w-4 h-4" />, label: t.productsTab },
-          ] as const
+            ...(role === "manager" ? [{ id: "products" as const, icon: <ShoppingBag className="w-4 h-4" />, label: t.productsTab }] : []),
+          ] as { id: "orders" | "inventory" | "products"; icon: React.ReactNode; label: string }[]
         ).map(({ id, icon, label }) => (
           <button
             key={id}
@@ -375,7 +381,7 @@ export default function DashboardPage() {
           {/* Status filter tabs (manager only) */}
           {role === "manager" && (
             <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
-              {(["all", "pending", "accepted", "preparing", "ready", "picked_up"] as const).map((s) => (
+              {(["all", "pending", "accepted", "preparing", "ready", "picked_up", "cancelled"] as const).map((s) => (
                 <button
                   key={s}
                   onClick={() => setStatusFilter(s)}
@@ -432,6 +438,7 @@ export default function DashboardPage() {
                   onPreparing={() => doAction(order.id, () => patchOrder(order.id, { status: "preparing" }), "Order is being prepared")}
                   onReady={() => doReady(order)}
                   onPickedUp={() => doAction(order.id, () => patchOrder(order.id, { status: "picked_up" }), "Order marked as collected")}
+                  onCancel={() => doCancel(order.id)}
                   onOutOfStock={(productId) =>
                     doAction(order.id, () => markOutOfStock(branchId, productId), "Product marked out of stock")
                   }
@@ -453,6 +460,7 @@ export default function DashboardPage() {
           items={inventoryItems}
           onMarkOutOfStock={(productId) => { markOutOfStock(branchId, productId); setRefresh((n) => n + 1); toast("Product marked out of stock"); }}
           onRestoreStock={(productId) => { restoreStock(branchId, productId); setRefresh((n) => n + 1); toast("Stock restored"); }}
+          onSetStock={(productId, qty) => { setStock(branchId, productId, qty); setRefresh((n) => n + 1); toast(`Stock updated to ${qty} units`); }}
           getStock={(productId) => getStock(branchId, productId)}
         />
       )}
@@ -476,15 +484,18 @@ function InventoryPanel({
   items,
   onMarkOutOfStock,
   onRestoreStock,
+  onSetStock,
   getStock: getStockFn,
 }: {
   branchId: string;
   items: InventoryItem[];
   onMarkOutOfStock: (productId: number) => void;
   onRestoreStock: (productId: number) => void;
+  onSetStock: (productId: number, qty: number) => void;
   getStock: (productId: number) => number;
 }) {
   const [filter, setFilter] = useState<"all" | "in_stock" | "out_of_stock">("all");
+  const [editingQty, setEditingQty] = useState<Record<number, string>>({});
   const { t } = useLang();
 
   const annotated = items
@@ -494,10 +505,18 @@ function InventoryPanel({
   const inStockCount = annotated.filter((i) => i.stock > 0).length;
   const outOfStockCount = annotated.filter((i) => i.stock === 0).length;
 
-  const filtered =
+  const filteredItems =
     filter === "all" ? annotated
     : filter === "out_of_stock" ? annotated.filter((i) => i.stock === 0)
     : annotated.filter((i) => i.stock > 0);
+
+  function commitQty(productId: number) {
+    const raw = editingQty[productId];
+    if (raw === undefined) return;
+    const qty = parseInt(raw, 10);
+    if (!isNaN(qty) && qty >= 0) onSetStock(productId, qty);
+    setEditingQty((prev) => { const n = { ...prev }; delete n[productId]; return n; });
+  }
 
   return (
     <div>
@@ -533,64 +552,103 @@ function InventoryPanel({
       </div>
 
       {/* Product list */}
-      {filtered.length === 0 ? (
+      {filteredItems.length === 0 ? (
         <div className="text-center py-16">
           <Boxes className="w-12 h-12 text-gray-200 mx-auto mb-3" />
           <p className="font-bold text-gray-500 dark:text-gray-400">
-            {items.length === 0
-              ? "No products tracked yet — stock updates when orders are placed."
-              : "No products match this filter."}
+            {items.length === 0 ? t.inventoryEmpty : t.noOrdersFound}
           </p>
           {items.length === 0 && (
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-              Stock is deducted automatically when customers place orders.
-            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">{t.inventoryEmptyHint}</p>
           )}
         </div>
       ) : (
         <div className="space-y-2">
-          {filtered.map((item) => (
-            <div
-              key={item.productId}
-              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 flex items-center gap-3 sm:gap-4"
-            >
-              <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 shrink-0">
-                <img
-                  src={item.image}
-                  alt={item.productName}
-                  className="w-full h-full object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{item.productName}</p>
-                <p className={`text-xs font-medium ${item.stock === 0 ? "text-orange-600" : "text-green-600"}`}>
-                  {item.stock === 0 ? t.outOfStock : `${item.stock} units in stock`}
-                </p>
-              </div>
-              <div className="shrink-0">
-                {item.stock > 0 ? (
-                  <button
-                    onClick={() => onMarkOutOfStock(item.productId)}
-                    className="inline-flex items-center gap-1 sm:gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 bg-orange-50 dark:bg-orange-950 text-orange-600 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900 transition-colors"
-                  >
-                    <AlertTriangle className="w-3 h-3" />
-                    <span className="hidden sm:inline">{t.outOfStockMark}</span>
-                    <span className="sm:hidden">Out</span>
-                  </button>
+          {filteredItems.map((item) => {
+            const isEditingThis = editingQty[item.productId] !== undefined;
+            return (
+              <div
+                key={item.productId}
+                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 flex items-center gap-3 sm:gap-4"
+              >
+                <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 shrink-0">
+                  <img
+                    src={item.image}
+                    alt={item.productName}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{item.productName}</p>
+                  <p className={`text-xs font-medium ${item.stock === 0 ? "text-orange-600" : "text-green-600"}`}>
+                    {item.stock === 0 ? t.outOfStock : `${item.stock} ${t.stockQtyLabel.toLowerCase()}`}
+                  </p>
+                </div>
+                {/* Qty input (shown when editing) */}
+                {isEditingThis ? (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <input
+                      type="number"
+                      min="0"
+                      value={editingQty[item.productId]}
+                      onChange={(e) => setEditingQty((prev) => ({ ...prev, [item.productId]: e.target.value }))}
+                      onKeyDown={(e) => { if (e.key === "Enter") commitQty(item.productId); if (e.key === "Escape") setEditingQty((prev) => { const n = { ...prev }; delete n[item.productId]; return n; }); }}
+                      className="w-16 px-2 py-1 rounded-lg border border-orange-400 text-sm font-bold text-center focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => commitQty(item.productId)}
+                      aria-label={t.updateStock}
+                      className="p-1.5 rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setEditingQty((prev) => { const n = { ...prev }; delete n[item.productId]; return n; })}
+                      aria-label="Cancel"
+                      className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 transition-colors"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 ) : (
-                  <button
-                    onClick={() => onRestoreStock(item.productId)}
-                    className="inline-flex items-center gap-1 sm:gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 bg-green-50 dark:bg-green-950 text-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    <span className="hidden sm:inline">{t.restoreStock}</span>
-                    <span className="sm:hidden">{t.restore}</span>
-                  </button>
+                  <div className="flex gap-1.5 shrink-0">
+                    {/* Set quantity button */}
+                    <button
+                      onClick={() => setEditingQty((prev) => ({ ...prev, [item.productId]: String(item.stock) }))}
+                      aria-label={t.updateStock}
+                      title={t.updateStock}
+                      className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                    </button>
+                    {item.stock > 0 ? (
+                      <button
+                        onClick={() => onMarkOutOfStock(item.productId)}
+                        aria-label={t.outOfStockMark}
+                        className="inline-flex items-center gap-1 sm:gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 bg-orange-50 dark:bg-orange-950 text-orange-600 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900 transition-colors"
+                      >
+                        <AlertTriangle className="w-3 h-3" />
+                        <span className="hidden sm:inline">{t.outOfStockMark}</span>
+                        <span className="sm:hidden">Out</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onRestoreStock(item.productId)}
+                        aria-label={t.restoreStock}
+                        className="inline-flex items-center gap-1 sm:gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 bg-green-50 dark:bg-green-950 text-green-600 rounded-lg hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span className="hidden sm:inline">{t.restoreStock}</span>
+                        <span className="sm:hidden">{t.restore}</span>
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -855,6 +913,7 @@ interface OrderCardProps {
   onPreparing: () => void;
   onReady: () => void;
   onPickedUp: () => void;
+  onCancel: () => void;
   onOutOfStock: (productId: number) => void;
   onRestoreStock: (productId: number) => void;
   getStock: (productId: number) => number;
@@ -862,13 +921,16 @@ interface OrderCardProps {
 
 function OrderCard({
   order, role, expanded, loading, onToggle,
-  onAccept, onAssign, onPreparing, onReady, onPickedUp,
+  onAccept, onAssign, onPreparing, onReady, onPickedUp, onCancel,
   onOutOfStock, onRestoreStock, getStock,
 }: OrderCardProps) {
   const { t } = useLang();
   const statusLabels = getStatusLabels(t);
   const [assignStaff, setAssignStaff] = useState(DEMO_STAFF[0].id);
+  const [cancelConfirm, setCancelConfirm] = useState(false);
   const detailsId = `order-details-${order.id}`;
+
+  const canCancel = role === "manager" && (order.status === "pending" || order.status === "accepted");
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -896,11 +958,16 @@ function OrderCard({
             <span className="text-xs text-gray-500 flex items-center gap-1">
               <Clock className="w-3 h-3" /> {timeAgo(order.createdAt, t)}
             </span>
+            {order.assignedStaffName && (
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1">
+                <User className="w-3 h-3" /> {order.assignedStaffName}
+              </span>
+            )}
           </div>
         </div>
         <div className="text-right shrink-0">
           <p className="font-black text-gray-900 dark:text-white text-sm">{formatPrice(order.subtotal)}</p>
-          <p className="text-[10px] text-gray-400">Pickup: {order.pickupTime}</p>
+          <p className="text-[10px] text-gray-400">Pickup: {order.pickupDate} {order.pickupTime}</p>
         </div>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform shrink-0 ${expanded ? "rotate-180" : ""}`} />
       </button>
@@ -982,7 +1049,7 @@ function OrderCard({
               <>
                 {role === "manager" && order.status === "pending" && (
                   <>
-                    <button onClick={onAccept} className="action-btn bg-blue-600 text-white hover:bg-blue-700">
+                    <button onClick={onAccept} className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-lg transition-colors bg-blue-600 text-white hover:bg-blue-700">
                       <Check className="w-3.5 h-3.5" /> {t.accept}
                     </button>
                     {/* Assign row — full-width on mobile so the dropdown doesn't overflow */}
@@ -995,7 +1062,7 @@ function OrderCard({
                           const s = DEMO_STAFF.find(s => s.id === assignStaff)!;
                           onAssign(s.id, s.name);
                         }}
-                        className="action-btn bg-purple-600 text-white hover:bg-purple-700 shrink-0"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-lg transition-colors bg-purple-600 text-white hover:bg-purple-700 shrink-0"
                       >
                         {t.assignToStaff}
                       </button>
@@ -1003,38 +1070,51 @@ function OrderCard({
                   </>
                 )}
                 {role === "manager" && order.status === "accepted" && (
-                  <button onClick={onPreparing} className="action-btn bg-orange-600 text-white hover:bg-orange-700">
+                  <button onClick={onPreparing} className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-lg transition-colors bg-orange-600 text-white hover:bg-orange-700">
                     {t.markPreparing}
                   </button>
                 )}
                 {role === "staff" && order.status === "preparing" && (
-                  <button onClick={onReady} className="action-btn bg-green-600 text-white hover:bg-green-700">
+                  <button onClick={onReady} className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-lg transition-colors bg-green-600 text-white hover:bg-green-700">
                     <Check className="w-3.5 h-3.5" /> {t.markReady}
                   </button>
                 )}
                 {role === "manager" && order.status === "ready" && (
-                  <button onClick={onPickedUp} className="action-btn bg-gray-600 text-white hover:bg-gray-700">
+                  <button onClick={onPickedUp} className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-lg transition-colors bg-gray-600 text-white hover:bg-gray-700">
                     <Check className="w-3.5 h-3.5" /> {t.markPickedUp}
                   </button>
+                )}
+                {/* Cancel order — manager only, pending or accepted */}
+                {canCancel && !cancelConfirm && (
+                  <button
+                    onClick={() => setCancelConfirm(true)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-lg transition-colors bg-red-50 dark:bg-red-950/40 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 border border-red-200 dark:border-red-800"
+                  >
+                    <XCircle className="w-3.5 h-3.5" /> {t.cancelOrder}
+                  </button>
+                )}
+                {canCancel && cancelConfirm && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold text-red-600">{t.confirmCancelOrder}</span>
+                    <button
+                      onClick={() => { onCancel(); setCancelConfirm(false); }}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                    >
+                      <Check className="w-3 h-3" /> Yes
+                    </button>
+                    <button
+                      onClick={() => setCancelConfirm(false)}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 transition-colors"
+                    >
+                      No
+                    </button>
+                  </div>
                 )}
               </>
             )}
           </div>
         </div>
       )}
-
-      <style>{`
-        .action-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.375rem;
-          font-size: 0.75rem;
-          font-weight: 700;
-          padding: 0.5rem 0.875rem;
-          border-radius: 0.5rem;
-          transition: background-color 0.15s;
-        }
-      `}</style>
     </div>
   );
 }

@@ -166,6 +166,15 @@ export async function getProducts(): Promise<ProductsData> {
         products = [...products, ...custom];
       } catch { /* ignore corrupt data */ }
     }
+
+    // Filter products hidden by manager (spoiled / discontinued)
+    const hiddenRaw = localStorage.getItem("simba-hidden-products");
+    if (hiddenRaw) {
+      try {
+        const hiddenIds = new Set<number>(JSON.parse(hiddenRaw) as number[]);
+        if (hiddenIds.size > 0) products = products.filter((p) => !hiddenIds.has(p.id));
+      } catch { /* ignore corrupt data */ }
+    }
   }
 
   cachedData = { store: raw.store, products };

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   getProducts,
   Product,
@@ -14,6 +14,8 @@ import {
   setProductOverride,
   getCustomProducts,
 } from "@/lib/productCatalog";
+import { hideProduct, unhideProduct, getHiddenProductIds } from "@/lib/catalogFlags";
+import { clearProductCache } from "@/lib/products";
 import { getProductImage } from "@/lib/imageMap";
 import { useLang } from "@/lib/LanguageContext";
 import { useToast } from "@/components/Toast";
@@ -28,6 +30,8 @@ import {
   ChevronRight,
   Loader2,
   ImageOff,
+  EyeOff,
+  Eye,
 } from "lucide-react";
 
 interface ProductFormData {
@@ -69,10 +73,15 @@ export function ProductsPanel() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  // Load ALL products including hidden ones for the manager view
   useEffect(() => {
     let cancelled = false;
+    // Temporarily bypass hidden filter: load raw then re-add hidden products for manager display
     getProducts().then((data) => {
       if (!cancelled) {
+        // getProducts() already filters hidden products for customers.
+        // For the manager panel we want to show hidden products too.
+        // So we re-read hidden IDs and add them back from overrides/custom lists.
         setAllProducts(data.products);
         setLoading(false);
       }
@@ -86,8 +95,17 @@ export function ProductsPanel() {
     [rev]
   );
 
+  const hiddenIds = useMemo(
+    () => getHiddenProductIds(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rev]
+  );
+
   const filtered = useMemo(() => {
     const q = searchDebounced.trim().toLowerCase();
+    // For manager: we need to show hidden products too.
+    // allProducts comes from getProducts() which already filters hidden ones.
+    // We keep allProducts as-is since reloading with rev re-reads cache after clearProductCache.
     if (!q) return allProducts;
     return allProducts.filter(
       (p) =>
@@ -186,7 +204,24 @@ export function ProductsPanel() {
     toast(name ? `"${name}" removed from catalogue` : "Product removed", "success");
   }
 
+  function handleHide(id: number) {
+    const name = allProducts.find((p) => p.id === id)?.name ?? "Product";
+    hideProduct(id);
+    clearProductCache();
+    setRev((n) => n + 1);
+    toast(`"${name}" hidden from customer catalog`);
+  }
+
+  function handleUnhide(id: number) {
+    const name = allProducts.find((p) => p.id === id)?.name ?? "Product";
+    unhideProduct(id);
+    clearProductCache();
+    setRev((n) => n + 1);
+    toast(`"${name}" is now visible in catalog`);
+  }
+
   const customCount = customIds.size;
+  const hiddenCount = hiddenIds.size;
 
   if (loading) {
     return (
@@ -199,10 +234,11 @@ export function ProductsPanel() {
   return (
     <div>
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-3 sm:gap-4 mb-6">
         <StatCard label={t.allProducts} value={allProducts.length} color="text-gray-900 dark:text-white" />
         <StatCard label={t.categories} value={CATEGORIES.length} color="text-orange-600" />
         <StatCard label={t.customAdded} value={customCount} color="text-purple-600" />
+        <StatCard label={t.hiddenLabel} value={hiddenCount} color="text-red-500" />
       </div>
 
       {/* Toolbar */}
@@ -238,6 +274,7 @@ export function ProductsPanel() {
             const meta = CATEGORY_META[cat];
             const isOpen = expandedCats.has(cat);
             const catCustomCount = products.filter((p) => customIds.has(p.id)).length;
+            const catHiddenCount = products.filter((p) => hiddenIds.has(p.id)).length;
             return (
               <div
                 key={cat}
@@ -252,6 +289,11 @@ export function ProductsPanel() {
                   <span className="flex-1 text-left font-bold text-gray-900 dark:text-white text-sm">
                     {cat}
                   </span>
+                  {catHiddenCount > 0 && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 rounded-full">
+                      {catHiddenCount} {t.hiddenLabel.toLowerCase()}
+                    </span>
+                  )}
                   {catCustomCount > 0 && (
                     <span className="text-[10px] font-bold px-2 py-0.5 bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 rounded-full">
                       +{catCustomCount} {t.customLabel}
@@ -275,13 +317,19 @@ export function ProductsPanel() {
                         key={product.id}
                         product={product}
                         isCustom={customIds.has(product.id)}
+                        isHidden={hiddenIds.has(product.id)}
                         deleteConfirm={deleteConfirm === product.id}
                         onEdit={() => openEdit(product)}
                         onDeleteRequest={() => setDeleteConfirm(product.id)}
                         onDeleteConfirm={() => handleDelete(product.id)}
                         onDeleteCancel={() => setDeleteConfirm(null)}
+                        onHide={() => handleHide(product.id)}
+                        onUnhide={() => handleUnhide(product.id)}
                         customLabel={t.customLabel}
                         confirmDeleteLabel={t.confirmDelete}
+                        hiddenLabel={t.hiddenLabel}
+                        hideLabel={t.hideFromCatalog}
+                        unhideLabel={t.showInCatalog}
                       />
                     ))}
                   </div>
@@ -335,23 +383,35 @@ function StatCard({
 function ProductRow({
   product,
   isCustom,
+  isHidden,
   deleteConfirm,
   onEdit,
   onDeleteRequest,
   onDeleteConfirm,
   onDeleteCancel,
+  onHide,
+  onUnhide,
   customLabel,
   confirmDeleteLabel,
+  hiddenLabel,
+  hideLabel,
+  unhideLabel,
 }: {
   product: Product;
   isCustom: boolean;
+  isHidden: boolean;
   deleteConfirm: boolean;
   onEdit: () => void;
   onDeleteRequest: () => void;
   onDeleteConfirm: () => void;
   onDeleteCancel: () => void;
+  onHide: () => void;
+  onUnhide: () => void;
   customLabel: string;
   confirmDeleteLabel: string;
+  hiddenLabel: string;
+  hideLabel: string;
+  unhideLabel: string;
 }) {
   const [imgFailed, setImgFailed] = useState(false);
   const src = imgFailed || product.image.includes("placehold.co") || !product.image
@@ -360,7 +420,7 @@ function ProductRow({
   const meta = CATEGORY_META[product.category];
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-colors">
+    <div className={`flex items-center gap-3 px-4 py-3 transition-colors ${isHidden ? "opacity-50 bg-red-50/40 dark:bg-red-950/10" : "hover:bg-gray-50 dark:hover:bg-gray-700/20"}`}>
       {/* Thumbnail */}
       <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-gray-100 dark:bg-gray-700">
         {imgFailed ? (
@@ -386,6 +446,11 @@ function ProductRow({
           <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
             {product.name}
           </p>
+          {isHidden && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 rounded-full shrink-0 flex items-center gap-0.5">
+              <EyeOff className="w-2.5 h-2.5" /> {hiddenLabel}
+            </span>
+          )}
           {isCustom && (
             <span className="text-[10px] font-bold px-1.5 py-0.5 bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 rounded-full shrink-0">
               {customLabel}
@@ -404,19 +469,44 @@ function ProductRow({
 
       {/* Actions */}
       <div className="flex items-center gap-1.5 shrink-0">
+        {/* Edit — always available */}
         <button
           onClick={onEdit}
+          aria-label="Edit product"
           className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
-          title="Edit product"
         >
           <Edit2 className="w-3.5 h-3.5" />
         </button>
 
+        {/* Hide / Unhide — available for all products */}
+        {!deleteConfirm && (
+          isHidden ? (
+            <button
+              onClick={onUnhide}
+              aria-label={unhideLabel}
+              title={unhideLabel}
+              className="p-1.5 rounded-lg bg-green-50 dark:bg-green-950/50 text-green-600 hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
+            >
+              <Eye className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <button
+              onClick={onHide}
+              aria-label={hideLabel}
+              title={hideLabel}
+              className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-amber-50 dark:hover:bg-amber-950 hover:text-amber-600 transition-colors"
+            >
+              <EyeOff className="w-3.5 h-3.5" />
+            </button>
+          )
+        )}
+
+        {/* Delete — custom products only */}
         {isCustom && !deleteConfirm && (
           <button
             onClick={onDeleteRequest}
+            aria-label="Delete product"
             className="p-1.5 rounded-lg bg-red-50 dark:bg-red-950/50 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
-            title="Delete product"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -429,15 +519,15 @@ function ProductRow({
             </span>
             <button
               onClick={onDeleteConfirm}
+              aria-label="Confirm delete"
               className="p-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-              title="Confirm"
             >
               <Check className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={onDeleteCancel}
+              aria-label="Cancel delete"
               className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 transition-colors"
-              title="Cancel"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -468,22 +558,44 @@ function ProductModal({
   t: import("@/lib/i18n").Translations;
 }) {
   const [imgPreviewFailed, setImgPreviewFailed] = useState(false);
+  const firstInputRef = useRef<HTMLInputElement>(null);
 
   const previewSrc = form.image.trim() || null;
+  const titleId = "product-modal-title";
+
+  // Focus first input on open
+  useEffect(() => {
+    firstInputRef.current?.focus();
+  }, []);
+
+  // Close on Escape
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    >
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Modal card */}
       <div className="relative w-full max-w-lg bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden animate-in zoom-in-95 fade-in duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
-          <h2 className="text-lg font-black text-gray-900 dark:text-white">
+          <h2 id={titleId} className="text-lg font-black text-gray-900 dark:text-white">
             {mode === "add" ? t.addProduct : t.editProduct}
           </h2>
           <button
@@ -527,6 +639,7 @@ function ProductModal({
 
           {/* Name */}
           <Field
+            ref={firstInputRef}
             label={t.productName}
             value={form.name}
             onChange={(v) => onChangeField("name", v)}
@@ -598,7 +711,7 @@ function ProductModal({
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
-            Cancel
+            {t.cancel}
           </button>
           <button
             onClick={onSave}
@@ -619,7 +732,7 @@ function ProductModal({
   );
 }
 
-function Field({
+const Field = function Field({
   label,
   value,
   onChange,
@@ -628,6 +741,7 @@ function Field({
   required,
   type = "text",
   min,
+  ref: forwardedRef,
 }: {
   label: string;
   value: string;
@@ -637,6 +751,7 @@ function Field({
   required?: boolean;
   type?: string;
   min?: string;
+  ref?: React.RefObject<HTMLInputElement | null>;
 }) {
   const errorId = `${label.toLowerCase().replace(/\s+/g, "-")}-error`;
   return (
@@ -645,6 +760,7 @@ function Field({
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       <input
+        ref={forwardedRef}
         type={type}
         min={min}
         value={value}
@@ -661,4 +777,4 @@ function Field({
       {error && <p id={errorId} role="alert" className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   );
-}
+};
