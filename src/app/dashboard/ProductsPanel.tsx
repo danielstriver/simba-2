@@ -471,40 +471,31 @@ function ProductRow({
           <Edit2 className="w-3.5 h-3.5" />
         </button>
 
-        {/* Hide / Unhide — available for all products */}
-        {!deleteConfirm && (
-          isHidden ? (
-            <button
-              onClick={onUnhide}
-              aria-label={unhideLabel}
-              title={unhideLabel}
-              className="p-1.5 rounded-lg bg-green-50 dark:bg-green-950/50 text-green-600 hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
-            >
-              <Eye className="w-3.5 h-3.5" />
-            </button>
-          ) : (
-            <button
-              onClick={onHide}
-              aria-label={hideLabel}
-              title={hideLabel}
-              className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-amber-50 dark:hover:bg-amber-950 hover:text-amber-600 transition-colors"
-            >
-              <EyeOff className="w-3.5 h-3.5" />
-            </button>
-          )
+        {/* Restore — only for hidden products */}
+        {isHidden && !deleteConfirm && (
+          <button
+            onClick={onUnhide}
+            aria-label={unhideLabel}
+            title={unhideLabel}
+            className="p-1.5 rounded-lg bg-green-50 dark:bg-green-950/50 text-green-600 hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
+          >
+            <Eye className="w-3.5 h-3.5" />
+          </button>
         )}
 
-        {/* Delete — custom products only */}
-        {isCustom && !deleteConfirm && (
+        {/* Trash — hides catalog products (recoverable), permanently deletes custom products */}
+        {!isHidden && !deleteConfirm && (
           <button
-            onClick={onDeleteRequest}
-            aria-label="Delete product"
+            onClick={isCustom ? onDeleteRequest : onHide}
+            aria-label={isCustom ? "Delete product" : hideLabel}
+            title={isCustom ? "Delete product" : hideLabel}
             className="p-1.5 rounded-lg bg-red-50 dark:bg-red-950/50 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         )}
 
+        {/* Confirm delete — custom products only (permanent action) */}
         {isCustom && deleteConfirm && (
           <div className="flex items-center gap-1">
             <span className="text-[10px] text-red-600 font-bold hidden sm:inline whitespace-nowrap">
