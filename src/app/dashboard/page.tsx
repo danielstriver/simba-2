@@ -246,10 +246,12 @@ export default function DashboardPage() {
     if (order.userEmail) {
       sendNotification("order_ready", order.userEmail, {
         orderId: order.id,
+        userName: order.userName,
         branchLabel: order.branchLabel,
         pickupDate: order.pickupDate,
         pickupTime: order.pickupTime,
         items: order.items.map((i) => ({ productName: i.productName, quantity: i.quantity })),
+        amountDue: Math.max(0, order.subtotal - order.depositPaid),
       });
     }
   }

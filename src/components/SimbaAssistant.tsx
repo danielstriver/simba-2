@@ -548,6 +548,15 @@ export default function SimbaAssistant() {
 
   return (
     <>
+      {/* ── Click-outside backdrop — desktop only (mobile is full-screen) ── */}
+      {open && !isMobile && (
+        <div
+          className="fixed inset-0 z-[9997]"
+          onClick={() => setOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* ── Chat Panel — full-screen on mobile, floating panel on desktop ── */}
       {open && (
         <div

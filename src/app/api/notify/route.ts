@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { orderPlacedEmail, orderReadyEmail, passwordResetEmail, passwordChangedEmail } from "@/lib/emails";
+import {
+  welcomeEmail,
+  orderConfirmationEmail,
+  orderPlacedEmail,
+  orderReadyEmail,
+  passwordResetEmail,
+  passwordChangedEmail,
+} from "@/lib/emails";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = process.env.NOTIFY_FROM_EMAIL ?? "SIMBA Supermarket <onboarding@resend.dev>";
@@ -16,24 +23,29 @@ export async function POST(req: NextRequest) {
   }
 
   const { type, to: clientTo, data } = body as {
-    type: "order_placed" | "order_ready" | "password_reset" | "password_changed";
+    type: "welcome" | "order_confirmation" | "order_placed" | "order_ready" | "password_reset" | "password_changed";
     to: string;
     data: Record<string, unknown>;
   };
 
   let subject = "";
   let html = "";
-  // For order_placed: always use the server-side MANAGER_EMAIL env var if set,
-  // so delivery is never dependent on the client's localStorage state.
+  // order_placed always goes to MANAGER_EMAIL server-side so the client can't redirect it
   let to = type === "order_placed"
     ? (process.env.MANAGER_EMAIL ?? clientTo)
     : clientTo;
 
-  if (type === "order_placed") {
+  if (type === "welcome") {
+    subject = `Welcome to SIMBA Supermarket, ${data.name}!`;
+    html = welcomeEmail(data as unknown as Parameters<typeof welcomeEmail>[0]);
+  } else if (type === "order_confirmation") {
+    subject = `Order ${data.orderId} confirmed — pick up at ${data.branchLabel}`;
+    html = orderConfirmationEmail(data as unknown as Parameters<typeof orderConfirmationEmail>[0]);
+  } else if (type === "order_placed") {
     subject = `New Order ${data.orderId} — ${data.branchLabel}`;
     html = orderPlacedEmail(data as unknown as Parameters<typeof orderPlacedEmail>[0]);
   } else if (type === "order_ready") {
-    subject = `Your SIMBA order ${data.orderId} is ready for pickup!`;
+    subject = `✅ Your SIMBA order ${data.orderId} is ready for pickup!`;
     html = orderReadyEmail(data as unknown as Parameters<typeof orderReadyEmail>[0]);
   } else if (type === "password_reset") {
     subject = `Your SIMBA reset code: ${data.code}`;

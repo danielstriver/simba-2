@@ -56,6 +56,7 @@ export default function CheckoutPage() {
   const [momoStatus, setMomoStatus] = useState<MomoStatus>("idle");
   const [momoError, setMomoError] = useState("");
   const [orderId, setOrderId] = useState("");
+  const [amountDue, setAmountDue] = useState(0);
 
   const branches = BRANCHES;
 
@@ -166,7 +167,7 @@ export default function CheckoutPage() {
                   Bring this amount to {currentBranch.label} on {form.date}.
                 </p>
                 <p className="text-2xl font-black text-orange-600 dark:text-orange-400 whitespace-nowrap leading-none">
-                  {formatPrice(subtotal)}
+                  {formatPrice(amountDue)}
                 </p>
               </div>
             </div>
@@ -263,6 +264,8 @@ export default function CheckoutPage() {
     // Deduct branch stock
     deductStock(form.branch, items.map((i) => ({ productId: i.product.id, quantity: i.quantity })));
 
+    const amountDueAtPickup = Math.max(0, order.subtotal - order.depositPaid);
+
     // Notify branch manager (fire-and-forget)
     const managerEmail = getBranchManagerEmail(form.branch);
     if (managerEmail) {
@@ -281,12 +284,38 @@ export default function CheckoutPage() {
             pickupTime: order.pickupTime,
             items: order.items.map((i) => ({ productName: i.productName, quantity: i.quantity, price: i.price })),
             subtotal: order.subtotal,
+            depositPaid: order.depositPaid,
+          },
+        }),
+      }).catch(() => {});
+    }
+
+    // Confirmation email to customer (fire-and-forget)
+    if (user?.email) {
+      fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "order_confirmation",
+          to: user.email,
+          data: {
+            orderId: order.id,
+            userName: order.userName,
+            userPhone: order.userPhone,
+            branchLabel: currentBranch.label,
+            pickupDate: order.pickupDate,
+            pickupTime: order.pickupTime,
+            items: order.items.map((i) => ({ productName: i.productName, quantity: i.quantity, price: i.price })),
+            subtotal: order.subtotal,
+            depositPaid: order.depositPaid,
+            amountDueAtPickup,
           },
         }),
       }).catch(() => {});
     }
 
     setOrderId(order.id);
+    setAmountDue(amountDueAtPickup);
     setStep("success");
     clearCart();
     setLoading(false);
@@ -624,7 +653,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between items-center bg-orange-50 dark:bg-orange-950/30 rounded-lg px-2 py-1.5">
                   <span className="text-xs font-bold text-orange-700 dark:text-orange-400">{t.payAtCounter}</span>
-                  <span className="text-sm font-black text-orange-600 dark:text-orange-400">{formatPrice(subtotal)}</span>
+                  <span className="text-sm font-black text-orange-600 dark:text-orange-400">{formatPrice(Math.max(0, subtotal - PACKAGING_FEE))}</span>
                 </div>
               </div>
             </div>

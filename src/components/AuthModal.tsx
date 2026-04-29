@@ -90,6 +90,11 @@ export default function AuthModal({
         return;
       }
 
+      const isNewUser = !localStorage.getItem("simba-users") ||
+        !JSON.parse(localStorage.getItem("simba-users") || "[]").some(
+          (u: { email: string }) => u.email.toLowerCase() === email.toLowerCase()
+        );
+
       const res = loginOrCreateGoogleUser(uid, email, name);
       if (!res.ok) {
         setError(res.error);
@@ -105,6 +110,15 @@ export default function AuthModal({
         branchId: res.data.branchId,
         photoUrl: gUser.photoURL ?? undefined,
       });
+
+      if (isNewUser) {
+        fetch("/api/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "welcome", to: email, data: { name: res.data.name, email } }),
+        }).catch(() => {});
+      }
+
       onSuccess?.();
       onClose();
     } catch (err: unknown) {
@@ -113,8 +127,12 @@ export default function AuthModal({
         // User dismissed — no error needed
       } else if (code === "auth/popup-blocked") {
         setError("Pop-up was blocked by your browser. Please allow pop-ups for this site and try again.");
+      } else if (code === "auth/unauthorized-domain") {
+        setError("This domain is not authorised for Google Sign-In. Add it to your Firebase project's Authorized Domains (Authentication → Settings).");
+      } else if (code === "auth/operation-not-allowed") {
+        setError("Google Sign-In is not enabled. Enable it in Firebase Authentication → Sign-in providers.");
       } else {
-        setError("Google Sign-In failed. Please try again or use email instead.");
+        setError(`Google Sign-In failed${code ? ` (${code})` : ""}. Please try again or use email instead.`);
       }
     } finally {
       setGoogleLoading(false);
@@ -131,6 +149,11 @@ export default function AuthModal({
       const res = register(form.name, form.phone, form.email, form.password);
       if (!res.ok) { setError(res.error); setLoading(false); return; }
       setUser({ id: res.data.id, name: res.data.name, phone: res.data.phone, email: res.data.email, role: res.data.role, branchId: res.data.branchId });
+      fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "welcome", to: form.email, data: { name: res.data.name, email: form.email } }),
+      }).catch(() => {});
       onSuccess?.();
       onClose();
     } else if (mode === "signin") {
