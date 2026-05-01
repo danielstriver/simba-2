@@ -1,0 +1,122 @@
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <title>Simba Supermarket - Branch Directory</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f4f6f8; color: #2c2c2c; padding: 40px; }
+    .page { max-width: 820px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #e67e00, #f39c12); color: white; padding: 40px 40px 30px; }
+    .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+    .header p { font-size: 14px; opacity: 0.9; margin-top: 4px; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.4); }
+    .content { padding: 36px 40px; }
+    .intro { font-size: 13.5px; line-height: 1.7; color: #555; background: #fef9f0; border-left: 4px solid #e67e00; padding: 14px 18px; border-radius: 0 6px 6px 0; margin-bottom: 30px; }
+    .section-title { font-size: 15px; font-weight: 700; color: #e67e00; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #fde8c0; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 36px; }
+    thead tr { background: #e67e00; color: white; }
+    thead th { padding: 11px 14px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    tbody tr { border-bottom: 1px solid #f0f0f0; }
+    tbody tr:nth-child(even) { background: #fafafa; }
+    td { padding: 10px 14px; vertical-align: top; line-height: 1.5; }
+    td:first-child { font-weight: 700; color: #888; width: 36px; text-align: center; }
+    td:nth-child(2) { font-weight: 600; color: #333; width: 200px; }
+    td:last-child { color: #555; }
+    .district-badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; margin-top: 3px; }
+    .nyarugenge { background: #fde8c0; color: #b05000; }
+    .gasabo { background: #d4edda; color: #1e6b3c; }
+    .kicukiro { background: #d1e7fd; color: #0a4d8c; }
+    .contact-box { background: #fef9f0; border: 1px solid #f5cfa0; border-radius: 8px; padding: 22px 24px; margin-bottom: 28px; }
+    .contact-box h3 { font-size: 14px; font-weight: 700; color: #e67e00; margin-bottom: 12px; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .contact-item { font-size: 13px; color: #444; }
+    .contact-item strong { color: #999; font-size: 10.5px; text-transform: uppercase; display: block; margin-bottom: 2px; }
+    .notes-box { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px 24px; margin-bottom: 10px; }
+    .notes-box h3 { font-size: 12px; font-weight: 700; color: #666; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .notes-box ul { list-style: none; padding: 0; }
+    .notes-box ul li { font-size: 12.5px; color: #666; padding: 4px 0 4px 18px; position: relative; line-height: 1.6; }
+    .notes-box ul li::before { content: "\2192"; position: absolute; left: 0; color: #e67e00; font-weight: bold; }
+    .footer { background: #2c2c2c; color: #aaa; text-align: center; padding: 16px; font-size: 11.5px; }
+    .footer span { color: #e67e00; }
+    @media print { body { background: white; padding: 0; } .page { box-shadow: none; border-radius: 0; } }
+  </style>
+<style id="claude-agent-animation-styles">
+      @keyframes claude-pulse {
+        0% {
+          box-shadow: 
+            inset 0 0 10px rgba(217, 119, 87, 0.5),
+            inset 0 0 20px rgba(217, 119, 87, 0.3),
+            inset 0 0 30px rgba(217, 119, 87, 0.1);
+        }
+        50% {
+          box-shadow: 
+            inset 0 0 15px rgba(217, 119, 87, 0.7),
+            inset 0 0 25px rgba(217, 119, 87, 0.5),
+            inset 0 0 35px rgba(217, 119, 87, 0.2);
+        }
+        100% {
+          box-shadow: 
+            inset 0 0 10px rgba(217, 119, 87, 0.5),
+            inset 0 0 20px rgba(217, 119, 87, 0.3),
+            inset 0 0 30px rgba(217, 119, 87, 0.1);
+        }
+      }
+    </style></head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>Simba Supermarket Ltd</h1>
+      <p>Branch Directory &amp; Location Guide — Kigali, Rwanda</p>
+      <div class="badge">April 2026 &nbsp;|&nbsp; 11 Branches in Operation</div>
+    </div>
+    <div class="content">
+      <div class="intro">
+        Simba Supermarket Ltd is one of Rwanda's leading retail chains, established in 2007 and officially launched on August 8, 2008. With 11 branches spread across Kigali's three districts — Nyarugenge, Gasabo, and Kicukiro — Simba offers a wide range of products including food, furniture, clothing, stationery, cosmetics, and toys.
+      </div>
+      <div class="section-title">Branch Locations</div>
+      <table>
+        <thead><tr><th>#</th><th>Branch Name</th><th>Location / Address</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Simba Centenary<br><span class="district-badge nyarugenge">Nyarugenge</span></td><td>Centenary House, Ground Floor<br>Kiyovu, Nyarugenge District, Kigali</td></tr>
+          <tr><td>2</td><td>Simba Gishushu<br><span class="district-badge gasabo">Gasabo</span></td><td>KN 5 Rd, Gishushu<br>Gasabo District, Kigali</td></tr>
+          <tr><td>3</td><td>Simba Kimironko<br><span class="district-badge gasabo">Gasabo</span></td><td>Kimironko Area<br>Gasabo District, Kigali</td></tr>
+          <tr><td>4</td><td>Simba Kicukiro<br><span class="district-badge kicukiro">Kicukiro</span></td><td>Plus Code: 24G3+MCV, Kicukiro District, Kigali<br>Tel: +250 787 787 595</td></tr>
+          <tr><td>5</td><td>Simba Kigali Heights<br><span class="district-badge gasabo">Gasabo</span></td><td>KG 541 St, Kigali<br>Tel: +250 252 570 566</td></tr>
+          <tr><td>6</td><td>Simba UTC<br><span class="district-badge nyarugenge">Nyarugenge</span></td><td>UTC Building, 5th Floor<br>KN 34 Street, Kiyovu, Nyarugenge District, Kigali</td></tr>
+          <tr><td>7</td><td>Simba Gacuriro<br><span class="district-badge gasabo">Gasabo</span></td><td>Simba Center — KN 4 Ave &amp; KG 14 Ave Intersection<br>Gacuriro, Gasabo District, Kigali</td></tr>
+          <tr><td>8</td><td>Simba Gikondo<br><span class="district-badge kicukiro">Kicukiro</span></td><td>Gikondo Area<br>Kicukiro District, Kigali</td></tr>
+          <tr><td>9</td><td>Simba Sonatube<br><span class="district-badge gasabo">Gasabo</span></td><td>KK 15 Rd, Silverback Mall, B1 Floor<br>Kigali</td></tr>
+          <tr><td>10</td><td>Simba Kisimenti<br><span class="district-badge gasabo">Gasabo</span></td><td>KN 4 Ave, Kisimenti<br>Gasabo District, Kigali</td></tr>
+          <tr><td>11</td><td>Simba Rebero<br><span class="district-badge kicukiro">Kicukiro</span></td><td>Rebero Area<br>Kicukiro District, Kigali</td></tr>
+        </tbody>
+      </table>
+      <div class="contact-box">
+        <h3>Head Office &amp; Contact Information</h3>
+        <div class="contact-grid">
+          <div class="contact-item"><strong>Address</strong>KN 34 Street, Kiyovu, Kigali<br>Nyarugenge District — U.T.C Building, 5th Floor</div>
+          <div class="contact-item"><strong>P.O. Box</strong>190, Kigali, Rwanda</div>
+          <div class="contact-item"><strong>Phone</strong>+250 788 307 200 &nbsp;|&nbsp; +250 791 345 196</div>
+          <div class="contact-item"><strong>Email &amp; Website</strong>info@simbasupermarket.rw<br>simbaonlineshopping.com</div>
+        </div>
+      </div>
+      <div class="notes-box">
+        <h3>Additional Notes</h3>
+        <ul>
+          <li>Branches span all 3 Kigali districts: <b>Nyarugenge, Gasabo, and Kicukiro</b>.</li>
+          <li>Coffee shops available at: <b>Centenary, Gishushu, UTC, Gacuriro, and Kisimenti</b>.</li>
+          <li>The <b>Gacuriro (Simba Center)</b> branch features an Arcade Games entertainment zone.</li>
+          <li>Founded in 2007 by <b>Mr. Teklay Teame</b>, employing over 450 people across Rwanda.</li>
+          <li>Services include: butchery, bakery, coffee shop, and an online shopping platform.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer">
+      Compiled from official sources &nbsp;|&nbsp; <span>Simba Supermarket Ltd</span> &nbsp;|&nbsp; Kigali, Rwanda &nbsp;|&nbsp; April 2026
+    </div>
+  </div>
+
+<div id="claude-agent-glow-border" style="position: fixed; inset: 0px; pointer-events: none; z-index: 2147483646; opacity: 1; transition: opacity 0.3s ease-in-out; animation: 2s ease-in-out 0s infinite normal none running claude-pulse; box-shadow: rgba(217, 119, 87, 0.5) 0px 0px 10px inset, rgba(217, 119, 87, 0.3) 0px 0px 20px inset, rgba(217, 119, 87, 0.1) 0px 0px 30px inset;"></div><div id="claude-agent-stop-container" style="position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 2147483647;"><button id="claude-agent-stop-button" style="position: relative; transform: translateY(0px); padding: 12px 16px; background: rgb(250, 249, 245); color: rgb(20, 20, 19); border: 0.5px solid rgba(31, 30, 29, 0.4); border-radius: 12px; font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: rgba(217, 119, 87, 0.24) 0px 40px 80px, rgba(217, 119, 87, 0.24) 0px 4px 14px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); opacity: 1; user-select: none; pointer-events: auto; white-space: nowrap; margin: 0px auto;">
+      <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" style="margin-right: 12px; vertical-align: middle;">
+        <path d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212Zm40-112v56a12,12,0,0,1-12,12H100a12,12,0,0,1-12-12V100a12,12,0,0,1,12-12h56A12,12,0,0,1,168,100Z"></path>
+      </svg>
+      <span style="vertical-align: middle;">Stop Claude</span>
+    </button></div></body></html>

@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   let subject = "";
   let html = "";
   // order_placed always goes to MANAGER_EMAIL server-side so the client can't redirect it
-  let to = type === "order_placed"
+  const to = type === "order_placed"
     ? (process.env.MANAGER_EMAIL ?? clientTo)
     : clientTo;
 

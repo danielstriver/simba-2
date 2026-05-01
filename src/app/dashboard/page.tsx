@@ -152,23 +152,9 @@ export default function DashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { staffUser, signOut } = useStaffUser();
-  const isDemoMode = !staffUser || (staffUser.role !== "manager" && staffUser.role !== "staff");
-  const effectiveUser = isDemoMode ? DEMO_MANAGER_USER : staffUser!;
+
   const [role, setRole] = useState<Role>("manager");
   const [branchId, setBranchId] = useState(BRANCHES[0].id);
-
-  useEffect(() => {
-    if (isDemoMode) {
-      seedDemoOrders();
-    } else if (staffUser!.role === "staff") {
-      setRole("staff");
-      if (staffUser!.branchId) setBranchId(staffUser!.branchId);
-    } else if (staffUser!.branchId) {
-      setBranchId(staffUser!.branchId);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDemoMode]);
-
   const [staffId, setStaffId] = useState(DEMO_STAFF[0].id);
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<"orders" | "inventory" | "products">("orders");
@@ -176,6 +162,25 @@ export default function DashboardPage() {
   const [refresh, setRefresh] = useState(0);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const isDemoMode = !staffUser || (staffUser.role !== "manager" && staffUser.role !== "staff");
+  const effectiveUser = isDemoMode ? DEMO_MANAGER_USER : staffUser!;
+
+  useEffect(() => {
+    if (isDemoMode) {
+      seedDemoOrders();
+    } else {
+      if (staffUser!.role === "staff") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setRole("staff");
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (staffUser!.id) setStaffId(staffUser!.id);
+      }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (staffUser!.branchId) setBranchId(staffUser!.branchId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDemoMode]);
 
   const reload = useCallback(() => {
     if (isDemoMode) seedDemoOrders();
@@ -225,7 +230,7 @@ export default function DashboardPage() {
 
   const visibleOrders =
     role === "staff"
-      ? orders.filter((o) => o.assignedStaffId === staffId && o.status !== "picked_up" && o.status !== "cancelled")
+      ? filtered.filter((o) => o.assignedStaffId === staffId || (statusFilter === "pending" && !o.assignedStaffId))
       : filtered;
 
   async function doAction(orderId: string, fn: () => void, message?: string) {
@@ -239,6 +244,13 @@ export default function DashboardPage() {
 
   async function doCancel(orderId: string) {
     await doAction(orderId, () => patchOrder(orderId, { status: "cancelled" }), "Order cancelled");
+  }
+
+  async function doDelete(orderId: string) {
+    await doAction(orderId, () => {
+      const { deleteOrder } = require("@/lib/orders");
+      deleteOrder(orderId);
+    }, "Order deleted permanently");
   }
 
   async function doReady(order: Order) {
@@ -441,6 +453,7 @@ export default function DashboardPage() {
                   onReady={() => doReady(order)}
                   onPickedUp={() => doAction(order.id, () => patchOrder(order.id, { status: "picked_up" }), "Order marked as collected")}
                   onCancel={() => doCancel(order.id)}
+                  onDelete={() => doDelete(order.id)}
                   onOutOfStock={(productId) =>
                     doAction(order.id, () => markOutOfStock(branchId, productId), "Product marked out of stock")
                   }
@@ -916,6 +929,7 @@ interface OrderCardProps {
   onReady: () => void;
   onPickedUp: () => void;
   onCancel: () => void;
+  onDelete: () => void;
   onOutOfStock: (productId: number) => void;
   onRestoreStock: (productId: number) => void;
   getStock: (productId: number) => number;
@@ -923,16 +937,18 @@ interface OrderCardProps {
 
 function OrderCard({
   order, role, expanded, loading, onToggle,
-  onAccept, onAssign, onPreparing, onReady, onPickedUp, onCancel,
+  onAccept, onAssign, onPreparing, onReady, onPickedUp, onCancel, onDelete,
   onOutOfStock, onRestoreStock, getStock,
 }: OrderCardProps) {
   const { t } = useLang();
   const statusLabels = getStatusLabels(t);
   const [assignStaff, setAssignStaff] = useState(DEMO_STAFF[0].id);
   const [cancelConfirm, setCancelConfirm] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const detailsId = `order-details-${order.id}`;
 
   const canCancel = role === "manager" && (order.status === "pending" || order.status === "accepted");
+  const canDelete = role === "manager" && (order.status === "cancelled" || order.status === "picked_up");
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -1018,9 +1034,9 @@ function OrderCard({
 
           {/* Customer info */}
           <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-xs space-y-1">
-            <p><span className="text-gray-500">Customer:</span> <span className="font-bold text-gray-900 dark:text-white">{order.userName}</span></p>
+            <p><span className="text-gray-500">{t.customerLabel}:</span> <span className="font-bold text-gray-900 dark:text-white">{order.userName}</span></p>
             <p><span className="text-gray-500">{t.phone}:</span> <span className="font-bold text-gray-900 dark:text-white">{order.userPhone}</span></p>
-            <p><span className="text-gray-500">{t.pickupAt}:</span> <span className="font-bold text-gray-900 dark:text-white">{order.pickupDate} at {order.pickupTime}</span></p>
+            <p><span className="text-gray-500">{t.pickupAt}:</span> <span className="font-bold text-gray-900 dark:text-white">{order.pickupDate} {t.atLabel} {order.pickupTime}</span></p>
             <p><span className="text-gray-500">{t.paymentMethod}:</span> <span className="font-bold text-gray-900 dark:text-white capitalize">{order.paymentMethod}</span></p>
             <p><span className="text-gray-500">{t.deposit}:</span> <span className="font-bold text-green-600">{formatPrice(order.depositPaid)}</span></p>
             {order.assignedStaffName && (
@@ -1109,6 +1125,32 @@ function OrderCard({
                       className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 transition-colors"
                     >
                       No
+                    </button>
+                  </div>
+                )}
+                {/* Delete order — manager only, cancelled or picked up */}
+                {canDelete && !deleteConfirm && (
+                  <button
+                    onClick={() => setDeleteConfirm(true)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-lg transition-colors bg-gray-50 dark:bg-gray-900 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 border border-gray-200 dark:border-gray-800"
+                  >
+                    {t.deletePermanently}
+                  </button>
+                )}
+                {canDelete && deleteConfirm && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold text-red-600">{t.confirmDeleteRecord}</span>
+                    <button
+                      onClick={() => { onDelete(); setDeleteConfirm(false); }}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                    >
+                      <Check className="w-3 h-3" /> {t.yesDelete}
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm(false)}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 transition-colors"
+                    >
+                      {t.cancel}
                     </button>
                   </div>
                 )}

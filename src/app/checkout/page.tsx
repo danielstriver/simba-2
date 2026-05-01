@@ -661,7 +661,7 @@ export default function CheckoutPage() {
             {/* Why this fee */}
             <div className="mt-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
               <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed italic">
-                <strong>Why a packaging fee?</strong> We pack your order before you arrive. This small fee confirms you're committed to picking it up.
+                <strong>Why a packaging fee?</strong> We pack your order before you arrive. This small fee confirms you&apos;re committed to picking it up.
               </p>
             </div>
           </div>

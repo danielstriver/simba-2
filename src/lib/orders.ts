@@ -65,6 +65,12 @@ export function patchOrder(id: string, patch: Partial<Order>): Order | null {
   return updated.find(o => o.id === id) ?? null;
 }
 
+export function deleteOrder(id: string): void {
+  const all = readOrders();
+  const updated = all.filter(o => o.id !== id);
+  writeOrders(updated);
+}
+
 export function getOrderById(id: string): Order | null {
   return readOrders().find(o => o.id === id) ?? null;
 }

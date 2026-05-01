@@ -49,6 +49,39 @@ function buildSynonymMap(): Map<string, string[]> {
 
 const SYNONYM_MAP = buildSynonymMap();
 
+/**
+ * Strip conversational filler to get the core product query.
+ * Useful for both the Assistant and the Search Bar.
+ */
+export function extractQuery(raw: string): string {
+  return raw
+    .toLowerCase()
+    .replace(/\b(got|do you have|do you carry|do you sell|do you stock|have you got|have you|is there|are there|can i get|can i buy|can i find|can you find|can you show|find me|show me|looking for|i need|i want|i am looking for|i'm looking for|searching for|search for|get me|do you)\b/g, "")
+    .replace(/\b(in your store|in the store|in stock|available|please|right now|today|for me|any chance|any)\b/g, "")
+    .replace(/[?!.]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Simple Levenshtein distance for fuzzy matching
+ */
+function levenshtein(a: string, b: string): number {
+  const tmp = [];
+  for (let i = 0; i <= a.length; i++) tmp[i] = [i];
+  for (let j = 0; j <= b.length; j++) tmp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      tmp[i][j] = Math.min(
+        tmp[i - 1][j] + 1,
+        tmp[i][j - 1] + 1,
+        tmp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+    }
+  }
+  return tmp[a.length][b.length];
+}
+
 function expandTerms(query: string): string[] {
   const q = query.toLowerCase();
   const extra: string[] = [];
@@ -71,17 +104,28 @@ function scoreProduct(product: Product, terms: string[]): number {
   if (name.includes(primaryTerm)) score += 100;
   else if (cat.includes(primaryTerm)) score += 50;
 
-  // Synonym/expanded terms in name
-  for (let i = 1; i < terms.length; i++) {
-    if (name.includes(terms[i])) score += 30;
-    else if (cat.includes(terms[i])) score += 15;
-  }
-
   // Word-level matching: each query word that appears in the name
   const queryWords = primaryTerm.split(/\s+/).filter((w) => w.length > 2);
   for (const word of queryWords) {
     if (name.includes(word)) score += 20;
     if (cat.includes(word)) score += 8;
+
+    // Fuzzy word match (handles 1 typo in words longer than 4 chars)
+    if (word.length > 4) {
+      const nameWords = name.split(/\s+/);
+      for (const nw of nameWords) {
+        if (nw.length > 4 && levenshtein(word, nw) <= 1) {
+          score += 15;
+          break;
+        }
+      }
+    }
+  }
+
+  // Synonym/expanded terms in name
+  for (let i = 1; i < terms.length; i++) {
+    if (name.includes(terms[i])) score += 30;
+    else if (cat.includes(terms[i])) score += 15;
   }
 
   // Starts-with bonus
@@ -105,14 +149,14 @@ export interface SearchResult {
 }
 
 export function smartSearch(query: string, products: Product[]): Product[] {
-  const q = query.trim();
-  if (!q) return products;
+  const cleanQ = extractQuery(query);
+  if (!cleanQ) return products;
 
-  const terms = expandTerms(q);
+  const terms = expandTerms(cleanQ);
 
   const results: SearchResult[] = products
     .map((p) => ({ product: p, score: scoreProduct(p, terms) }))
-    .filter((r) => r.score >= 20)   // require at least one real word-level match
+    .filter((r) => r.score >= 20)   // require at least one real match
     .sort((a, b) => b.score - a.score);
 
   return results.map((r) => r.product);
@@ -122,3 +166,4 @@ export function smartSearch(query: string, products: Product[]): Product[] {
 export function quickSearch(query: string, products: Product[], limit = 5): Product[] {
   return smartSearch(query, products).slice(0, limit);
 }
+

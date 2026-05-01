@@ -218,6 +218,12 @@ export const translations = ({
     stockQtyLabel: "Qty",
     inventoryEmpty: "No products tracked yet — place orders to start tracking stock.",
     inventoryEmptyHint: "Stock is deducted automatically when customers place orders.",
+    customerLabel: "Customer",
+    atLabel: "at",
+    deletePermanently: "Delete permanently",
+    confirmDeleteRecord: "Delete this record?",
+    yesDelete: "Yes, delete",
+    orderDeleted: "Order deleted permanently",
   },
   fr: {
     siteName: "Simba Supermarché",
@@ -436,6 +442,12 @@ export const translations = ({
     stockQtyLabel: "Qté",
     inventoryEmpty: "Aucun produit suivi — passez des commandes pour commencer.",
     inventoryEmptyHint: "Le stock est déduit automatiquement lors des commandes.",
+    customerLabel: "Client",
+    atLabel: "à",
+    deletePermanently: "Supprimer définitivement",
+    confirmDeleteRecord: "Supprimer cet enregistrement ?",
+    yesDelete: "Oui, supprimer",
+    orderDeleted: "Commande supprimée définitivement",
   },
   rw: {
     siteName: "Simba Supermarket",
@@ -654,6 +666,12 @@ export const translations = ({
     stockQtyLabel: "Umubare",
     inventoryEmpty: "Nta bicuruzwa birebwaho — tumba kugira ngo utangire.",
     inventoryEmptyHint: "Ibintu bigabanuka vuba igihe abakiriya batumba.",
+    customerLabel: "Umukiriya",
+    atLabel: "saa",
+    deletePermanently: "Siba burundu",
+    confirmDeleteRecord: "Siba aya makuru?",
+    yesDelete: "Yego, siba",
+    orderDeleted: "Itumba ryasibwe burundu",
   },
 // satisfies ensures all Language keys are present; key-completeness across locales
 // is enforced by the _assert* checks below

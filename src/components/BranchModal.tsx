@@ -5,6 +5,7 @@ import { useToast } from "@/components/Toast";
 import { BRANCHES } from "@/lib/branches";
 import { X, MapPin, Check, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useFocusTrap } from "@/lib/hooks";
 
 const DISTRICTS = ["All", "Nyarugenge", "Gasabo", "Kicukiro"] as const;
 type DistrictFilter = typeof DISTRICTS[number];
@@ -34,6 +35,8 @@ export default function BranchModal() {
   const [mounted, setMounted] = useState(false);
   const [filter, setFilter] = useState<DistrictFilter>("All");
 
+  const modalRef = useFocusTrap(showBranchModal, () => setShowBranchModal(false));
+
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(timer);
@@ -55,9 +58,16 @@ export default function BranchModal() {
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300"
         onClick={() => setShowBranchModal(false)}
+        aria-hidden="true"
       />
 
-      <div className="relative bg-white dark:bg-gray-900 w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="branch-modal-title"
+        className="relative bg-white dark:bg-gray-900 w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300"
+      >
 
         {/* Gradient header */}
         <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-amber-600 px-5 pt-4 pb-4">
@@ -66,11 +76,12 @@ export default function BranchModal() {
               <MapPin className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base font-black text-white leading-none">{t.selectBranch}</h3>
+              <h3 id="branch-modal-title" className="text-base font-black text-white leading-none">{t.selectBranch}</h3>
               <p className="text-orange-100 text-[11px] mt-0.5">11 locations across Kigali</p>
             </div>
             <button
               onClick={() => setShowBranchModal(false)}
+              aria-label="Close branch selection modal"
               className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors shrink-0"
             >
               <X className="w-4 h-4 text-white" />

@@ -6,6 +6,7 @@ import { useLang } from "@/lib/LanguageContext";
 import { register, login, requestReset, confirmReset, loginOrCreateGoogleUser } from "@/lib/auth";
 import { signInWithGoogle, isGoogleAuthConfigured } from "@/lib/firebase";
 import { useToast } from "@/components/Toast";
+import { useFocusTrap } from "@/lib/hooks";
 import {
   X, User as UserIcon, Mail, Lock, Phone,
   ArrowRight, LogIn, UserPlus, KeyRound, Eye, EyeOff,
@@ -47,6 +48,8 @@ export default function AuthModal({
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+
+  const modalRef = useFocusTrap(isOpen, onClose);
 
   useEffect(() => {
     if (isOpen) {
@@ -221,13 +224,20 @@ export default function AuthModal({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-gray-900 z-[101] shadow-2xl rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-800 max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
+        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white dark:bg-gray-900 z-[101] shadow-2xl rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-800 max-h-[92vh] overflow-y-auto"
+      >
 
         {/* Header */}
         <div className="relative px-6 pt-8 pb-4 text-center">
           <button
             onClick={onClose}
+            aria-label="Close authentication modal"
             className="absolute right-4 top-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -243,7 +253,7 @@ export default function AuthModal({
               </div>
             )}
           </div>
-          <h2 className="text-2xl font-black text-gray-900 dark:text-white">{title[mode]}</h2>
+          <h2 id="auth-modal-title" className="text-2xl font-black text-gray-900 dark:text-white">{title[mode]}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t.authSubtitle}</p>
         </div>
 

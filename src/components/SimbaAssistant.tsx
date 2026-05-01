@@ -5,7 +5,8 @@ import { getProductImage } from "@/lib/imageMap";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/components/Toast";
 import { useLang } from "@/lib/LanguageContext";
-import { quickSearch } from "@/lib/search";
+import { quickSearch, extractQuery } from "@/lib/search";
+import { useFocusTrap } from "@/lib/hooks";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -39,16 +40,6 @@ declare global {
     SpeechRecognition: new () => ISpeechRecognition;
     webkitSpeechRecognition: new () => ISpeechRecognition;
   }
-}
-
-// ─── Strip conversational filler to get the core product query ───────────────
-function extractQuery(raw: string): string {
-  return raw
-    .toLowerCase()
-    .replace(/\b(got|do you have|do you carry|do you sell|do you stock|have you got|have you|is there|are there|can i get|can i buy|can i find|can you find|can you show|find me|show me|looking for|i need|i want|i am looking for|i'm looking for|searching for|search for|get me|do you)|in your store|in the store|in stock|available|please|right now|today|for me|any chance|any\b/g, "")
-    .replace(/[?!.]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 // ─── NLP: intent + entity extraction ─────────────────────────────────────────
@@ -340,7 +331,6 @@ export default function SimbaAssistant() {
   const pathname = usePathname();
   const { t } = useLang();
 
-  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/staff")) return null;
   const items = useStore((s) => s.items);
   const totalItems = useStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
   const totalPrice = useStore((s) => s.items.reduce((sum, i) => sum + i.product.price * i.quantity, 0));
@@ -379,6 +369,8 @@ export default function SimbaAssistant() {
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const msgId = useRef(1);
 
+  const modalRef = useFocusTrap(open, () => setOpen(false));
+
   // Load products and probe Claude availability
   useEffect(() => {
     getProducts().then((d) => {
@@ -400,15 +392,18 @@ export default function SimbaAssistant() {
 
   // Focus input on open
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 100);
+    if (open) {
+      const timer = setTimeout(() => inputRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
+    }
   }, [open]);
 
-  // Detect touch-only devices so hover tooltip is never shown on them
+  // Detect touch-only devices
   useEffect(() => {
     setIsTouch(window.matchMedia("(hover: none)").matches);
   }, []);
 
-  // Responsive positioning — lift button/panel above mobile bottom nav
+  // Responsive positioning
   useEffect(() => {
     const onResize = () => {
       const mobile = window.innerWidth < 768;
@@ -434,12 +429,14 @@ export default function SimbaAssistant() {
     window.speechSynthesis.speak(utter);
   }, [ttsEnabled]);
 
-  // Build a compressed catalog string (memoised, rebuilt only when products change)
-  const catalog = allProducts
-    .map((p) => `${p.id}|${p.name}|${p.category}|${p.price} RWF/${p.unit}`)
-    .join("\n");
+  // Build a compressed catalog string
+  const catalog = useMemo(() => {
+    return allProducts
+      .map((p) => `${p.id}|${p.name}|${p.category}|${p.price} RWF/${p.unit}`)
+      .join("\n");
+  }, [allProducts]);
 
-  // Send message — try Claude first, fall back to local NLP
+  // Send message
   const send = useCallback(async (text: string, fromVoice = false) => {
     const trimmed = text.trim();
     if (!trimmed || allProducts.length === 0) return;
@@ -453,7 +450,6 @@ export default function SimbaAssistant() {
     let results: Product[] = [];
     let aiUsed = false;
 
-    // Try Claude if available — pass last 6 messages as conversation history
     if (aiAvailable !== false && catalog) {
       try {
         const history = messages
@@ -482,7 +478,6 @@ export default function SimbaAssistant() {
       }
     }
 
-    // Fallback to local rule-based NLP
     if (!aiUsed) {
       await new Promise((r) => setTimeout(r, 400));
       const { intent, query } = detectIntent(trimmed);
@@ -501,7 +496,6 @@ export default function SimbaAssistant() {
     setMessages((prev) => [...prev, botMsg]);
     setThinking(false);
     if (fromVoice) speak(responseText);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allProducts, totalItems, totalPrice, speak, aiAvailable, catalog, messages]);
 
   // Voice input
@@ -533,6 +527,9 @@ export default function SimbaAssistant() {
     setListening(true);
   }, [voiceSupported, listening, send]);
 
+  // Early return if on dashboard/staff pages
+  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/staff")) return null;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     send(input);
@@ -560,6 +557,10 @@ export default function SimbaAssistant() {
       {/* ── Chat Panel — full-screen on mobile, floating panel on desktop ── */}
       {open && (
         <div
+          ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="SIMBA Shopping Assistant"
           className={
             isMobile
               ? "fixed inset-0 z-[9998] flex flex-col bg-white dark:bg-gray-900 animate-in slide-in-from-bottom-8 duration-300 overflow-hidden"
