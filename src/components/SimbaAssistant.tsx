@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { getProducts, Product, formatPrice, CATEGORY_META, CATEGORIES } from "@/lib/products";
 import { getProductImage } from "@/lib/imageMap";
 import { useStore } from "@/lib/store";
