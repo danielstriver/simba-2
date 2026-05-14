@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import Navbar from "@/components/Navbar";
@@ -8,15 +8,26 @@ import SimbaAssistant from "@/components/SimbaAssistant";
 import BranchModal from "@/components/BranchModal";
 import HtmlLang from "@/components/HtmlLang";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import ServiceWorker from "@/components/ServiceWorker";
+
+export const viewport: Viewport = {
+  themeColor: "#ea580c",
+};
 
 export const metadata: Metadata = {
   title: "Simba Supermarket — Rwanda's Online Supermarket",
   description: "Shop groceries, cosmetics, drinks & more. Fast delivery in Kigali, Rwanda.",
   keywords: "Rwanda supermarket, Kigali grocery, online shopping Rwanda, Simba supermarket",
+  manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/images/simba-logo.jpeg",
-    shortcut: "/images/simba-logo.jpeg",
-    apple: "/images/simba-logo.jpeg",
+    icon: "/icons/icon-192x192.png",
+    shortcut: "/icons/icon-192x192.png",
+    apple: "/icons/icon-180x180.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SIMBA",
   },
 };
 
@@ -35,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SimbaAssistant />
           <BranchModal />
           <MobileBottomNav />
+          <ServiceWorker />
         </Providers>
       </body>
     </html>

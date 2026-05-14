@@ -45,7 +45,7 @@ The app has four real API routes:
 
 **AI Assistant** — `src/components/SimbaAssistant.tsx` uses a three-tier fallback: (1) `POST /api/claude` (Anthropic SDK, Claude Haiku) → (2) `POST /api/groq` (Groq) → (3) local rule-based NLP pipeline. The Claude route returns structured JSON via forced tool use; the fallback pipeline uses the search scorer directly. Supports voice input via Web Speech API and TTS via SpeechSynthesis.
 
-**Product catalog management** — `src/lib/productCatalog.ts` allows managers to add/edit/delete products. Custom products are stored in `"simba-custom-products"` and field overrides for catalog products in `"simba-product-overrides"`. Always call `clearProductCache()` after any mutation (the helpers do this automatically). The dashboard's product management tab lives in `src/app/dashboard/ProductsPanel.tsx`.
+**Product catalog management** — `src/lib/productCatalog.ts` allows managers to add/edit/delete products. Custom products are stored in `"simba-custom-products"` and field overrides for catalog products in `"simba-product-overrides"`. Always call `clearProductCache()` after any mutation (the helpers do this automatically). The dashboard's product management tab lives in `src/app/dashboard/ProductsPanel.tsx`. Visibility (hide/show) for catalog products is managed separately via `src/lib/catalogFlags.ts`, which stores hidden product IDs in localStorage under `"simba-hidden-products"`.
 
 **Email notifications** — `src/lib/emails.ts` exports pure HTML template functions. `POST /api/notify` calls these and delivers via Resend. Triggered client-side at order placement (→ manager), order status change to `ready` (→ customer), and auth flows. For `order_placed`, the server always sends to `MANAGER_EMAIL` env var if set, ignoring the client-supplied address.
 
@@ -54,6 +54,12 @@ The app has four real API routes:
 **Dark mode** — Uses `next-themes` with class-based toggling. Tailwind v4 requires a custom variant in `globals.css` (`@custom-variant dark (&:where(.dark, .dark *))`) instead of the default media-query approach. All dark styles use `dark:` prefix.
 
 **Images** — `src/lib/imageMap.ts` exports `getProductImage()`, which maps product names/categories to Unsplash fallbacks when Cloudinary URLs are broken. Always use `getProductImage()` rather than the raw `image` field.
+
+**UI feedback** — `src/components/Toast.tsx` provides a context-based toast system with three types (`"success"` | `"error"` | `"cart"`), 5-second auto-dismiss, and an optional `sub` subtitle field. Use the `useToast()` hook (from `src/lib/hooks.ts`) to show toasts; `ToastProvider` is already mounted in `src/app/Providers.tsx`. The same file exports `useFocusTrap(isOpen, onClose)` — attach the returned `containerRef` to any modal element to get keyboard focus trapping and Escape-to-close.
+
+**Providers hierarchy** — `src/app/Providers.tsx` wraps the app in: `NextThemesProvider` (class-based, `disableTransitionOnChange`) → `LanguageProvider` → `ToastProvider`. `seedStaffAccounts()` runs inside `LanguageProvider`'s mount effect, so staff accounts are always seeded before any component renders. `HtmlLang.tsx` auto-syncs the `<html lang>` attribute with the active language via `useEffect`.
+
+**Hydration / theme safety** — Components that render theme-dependent UI (colors, icons) must guard against SSR/hydration mismatches. The pattern used throughout: `const [mounted, setMounted] = useState(false); useEffect(() => setMounted(true), []);` — return `null` or a neutral skeleton until `mounted` is true. Do not skip this for any component that reads from `next-themes`.
 
 ### Route structure
 
